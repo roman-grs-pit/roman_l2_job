@@ -191,6 +191,15 @@ Smoke files: `r0000101015521001006_000{1,2,3}_wfi{01..18}_f158_cal.asdf`.
 - **STPSF data missing on import**: `pixi run python -c "import stpsf; stpsf.utils.download_data()"`.
 - **CRDS connection errors**: confirm `echo $CRDS_SERVER_URL` resolves and the
   EC2 SG allows outbound HTTPS.
+- **`TypeError: buffer is too small for requested array` inside
+  `asdf/tags/core/ndarray.py`** (usually hit in `gather_reference_data`):
+  a CRDS reference file on disk is **truncated** — a prior run was OOM-killed
+  or interrupted mid-download. CRDS does not retry broken partial files. Find
+  the outlier and delete it; it will re-download cleanly on the next sim.
+  E.g. for readnoise (all files should be ~65 MB):
+  `ls -lh crds_cache/references/roman/wfi/roman_wfi_readnoise_*.asdf`.
+  Same recipe for other ref types (flats should be ~192 MB, saturation
+  ~129 MB, etc. — compare against the majority size within each class).
 
 ## When extending this bundle
 
@@ -201,3 +210,21 @@ Smoke files: `r0000101015521001006_000{1,2,3}_wfi{01..18}_f158_cal.asdf`.
   `--input <path>`. Downstream is unchanged.
 - New region: re-run `scripts/filter_pointings.py` with different
   `--ra`/`--dec`/`--radius` and regenerate the pointings file.
+
+## Roadmap
+
+Two directions of travel, in rough priority:
+
+1. **Recovery test (the science goal).** Match `SourceCatalogStep` outputs
+   in `output/<tag>/catalog/*_cat.parquet` back to the input catalog in
+   `data/metadata.parquet` (in maggies via `catalogs/sources.parquet`),
+   measure flux bias and completeness vs. input magnitude. Will likely live
+   in a new `scripts/06_compare_catalog.py` and a plotting notebook under
+   `docs/` or `notebooks/`. Not implemented yet.
+2. **Scale-up to full metadata.parquet.** Run over a much larger footprint
+   (wider `filter_pointings.py --radius`, more pointings, eventually
+   multiple filters) on a bigger AWS instance or NERSC Perlmutter. At that
+   scale, stage 02 parallelism and stages 04/05 serial-strun overhead both
+   become the bottleneck; expect this to require revisiting the xargs model
+   (maybe SLURM array jobs, maybe a workflow runner) rather than just
+   bumping `PARALLELISM`.
