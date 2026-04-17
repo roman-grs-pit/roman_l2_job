@@ -1,0 +1,284 @@
+# Tutorial: simulating L2 calibrated images and L3 mosaics
+
+This walks through what the pipeline in this repo actually does — what goes
+in, what comes out of each stage, and why the steps look the way they do.
+If you just want to run it, see `README.md`. If you want to operate it on a
+big instance or debug a failure, see `CLAUDE.md`. This file is for reading.
+
+## What you're building
+
+Starting from a **catalog of simulated sources** and a **list of Roman WFI
+pointings**, the pipeline produces:
+
+- **L2 cal files** — per-exposure, per-SCA calibrated images (18 SCAs per
+  exposure), one `.asdf` file each.
+- **L3 mosaic coadds** — per-skycell deep images that combine every L2
+  exposure overlapping that skycell.
+- **L3 source catalogs** — photometry + segmentation map per mosaic.
+
+The whole point is to measure how well the detection + photometry pipeline
+recovers the input catalog. L2s and L3s are means to that end.
+
+## Inputs
+
+You need two things before running anything:
+
+1. **A source catalog** at `data/metadata.parquet`. Columns: at minimum `ra`,
+   `dec`, `type` (star/galaxy), and a per-bandpass magnitude column (e.g.
+   `F158`). Magnitudes, not fluxes.
+2. **A pointings file** at `pointings_full.ecsv` (and optionally
+   `pointings_smoke.ecsv` for a 1-visit shakedown). One row per exposure,
+   schema described in `catalogs/HLWAS.sim.ecsv`.
+
+Both are already in the repo for the bundled smoke/full runs. Swapping either
+is described in `CLAUDE.md` → "When extending this bundle".
+
+## The pipeline at a glance
+
+```
+                  data/metadata.parquet                catalogs/HLWAS.sim.ecsv
+                  (input sources, mag)                 (survey pointings)
+                           │                                   │
+                           ▼                                   ▼
+                  00_prepare_catalog.py              scripts/filter_pointings.py
+                  catalogs/sources.parquet           pointings_<tag>.ecsv
+                  (maggies)                          (one sub-region)
+                           │                                   │
+                           └─────────────┬─────────────────────┘
+                                         ▼
+                           01_build_script.sh   →  output/<tag>/sims.script
+                                         │        (one romanisim cmd per SCA)
+                                         ▼
+                           02_run_sims.sh       →  output/cal/*_cal.asdf  (L2)
+                                         │
+                                         ▼
+                           03_build_asn.sh      →  output/<tag>/asn/*_asn.json
+                                         │        (one JSON per skycell)
+                                         ▼
+                           04_run_mosaic.sh     →  output/<tag>/mosaic/*_coadd.asdf (L3)
+                                         │
+                                         ▼
+                           05_run_catalog.sh    →  output/<tag>/catalog/*_cat.parquet
+                                                              */_segm.asdf
+```
+
+`<tag>` is `smoke` or `full`. The L2 cal files live in the shared `output/cal/`
+directory — smoke and full share whatever cal files overlap, saving compute.
+
+## Stage walkthrough
+
+### Stage 00a — prepare the source catalog
+
+```
+pixi run python scripts/00_prepare_catalog.py
+```
+
+- **Reads:** `data/metadata.parquet` (F158 column in AB **magnitudes**).
+- **Writes:** `catalogs/sources.parquet` (F158 column in **maggies** —
+  linear AB flux, `10**(-mag/2.5)`).
+- **Why:** `romanisim-make-image` takes fluxes, not magnitudes. Doing the
+  conversion once up front is cheaper and traceable.
+
+### Stage 00b — pick a region of sky (pointings file)
+
+```
+pixi run python scripts/filter_pointings.py \
+    -i catalogs/HLWAS.sim.ecsv -o pointings_full.ecsv \
+    --ra 10 --dec 0 --radius 0.5 --bandpass F158
+```
+
+- **Reads:** `catalogs/HLWAS.sim.ecsv` (the survey-scale simulated pointings).
+- **Writes:** `pointings_<tag>.ecsv` — a handful of rows, one per exposure,
+  covering your chosen sub-region.
+- **Why:** `HLWAS.sim.ecsv` has ~200k pointings over the whole survey. You
+  want a handful over a patch of sky where your `metadata.parquet` catalog
+  has sources. This step is where the **footprint** and **filter choice**
+  are set. The filter keeps every exposure of a visit if any dither lands
+  inside the selection radius — so you always get all 3 dithers.
+
+### Stage 01 — build the sims command script
+
+```
+pixi run bash scripts/01_build_script.sh smoke
+```
+
+- **Reads:** `pointings_smoke.ecsv`, `catalogs/sources.parquet`.
+- **Writes:** `output/smoke/sims.script` — one line per (exposure × SCA)
+  combination. 3 exposures × 18 SCAs = 54 lines for smoke.
+- **What happens:** `scripts/make_stack.py` (a vendored, patched
+  `romanisim-make-stack`) expands the pointings file into
+  `romanisim-make-image` invocations. Each line:
+  - writes to `output/cal/r<visit-id>_<exposure>_wfi<sca>_f158_cal.asdf`
+  - uses `--psftype stpsf` (realistic per-SCA PSF)
+  - uses `--usecrds` (real calibration reference files)
+  - has a **per-line deterministic seed** — `_postprocess_sims.py` rewrites
+    `--rng_seed` with `crc32(basename)` so each exposure draws its own noise
+    realization (upstream `make_stack` bakes the same seed into every line,
+    which defeats dither averaging)
+  - is wrapped in `[ -f <out> ] || { ... > log 2>&1; }` so re-running skips
+    already-finished sims and keeps a per-sim log
+
+The raw (pre-postprocess) script is kept at `output/<tag>/sims_raw.script`
+for reference.
+
+### Stage 02 — run the sims (L2)
+
+```
+PARALLELISM=4 pixi run bash scripts/02_run_sims.sh smoke
+```
+
+- **Reads:** `sims.script`.
+- **Writes:** `output/cal/*_cal.asdf` (L2 files, ~200 MB each),
+  `output/logs/*.log`.
+- **What happens:** `xargs -P` runs the lines in parallel. Each line calls
+  `romanisim-make-image`, which:
+  1. Reads the source catalog, projects sources through the WCS for that
+     SCA, renders them with the STPSF point-spread function.
+  2. Applies the MA table (`MA_TABLE_NUMBER=1007` for our pointings =
+     High-Latitude-Wide MA table, 5 resultants of 107.52 s total).
+  3. Reads CRDS reference files (saturation, linearity, flat, readnoise,
+     dark, distortion, …), applies them, writes the calibrated L2 asdf.
+- **First run:** CRDS references (~5–10 GB) stream down on demand. Expect
+  an extra 10–15 min of wall time on the first sim per SCA before compute
+  kicks in.
+
+Output naming (from `make_stack`):
+
+```
+r{program:05d=00001}{plan:02d=01}{pass:03d}{segment:03d}{obs:03d=001}{visit:03d}_
+  {exposure:04d}_wfi{sca:02d}_{bandpass.lower()}_cal.asdf
+```
+
+So for smoke you end up with
+`r0000101015521001006_000{1,2,3}_wfi{01..18}_f158_cal.asdf`.
+
+### Stage 03 — build skycell associations
+
+```
+pixi run bash scripts/03_build_asn.sh smoke
+```
+
+- **Reads:** the L2 cal files that match `pointings_smoke.ecsv` (selected
+  by `_select_cal_files.py` so smoke asn never picks up full-only cals).
+- **Writes:** `output/smoke/asn/*_asn.json` — one JSON per skycell.
+- **What a skycell is:** the Roman survey tessellates the sky into fixed
+  skycells (see `romancal.skycell`). Each skycell has a known WCS and
+  pixel grid. An L2 exposure overlaps some number of skycells; `skycell_asn`
+  figures out, for each skycell, which L2 exposures contribute. That
+  mapping is the "association".
+- **`--product-type full`:** one coadd per skycell that combines every
+  contributing exposure from every visit/pass. Alternatives are `pass`
+  (one product per skycell per pass) or `visit` (even more granular) —
+  useful for comparison but eats disk.
+
+For smoke (54 cal files over a ~1° patch) you get ~140 skycells.
+
+### Stage 04 — coadd into L3 mosaics
+
+```
+pixi run bash scripts/04_run_mosaic.sh smoke
+```
+
+- **Reads:** each `*_asn.json`.
+- **Writes:** `output/smoke/mosaic/<skycell>_coadd.asdf`.
+- **What happens:** runs `romancal.pipeline.MosaicPipeline`, which:
+  1. Reads the L2 exposures listed in the asn.
+  2. Resamples them onto the skycell's pixel grid (drizzle-style).
+  3. Combines them with inverse-variance weighting.
+  4. Writes a single coadded `.asdf` with image, error, weight, context,
+     plus metadata.
+- **Memory:** `--steps.resample.in_memory=False` is passed so the resampler
+  streams through exposures instead of loading them all at once. Important
+  on smaller instances.
+
+Skycell coverage varies: a skycell fully covered by all exposures gets a
+~450 MB coadd; one clipped at the edge of the footprint is much smaller.
+Edge coadds can be tiny (<10 MB) and that is fine.
+
+### Stage 05 — extract source catalogs
+
+```
+pixi run bash scripts/05_run_catalog.sh smoke
+```
+
+- **Reads:** each `*_coadd.asdf`.
+- **Writes:** for each mosaic, a `<skycell>_cat.parquet` (the source
+  catalog) and `<skycell>_segm.asdf` (the segmentation map).
+- **What happens:** runs `romancal.source_catalog.SourceCatalogStep`, which
+  applies a segmentation-based detection algorithm, deblends, measures
+  aperture and Kron fluxes, PSF-fit fluxes, shape parameters, etc.
+
+The parquet catalog is what you compare against your input
+`metadata.parquet` to measure recovery — that comparison is the **actual
+science goal** of this pipeline, and it lives outside this repo (for now).
+
+## Running the whole thing
+
+Smoke test:
+
+```bash
+pixi run bash scripts/00_setup.sh
+pixi run python scripts/00_prepare_catalog.py
+for stage in 01_build_script 02_run_sims 03_build_asn 04_run_mosaic 05_run_catalog; do
+    PARALLELISM=4 pixi run bash scripts/${stage}.sh smoke
+done
+pixi run bash scripts/00_status.sh smoke
+```
+
+Full run: same, replacing `smoke` with `full`.
+
+## Inspecting outputs
+
+```bash
+# How many of each output type exists:
+pixi run bash scripts/00_status.sh smoke
+
+# Peek at a cal file:
+pixi run python -c "
+import asdf
+with asdf.open('output/cal/r0000101015521001006_0001_wfi01_f158_cal.asdf') as f:
+    print(f.tree['roman']['meta'].keys())
+    print('data shape:', f.tree['roman']['data'].shape)
+"
+
+# Peek at a mosaic:
+pixi run python -c "
+import asdf
+with asdf.open('output/smoke/mosaic/smoke_p_full_010p00x50y50_f158_coadd.asdf') as f:
+    print(f.tree['roman']['meta']['wcs'])
+    print('data shape:', f.tree['roman']['data'].shape)
+"
+
+# Peek at a catalog:
+pixi run python -c "
+import pyarrow.parquet as pq
+t = pq.read_table('output/smoke/catalog/smoke_p_full_010p00x50y50_f158_cat.parquet')
+print(t.column_names[:15])
+print(t.num_rows, 'sources')
+"
+```
+
+## Where to go next
+
+- **Compare recovered vs input catalogs** — the science step. Match sources
+  between `data/metadata.parquet` and the union of `output/*/catalog/*.parquet`,
+  measure flux bias + completeness as a function of magnitude. Not implemented
+  yet in this repo.
+- **Scale up** — see `CLAUDE.md` → Parallelism and Pointings sections. Wider
+  footprint means re-running `filter_pointings.py` with a larger `--radius`
+  (or bigger instance / NERSC).
+- **New filter** — add the filter's flux column (in maggies) to
+  `data/metadata.parquet`, regenerate sources, regenerate pointings with
+  `--bandpass F184` (or whichever).
+
+## Key design choices (one-liners)
+
+- **Idempotent stages.** Every stage writes to a directory and skips outputs
+  that already exist. Safe to re-run at any time.
+- **Vendored `make_stack.py`.** Upstream crashes without `--apt`; see
+  `CLAUDE.md`. Delete it once upstream is fixed.
+- **Per-line deterministic seeds.** `_postprocess_sims.py` overrides
+  `make_stack`'s constant seed so every exposure has its own noise.
+- **Shared L2 dir, split L3 dirs.** `output/cal/` is shared so smoke cals
+  feed the full run for free. `output/smoke/` and `output/full/` are
+  separate so the sparser smoke mosaics never clobber the deeper full ones.

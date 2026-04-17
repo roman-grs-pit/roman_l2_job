@@ -1,0 +1,22 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: RA, datatype: float64}
+# - {name: DEC, datatype: float64}
+# - {name: PA, datatype: float64}
+# - {name: BANDPASS, datatype: string}
+# - {name: MA_TABLE_NUMBER, datatype: int64}
+# - {name: DURATION, datatype: int64}
+# - {name: PLAN, datatype: int64}
+# - {name: PASS, datatype: int64}
+# - {name: SEGMENT, datatype: int64}
+# - {name: OBSERVATION, datatype: int64}
+# - {name: VISIT, datatype: int64}
+# - {name: EXPOSURE, datatype: int64}
+# - {name: EXPOSURE_TIME, datatype: float64}
+# - {name: TARGET_NAME, datatype: string}
+# schema: astropy-2.0
+RA DEC PA BANDPASS MA_TABLE_NUMBER DURATION PLAN PASS SEGMENT OBSERVATION VISIT EXPOSURE EXPOSURE_TIME TARGET_NAME
+10.111833 0.200645 0.0 F158 1007 139 1 15 521 1 6 1 107.52399 Wide-Field2
+10.192456 0.1218 0.0 F158 1007 139 1 15 521 1 6 2 107.52399 Wide-Field2
+10.334991 -0.017608 0.0 F158 1007 193 1 15 521 1 6 3 107.52399 Wide-Field2

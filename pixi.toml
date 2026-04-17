@@ -1,0 +1,22 @@
+[workspace]
+name = "roman_l2_job"
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+fftw = "*"
+pyarrow = "*"
+
+[pypi-dependencies]
+romancal = "*"
+romanisim = "*"
+stpsf = "*"
+
+[activation.env]
+CRDS_PATH = "$PIXI_PROJECT_ROOT/crds_cache"
+CRDS_SERVER_URL = "https://roman-crds.stsci.edu"
+STPSF_PATH = "$PIXI_PROJECT_ROOT/stpsf-data"
+OMP_NUM_THREADS = "1"
+OPENBLAS_NUM_THREADS = "1"
+MKL_NUM_THREADS = "1"
