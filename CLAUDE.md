@@ -43,11 +43,16 @@ shipped to a Yale Spinup AWS Linux instance. Sizing decisions baked in:
 |---|---|---|---|
 | setup | `00_setup.sh` | — | STPSF data, CRDS dir, `crds_context.log` |
 | catalog prep | `00_prepare_catalog.py` | `data/metadata.parquet` (mag) | `catalogs/sources.parquet` (maggies) |
+| hydrate CRDS | `00_hydrate_crds.sh [bandpass] [pointings]` | pointings file | populated `crds_cache/` |
+| verify CRDS | `00_verify_crds.py` | `crds_cache/` | stdout (+nonzero on outliers) |
 | 01 build | `01_build_script.sh <tag>` | `pointings_<tag>.ecsv`, `sources.parquet` | `output/<tag>/sims.script` |
 | 02 sims | `02_run_sims.sh <tag>` | sims.script | `output/cal/*_cal.asdf`, `output/logs/*.log` |
 | 03 asn | `03_build_asn.sh <tag>` | matching cal files | `output/<tag>/asn/*.json` |
 | 04 mosaic | `04_run_mosaic.sh <tag>` | asn jsons | `output/<tag>/mosaic/*_coadd.asdf` |
 | 05 catalog | `05_run_catalog.sh <tag>` | mosaics | `output/<tag>/catalog/*_cat.parquet`, `*_segm.asdf` |
+
+Stage 02 runs `00_verify_crds.py` as a pre-flight before the parallel xargs;
+set `SKIP_CRDS_VERIFY=1` to bypass it.
 
 `<tag>` is `smoke` (1 visit, 54 sims) or `full` (6 visits, 324 sims).
 Smoke and full **share** `output/cal/` (filenames are unique per visit/exposure/SCA),
@@ -194,12 +199,17 @@ Smoke files: `r0000101015521001006_000{1,2,3}_wfi{01..18}_f158_cal.asdf`.
 - **`TypeError: buffer is too small for requested array` inside
   `asdf/tags/core/ndarray.py`** (usually hit in `gather_reference_data`):
   a CRDS reference file on disk is **truncated** — a prior run was OOM-killed
-  or interrupted mid-download. CRDS does not retry broken partial files. Find
-  the outlier and delete it; it will re-download cleanly on the next sim.
-  E.g. for readnoise (all files should be ~65 MB):
-  `ls -lh crds_cache/references/roman/wfi/roman_wfi_readnoise_*.asdf`.
-  Same recipe for other ref types (flats should be ~192 MB, saturation
-  ~129 MB, etc. — compare against the majority size within each class).
+  or interrupted mid-download. CRDS does not retry broken partial files. Run
+  `pixi run python scripts/00_verify_crds.py` to find the outliers; delete
+  them and re-run `scripts/00_hydrate_crds.sh`, which re-fetches missing
+  references serially (no parallel-download race). Stage 02 runs the verify
+  step as a pre-flight, so fresh corruption is caught before xargs spins up.
+- **Stage 04 / 05 downloads references the first time**. CRDS hydration
+  currently covers only stage 02 (romanisim). `MosaicPipeline` and
+  `SourceCatalogStep` fetch their own reference types on first use. Since
+  stages 04 and 05 run serially today there is no multi-worker race, but
+  a crash mid-download has the same partial-file risk — re-run
+  `00_verify_crds.py` afterward if in doubt.
 
 ## When extending this bundle
 

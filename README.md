@@ -26,16 +26,20 @@ scp metadata.parquet user@host:roman_l2_job/data/
 pixi install
 pixi run bash scripts/00_setup.sh
 pixi run python scripts/00_prepare_catalog.py
+
+# (optional, recommended) pre-populate the CRDS reference cache serially,
+# so parallel stage-02 workers never race on the same download:
+pixi run bash scripts/00_hydrate_crds.sh
 ```
 
 ## Smoke test
 
 ```bash
-pixi run bash scripts/01_build_script.sh smoke   # writes output/smoke/sims.script
-pixi run bash scripts/02_run_sims.sh   smoke     # ~15 min (8-way), populates output/cal/
-pixi run bash scripts/03_build_asn.sh  smoke     # output/smoke/asn/
-pixi run bash scripts/04_run_mosaic.sh smoke     # output/smoke/mosaic/
-pixi run bash scripts/05_run_catalog.sh smoke    # output/smoke/catalog/
+pixi run bash scripts/01_build_script.sh smoke            # writes output/smoke/sims.script
+PARALLELISM=4 pixi run bash scripts/02_run_sims.sh smoke  # ~2 hr (4-way), populates output/cal/
+pixi run bash scripts/03_build_asn.sh  smoke              # output/smoke/asn/
+pixi run bash scripts/04_run_mosaic.sh smoke              # output/smoke/mosaic/
+pixi run bash scripts/05_run_catalog.sh smoke             # output/smoke/catalog/
 pixi run bash scripts/00_status.sh     smoke
 ```
 

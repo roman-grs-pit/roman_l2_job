@@ -96,6 +96,30 @@ pixi run python scripts/filter_pointings.py \
   are set. The filter keeps every exposure of a visit if any dither lands
   inside the selection radius — so you always get all 3 dithers.
 
+### Stage 00c (optional but recommended) — hydrate the CRDS cache
+
+```
+pixi run bash scripts/00_hydrate_crds.sh           # default F158
+pixi run bash scripts/00_hydrate_crds.sh F184      # other bandpass
+```
+
+- **Reads:** CRDS server (on first run); reads only the on-disk cache on re-runs.
+- **Writes:** populated `crds_cache/references/roman/wfi/*.asdf`.
+- **What happens:** calls `crds.getreferences()` once per (SCA, bandpass)
+  pair for the 10 reference types romanisim fetches with `--usecrds`
+  (dark, flat, gain, distortion, readnoise, saturation, linearity,
+  inverselinearity, integralnonlinearity, darkdecaysignal). No simulation
+  is run — it's a pure CRDS lookup + download. Cold-cache cost: whatever
+  it takes to download a few GB of refs. Warm-cache cost: under a second.
+- **Why:** stage 02 runs several workers in parallel, all sharing one
+  CRDS cache. If a worker is OOM-killed mid-download, the partial
+  reference file confuses every subsequent sim with a cryptic "buffer is
+  too small" crash. Hydrating serially up front (single process, one
+  getreferences call per SCA) rules out that failure class.
+- **Verify:** `pixi run python scripts/00_verify_crds.py` scans the cache
+  for size outliers per reference type. Safe to re-run any time; stage 02
+  runs it as a pre-flight.
+
 ### Stage 01 — build the sims command script
 
 ```

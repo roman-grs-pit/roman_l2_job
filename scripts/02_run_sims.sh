@@ -14,6 +14,17 @@ PARALLELISM="${PARALLELISM:-$(nproc)}"
 
 [ -f "$SCRIPT" ] || { echo "missing $SCRIPT (run 01_build_script.sh $TAG first)"; exit 1; }
 
+# Pre-flight: sanity-check the CRDS cache for truncated references left
+# behind by a prior crashed run. Set SKIP_CRDS_VERIFY=1 to bypass.
+if [ -z "${SKIP_CRDS_VERIFY:-}" ]; then
+    if ! pixi run python scripts/00_verify_crds.py; then
+        echo
+        echo "CRDS cache check failed. Delete the flagged files and re-run,"
+        echo "or set SKIP_CRDS_VERIFY=1 to bypass this check."
+        exit 1
+    fi
+fi
+
 N=$(wc -l < "$SCRIPT")
 echo "Running ${N} sims with ${PARALLELISM} workers..."
 START=$(date +%s)
