@@ -10,9 +10,10 @@
 # "buffer is too small for requested array" error. Hydrating serially up
 # front avoids the race entirely.
 #
-# Scope: stage 02 (romanisim) only. Reference types for stages 04/05
-# (photom, area, apcorr, ...) are fetched on-demand by those stages; since
-# they run serially today there is no multi-worker race there.
+# Scope: stage 02 (romanisim) and stages 04/05 (romancal MosaicPipeline +
+# SourceCatalogStep) reference types. See scripts/_hydrate_crds.py for the
+# full list and the recipe for extending it when romanisim / romancal
+# change what they fetch.
 #
 # Safe to re-run: CRDS fast-skips files already on disk.
 #

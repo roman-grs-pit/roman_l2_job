@@ -9,9 +9,9 @@ population is a pure metadata + download operation and finishes in ~5–15 s
 against a warm cache, or in however long it takes to download the refs
 otherwise.
 
-The list of reference types mirrors `romanisim.parameters.reference_data`
-(all keys are set to None when `--usecrds` is passed, forcing a CRDS
-fetch). If romanisim grows or shrinks that list, update REFTYPES below.
+The list of reference types covers both stage 02 (romanisim) and stages
+04/05 (romancal MosaicPipeline + SourceCatalogStep). See the comment
+above REFTYPES for how to update the list when upstream changes.
 """
 import argparse
 import sys
@@ -20,9 +20,30 @@ import time
 import crds
 
 
-# From romanisim.parameters.reference_data: keys romanisim hands to
-# crds.getreferences() when the user passes --usecrds.
+# How REFTYPES was assembled — update this if/when romanisim or romancal
+# grow or shrink their CRDS usage:
+#
+#   stage 02 (romanisim-make-image --usecrds): read the keys of
+#       romanisim.parameters.reference_data. romanisim sets every value
+#       there to None when --usecrds is passed, which forces a CRDS fetch
+#       for each key. Verify with:
+#           pixi run python -c "from romanisim import parameters; \
+#               print(list(parameters.reference_data))"
+#
+#   stages 04/05 (romancal MosaicPipeline + SourceCatalogStep): empirical.
+#       After a full smoke + full run, list the reference-type prefixes
+#       that appear in crds_cache/references/roman/wfi/ but are NOT in the
+#       romanisim list above. Verify with:
+#           ls crds_cache/references/roman/wfi/ \
+#               | sed -E 's/roman_wfi_([a-z]+)_.*/\1/' | sort -u
+#       and cross-reference against REFTYPES below. Anything new is a
+#       candidate addition.
+#
+# If romancal's Step classes expose a stable `reference_file_types`
+# attribute in a future version, prefer walking that to empirical
+# cache-watching — it's less brittle.
 REFTYPES = [
+    # stage 02 — romanisim
     "dark",
     "darkdecaysignal",
     "distortion",
@@ -33,6 +54,11 @@ REFTYPES = [
     "integralnonlinearity",
     "readnoise",
     "saturation",
+    # stages 04/05 — romancal MosaicPipeline + SourceCatalogStep
+    "apcorr",
+    "epsf",
+    "matable",
+    "skycells",
 ]
 
 
