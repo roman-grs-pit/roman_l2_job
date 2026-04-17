@@ -2,15 +2,17 @@
 # Stage 05: run SourceCatalogStep on each mosaic in this tag.
 # Outputs per-mosaic: <root>_cat.parquet (catalog), <root>_segm.asdf (segmap).
 # Skip-if-exists by checking the catalog parquet.
-# Usage: 05_run_catalog.sh <smoke|full>
+# Usage: 05_run_catalog.sh configs/<tag>.yaml
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
 
-TAG="${1:-smoke}"
+CONFIG="${1:-}"
+[ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
+eval "$(pixi run python scripts/_config.py "$CONFIG")"
+
 MOSAIC_DIR="output/${TAG}/mosaic"
 CAT_DIR="output/${TAG}/catalog"
-[ -d "$MOSAIC_DIR" ] || { echo "missing $MOSAIC_DIR (run 04_run_mosaic.sh $TAG first)"; exit 1; }
+[ -d "$MOSAIC_DIR" ] || { echo "missing $MOSAIC_DIR (run 04_run_mosaic.sh $CONFIG first)"; exit 1; }
 mkdir -p "$CAT_DIR"
 
 MOSAICS=("$MOSAIC_DIR"/*_coadd.asdf)

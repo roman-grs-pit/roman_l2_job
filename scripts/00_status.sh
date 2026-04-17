@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# Stage status: count expected vs actual outputs for a given tag.
-# Usage: 00_status.sh <smoke|full>
+# Stage status: count expected vs actual outputs for a given config.
+# Usage: 00_status.sh configs/<tag>.yaml
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
 
-TAG="${1:-smoke}"
+CONFIG="${1:-}"
+[ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
+eval "$(pixi run python scripts/_config.py "$CONFIG")"
+
 POINTINGS="pointings_${TAG}.ecsv"
-[ -f "$POINTINGS" ] || { echo "no $POINTINGS"; exit 1; }
+[ -f "$POINTINGS" ] || { echo "no $POINTINGS (run 01_build_script.sh $CONFIG first)"; exit 1; }
 
 NEXP=$(awk '!/^#/ && NF { if (++n>1) print }' "$POINTINGS" | wc -l | tr -d ' ')
 EXPECTED_CAL=$(( NEXP * 18 ))

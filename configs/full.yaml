@@ -1,0 +1,21 @@
+# Full-run config: 6 visits, 324 sims. ~11 hr / ~$4 on m5a.2xlarge at 4-way.
+tag: full
+
+catalog:
+  input: data/metadata.parquet
+  input_units: mag
+  bandpass_col: F158
+
+pointings:
+  region:
+    type: cone
+    ra: 10.0
+    dec: 0.0
+    radius_deg: 0.5
+  bandpass: F158
+  only_pass: null             # keep all visits matching the region
+  only_segment: null
+  only_visit: null
+
+run:
+  parallelism: 4

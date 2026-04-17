@@ -39,25 +39,34 @@ shipped to a Yale Spinup AWS Linux instance. Sizing decisions baked in:
 
 ## Pipeline shape
 
+Every stage (except `00_setup.sh` and `00_verify_crds.py`) takes a YAML
+config path as its single argument — `configs/<tag>.yaml`. The config
+carries tag, catalog path + units, pointings region (cone or box),
+bandpass, visit restrictions, and parallelism. `scripts/_config.py` is
+the loader; bash stages source exports via `eval "$(... _config.py
+$CONFIG)"`.
+
 | Stage | Script | Reads | Writes |
 |---|---|---|---|
 | setup | `00_setup.sh` | — | STPSF data, CRDS dir, `crds_context.log` |
-| catalog prep | `00_prepare_catalog.py` | `data/metadata.parquet` (mag) | `catalogs/sources.parquet` (maggies) |
-| hydrate CRDS | `00_hydrate_crds.sh [bandpass] [pointings]` | pointings file | populated `crds_cache/` |
+| catalog prep | `00_prepare_catalog.py <config>` | `catalog.input` from config | `catalogs/sources.parquet` (maggies) |
+| hydrate CRDS | `00_hydrate_crds.sh <config>` | CRDS server | populated `crds_cache/` |
 | verify CRDS | `00_verify_crds.py` | `crds_cache/` | stdout (+nonzero on outliers) |
-| 01 build | `01_build_script.sh <tag>` | `pointings_<tag>.ecsv`, `sources.parquet` | `output/<tag>/sims.script` |
-| 02 sims | `02_run_sims.sh <tag>` | sims.script | `output/cal/*_cal.asdf`, `output/logs/*.log` |
-| 03 asn | `03_build_asn.sh <tag>` | matching cal files | `output/<tag>/asn/*.json` |
-| 04 mosaic | `04_run_mosaic.sh <tag>` | asn jsons | `output/<tag>/mosaic/*_coadd.asdf` |
-| 05 catalog | `05_run_catalog.sh <tag>` | mosaics | `output/<tag>/catalog/*_cat.parquet`, `*_segm.asdf` |
+| 01 build | `01_build_script.sh <config>` | pointings (regenerated from config if missing), `sources.parquet` | `output/<tag>/sims.script` |
+| 02 sims | `02_run_sims.sh <config>` | sims.script | `output/cal/*_cal.asdf`, `output/logs/*.log` |
+| 03 asn | `03_build_asn.sh <config>` | matching cal files | `output/<tag>/asn/*.json` |
+| 04 mosaic | `04_run_mosaic.sh <config>` | asn jsons | `output/<tag>/mosaic/*_coadd.asdf` |
+| 05 catalog | `05_run_catalog.sh <config>` | mosaics | `output/<tag>/catalog/*_cat.parquet`, `*_segm.asdf` |
 
 Stage 02 runs `00_verify_crds.py` as a pre-flight before the parallel xargs;
 set `SKIP_CRDS_VERIFY=1` to bypass it.
 
-`<tag>` is `smoke` (1 visit, 54 sims) or `full` (6 visits, 324 sims).
-Smoke and full **share** `output/cal/` (filenames are unique per visit/exposure/SCA),
-but **separate** their asn/mosaic/catalog outputs so a deeper full-run mosaic
-never collides with a sparser smoke-run mosaic of the same skycell.
+Tag examples: `smoke` (1 visit, 54 sims) and `full` (6 visits, 324 sims).
+The two shipped configs share the same `pointings.region` but differ on
+`only_pass/segment/visit`. Smoke and full **share** `output/cal/` (filenames
+are unique per visit/exposure/SCA), but **separate** their asn/mosaic/catalog
+outputs so a deeper full-run mosaic never collides with a sparser smoke-run
+mosaic of the same skycell.
 
 Every stage is idempotent (skip-if-exists). Re-run any stage to pick up
 partial state cheaply.

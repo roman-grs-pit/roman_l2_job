@@ -1,0 +1,22 @@
+# Smoke-test config: one visit, 54 sims end-to-end in ~2 hr at 4-way.
+# Reproduces the behaviour of the original `smoke` tag byte-for-byte.
+tag: smoke
+
+catalog:
+  input: data/metadata.parquet
+  input_units: mag            # mag → converted to maggies by 00_prepare_catalog.py
+  bandpass_col: F158
+
+pointings:
+  region:
+    type: cone
+    ra: 10.0
+    dec: 0.0
+    radius_deg: 0.5
+  bandpass: F158
+  only_pass: 15
+  only_segment: 521
+  only_visit: 6
+
+run:
+  parallelism: 4              # SMT threads × 4 physical cores on m5a.2xlarge

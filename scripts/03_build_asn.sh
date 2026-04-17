@@ -2,12 +2,14 @@
 # Stage 03: build skycell associations from the L2 _cal.asdf files for this tag.
 # Selects only the cal files matching pointings_<tag>.ecsv (so smoke and full
 # don't pollute each other), then runs skycell_asn --product-type full.
-# Usage: 03_build_asn.sh <smoke|full>
+# Usage: 03_build_asn.sh configs/<tag>.yaml
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
 
-TAG="${1:-smoke}"
+CONFIG="${1:-}"
+[ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
+eval "$(pixi run python scripts/_config.py "$CONFIG")"
+
 POINTINGS="pointings_${TAG}.ecsv"
 ASN_DIR="output/${TAG}/asn"
 [ -f "$POINTINGS" ] || { echo "missing $POINTINGS"; exit 1; }
@@ -18,7 +20,7 @@ CAL_LIST=$(pixi run python scripts/_select_cal_files.py "$POINTINGS" \
     --cal-dir output/cal --require-exists)
 
 if [ -z "$CAL_LIST" ]; then
-    echo "no L2 cal files found for $TAG -- run 02_run_sims.sh $TAG first"
+    echo "no L2 cal files found for tag=${TAG} -- run 02_run_sims.sh $CONFIG first"
     exit 1
 fi
 

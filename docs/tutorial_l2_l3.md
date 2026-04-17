@@ -67,55 +67,62 @@ directory — smoke and full share whatever cal files overlap, saving compute.
 
 ## Stage walkthrough
 
+Every stage takes a YAML config (`configs/<tag>.yaml`) that fixes the
+source catalog path, input units, pointings region, filter, visit
+restrictions, and parallelism. `configs/smoke.yaml` and `configs/full.yaml`
+ship with the repo; copy one to start a new run.
+
 ### Stage 00a — prepare the source catalog
 
 ```
-pixi run python scripts/00_prepare_catalog.py
+pixi run python scripts/00_prepare_catalog.py configs/smoke.yaml
 ```
 
-- **Reads:** `data/metadata.parquet` (F158 column in AB **magnitudes**).
-- **Writes:** `catalogs/sources.parquet` (F158 column in **maggies** —
-  linear AB flux, `10**(-mag/2.5)`).
-- **Why:** `romanisim-make-image` takes fluxes, not magnitudes. Doing the
-  conversion once up front is cheaper and traceable.
+- **Reads:** `catalog.input` from the config.
+- **Writes:** `catalogs/sources.parquet`, always in maggies.
+- **What happens:** if `catalog.input_units: mag`, converts the column
+  named `catalog.bandpass_col` from AB magnitudes to maggies (`10**(-mag/2.5)`).
+  If `input_units: maggies`, passes through unchanged.
+- **Why:** `romanisim-make-image` takes fluxes, not magnitudes. Keeping the
+  unit conversion here means downstream stages are unit-agnostic.
 
 ### Stage 00b — pick a region of sky (pointings file)
 
+Regeneration is automatic: stage 01 calls `filter_pointings.py` if
+`pointings_<tag>.ecsv` is missing. You can also run it explicitly:
+
 ```
-pixi run python scripts/filter_pointings.py \
-    -i catalogs/HLWAS.sim.ecsv -o pointings_full.ecsv \
-    --ra 10 --dec 0 --radius 0.5 --bandpass F158
+pixi run python scripts/filter_pointings.py configs/smoke.yaml
 ```
 
-- **Reads:** `catalogs/HLWAS.sim.ecsv` (the survey-scale simulated pointings).
-- **Writes:** `pointings_<tag>.ecsv` — a handful of rows, one per exposure,
-  covering your chosen sub-region.
-- **Why:** `HLWAS.sim.ecsv` has ~200k pointings over the whole survey. You
-  want a handful over a patch of sky where your `metadata.parquet` catalog
-  has sources. This step is where the **footprint** and **filter choice**
-  are set. The filter keeps every exposure of a visit if any dither lands
-  inside the selection radius — so you always get all 3 dithers.
+- **Reads:** `catalogs/HLWAS.sim.ecsv` (full survey pointings) + config.
+- **Writes:** `pointings_<tag>.ecsv` (gitignored — the config is the
+  source of truth).
+- **What happens:** filters to rows matching `pointings.bandpass`, keeps
+  visits whose exposures fall inside `pointings.region` (cone or box),
+  then applies optional `only_pass/segment/visit` restrictions. The filter
+  keeps every exposure of a matching visit (all 3 dithers).
+- **Box example:** set `region.type: box` and `ra_min/ra_max/dec_min/dec_max`
+  instead of `ra/dec/radius_deg`.
 
 ### Stage 00c (optional but recommended) — hydrate the CRDS cache
 
 ```
-pixi run bash scripts/00_hydrate_crds.sh           # default F158
-pixi run bash scripts/00_hydrate_crds.sh F184      # other bandpass
+pixi run bash scripts/00_hydrate_crds.sh configs/smoke.yaml
 ```
 
 - **Reads:** CRDS server (on first run); reads only the on-disk cache on re-runs.
 - **Writes:** populated `crds_cache/references/roman/wfi/*.asdf`.
 - **What happens:** calls `crds.getreferences()` once per (SCA, bandpass)
-  pair for the 10 reference types romanisim fetches with `--usecrds`
-  (dark, flat, gain, distortion, readnoise, saturation, linearity,
-  inverselinearity, integralnonlinearity, darkdecaysignal). No simulation
-  is run — it's a pure CRDS lookup + download. Cold-cache cost: whatever
-  it takes to download a few GB of refs. Warm-cache cost: under a second.
+  pair for the 14 reference types our pipeline uses — 10 from romanisim
+  (stage 02) plus `apcorr`, `epsf`, `matable`, `skycells` from romancal
+  (stages 04/05). No simulation is run — pure CRDS lookup + download.
+  Cold-cache cost: whatever it takes to download a few GB of refs.
+  Warm-cache cost: under a second.
 - **Why:** stage 02 runs several workers in parallel, all sharing one
   CRDS cache. If a worker is OOM-killed mid-download, the partial
   reference file confuses every subsequent sim with a cryptic "buffer is
-  too small" crash. Hydrating serially up front (single process, one
-  getreferences call per SCA) rules out that failure class.
+  too small" crash. Hydrating serially up front rules out that class.
 - **Verify:** `pixi run python scripts/00_verify_crds.py` scans the cache
   for size outliers per reference type. Safe to re-run any time; stage 02
   runs it as a pre-flight.
@@ -123,10 +130,11 @@ pixi run bash scripts/00_hydrate_crds.sh F184      # other bandpass
 ### Stage 01 — build the sims command script
 
 ```
-pixi run bash scripts/01_build_script.sh smoke
+pixi run bash scripts/01_build_script.sh configs/smoke.yaml
 ```
 
-- **Reads:** `pointings_smoke.ecsv`, `catalogs/sources.parquet`.
+- **Reads:** `pointings_<tag>.ecsv` (regenerated from config if missing),
+  `catalogs/sources.parquet`.
 - **Writes:** `output/smoke/sims.script` — one line per (exposure × SCA)
   combination. 3 exposures × 18 SCAs = 54 lines for smoke.
 - **What happens:** `scripts/make_stack.py` (a vendored, patched
@@ -148,7 +156,8 @@ for reference.
 ### Stage 02 — run the sims (L2)
 
 ```
-PARALLELISM=4 pixi run bash scripts/02_run_sims.sh smoke
+pixi run bash scripts/02_run_sims.sh configs/smoke.yaml
+# PARALLELISM=<N> to override the config's run.parallelism
 ```
 
 - **Reads:** `sims.script`.
@@ -179,7 +188,7 @@ So for smoke you end up with
 ### Stage 03 — build skycell associations
 
 ```
-pixi run bash scripts/03_build_asn.sh smoke
+pixi run bash scripts/03_build_asn.sh configs/smoke.yaml
 ```
 
 - **Reads:** the L2 cal files that match `pointings_smoke.ecsv` (selected
@@ -200,7 +209,7 @@ For smoke (54 cal files over a ~1° patch) you get ~140 skycells.
 ### Stage 04 — coadd into L3 mosaics
 
 ```
-pixi run bash scripts/04_run_mosaic.sh smoke
+pixi run bash scripts/04_run_mosaic.sh configs/smoke.yaml
 ```
 
 - **Reads:** each `*_asn.json`.
@@ -222,7 +231,7 @@ Edge coadds can be tiny (<10 MB) and that is fine.
 ### Stage 05 — extract source catalogs
 
 ```
-pixi run bash scripts/05_run_catalog.sh smoke
+pixi run bash scripts/05_run_catalog.sh configs/smoke.yaml
 ```
 
 - **Reads:** each `*_coadd.asdf`.
@@ -241,21 +250,23 @@ science goal** of this pipeline, and it lives outside this repo (for now).
 Smoke test:
 
 ```bash
+CFG=configs/smoke.yaml
 pixi run bash scripts/00_setup.sh
-pixi run python scripts/00_prepare_catalog.py
+pixi run python scripts/00_prepare_catalog.py "$CFG"
+pixi run bash scripts/00_hydrate_crds.sh   "$CFG"   # optional
 for stage in 01_build_script 02_run_sims 03_build_asn 04_run_mosaic 05_run_catalog; do
-    PARALLELISM=4 pixi run bash scripts/${stage}.sh smoke
+    pixi run bash scripts/${stage}.sh "$CFG"
 done
-pixi run bash scripts/00_status.sh smoke
+pixi run bash scripts/00_status.sh "$CFG"
 ```
 
-Full run: same, replacing `smoke` with `full`.
+Full run: same, replacing `configs/smoke.yaml` with `configs/full.yaml`.
 
 ## Inspecting outputs
 
 ```bash
 # How many of each output type exists:
-pixi run bash scripts/00_status.sh smoke
+pixi run bash scripts/00_status.sh configs/smoke.yaml
 
 # Peek at a cal file:
 pixi run python -c "
@@ -288,12 +299,13 @@ print(t.num_rows, 'sources')
   between `data/metadata.parquet` and the union of `output/*/catalog/*.parquet`,
   measure flux bias + completeness as a function of magnitude. Not implemented
   yet in this repo.
-- **Scale up** — see `CLAUDE.md` → Parallelism and Pointings sections. Wider
-  footprint means re-running `filter_pointings.py` with a larger `--radius`
-  (or bigger instance / NERSC).
-- **New filter** — add the filter's flux column (in maggies) to
-  `data/metadata.parquet`, regenerate sources, regenerate pointings with
-  `--bandpass F184` (or whichever).
+- **Scale up** — see `CLAUDE.md` → Parallelism and Roadmap sections.
+  Write a new `configs/<tag>.yaml` with a larger cone radius or box
+  bounds, then re-run the stages against that config. Everything else
+  (idempotency, cal sharing) still holds.
+- **New filter** — add the filter's column (maggies) to the input catalog,
+  copy `configs/smoke.yaml` to e.g. `configs/f184.yaml`, set
+  `catalog.bandpass_col: F184` and `pointings.bandpass: F184`.
 
 ## Key design choices (one-liners)
 

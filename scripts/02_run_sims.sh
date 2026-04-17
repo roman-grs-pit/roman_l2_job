@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 # Stage 02: execute the prepared sims.script in parallel.
-# Uses xargs -P PARALLELISM (default = nproc).
+# Uses xargs -P with the config's run.parallelism.
 # BLAS threads are pinned via pixi activation.env (OMP/OPENBLAS/MKL = 1).
 # Each line is wrapped with skip-if-exists, so re-runs cheaply pick up partial state.
-# Usage: 02_run_sims.sh <smoke|full>
+# Pre-flight: runs 00_verify_crds.py unless SKIP_CRDS_VERIFY=1.
+# Usage: 02_run_sims.sh configs/<tag>.yaml
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
 
-TAG="${1:-smoke}"
-SCRIPT="output/${TAG}/sims.script"
-PARALLELISM="${PARALLELISM:-$(nproc)}"
+CONFIG="${1:-}"
+[ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
+eval "$(pixi run python scripts/_config.py "$CONFIG")"
 
-[ -f "$SCRIPT" ] || { echo "missing $SCRIPT (run 01_build_script.sh $TAG first)"; exit 1; }
+SCRIPT="output/${TAG}/sims.script"
+PARALLELISM="${PARALLELISM:-$RUN_PARALLELISM}"
+
+[ -f "$SCRIPT" ] || { echo "missing $SCRIPT (run 01_build_script.sh $CONFIG first)"; exit 1; }
 
 # Pre-flight: sanity-check the CRDS cache for truncated references left
 # behind by a prior crashed run. Set SKIP_CRDS_VERIFY=1 to bypass.

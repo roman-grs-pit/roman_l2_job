@@ -1,23 +1,32 @@
 #!/usr/bin/env bash
-# Stage 01: build sims.script for a given pointings file.
-# - Calls the patched make_stack.py with --make_script
+# Stage 01: build sims.script for a given config.
+# - Regenerates pointings_<tag>.ecsv from the config if missing.
+# - Calls the patched make_stack.py with --make_script.
 # - Post-processes each line to:
 #     * prepend output/cal/ to the output filename
 #     * replace the constant --rng_seed with a deterministic per-line seed
 #     * wrap with `[ -f <out> ] || ... > log 2>&1` for skip-if-exists + per-sim log
-# Usage: 01_build_script.sh <smoke|full>
+# Usage: 01_build_script.sh configs/<tag>.yaml
 set -euo pipefail
-
 cd "$(dirname "$0")/.."
 
-TAG="${1:-smoke}"
+CONFIG="${1:-}"
+[ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
+eval "$(pixi run python scripts/_config.py "$CONFIG")"
+
 POINTINGS="pointings_${TAG}.ecsv"
 RAW="output/${TAG}/sims_raw.script"
 SCRIPT="output/${TAG}/sims.script"
 CATALOG="catalogs/sources.parquet"
 
-[ -f "$POINTINGS" ] || { echo "missing $POINTINGS"; exit 1; }
-[ -f "$CATALOG" ]   || { echo "missing $CATALOG (run 00_prepare_catalog.py first)"; exit 1; }
+[ -f "$CATALOG" ] || { echo "missing $CATALOG (run 00_prepare_catalog.py $CONFIG first)"; exit 1; }
+
+# Regenerate pointings file from config if missing — the config is the
+# source of truth for region + bandpass + visit restrictions.
+if [ ! -f "$POINTINGS" ]; then
+    echo "pointings file $POINTINGS missing; regenerating from $CONFIG..."
+    pixi run python scripts/filter_pointings.py "$CONFIG"
+fi
 
 mkdir -p output/cal output/logs "output/${TAG}"
 
