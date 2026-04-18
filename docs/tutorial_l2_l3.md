@@ -243,7 +243,32 @@ pixi run bash scripts/05_run_catalog.sh configs/smoke.yaml
 
 The parquet catalog is what you compare against your input
 `metadata.parquet` to measure recovery — that comparison is the **actual
-science goal** of this pipeline, and it lives outside this repo (for now).
+science goal** of this pipeline and is done by stage 06 below.
+
+### Stage 06 — compare recovered vs input (recovery test)
+
+```
+pixi run python scripts/06_compare_catalog.py configs/smoke.yaml
+# knobs: --max-skycells 10  --match-arcsec 0.3
+```
+
+- **Reads:** `catalogs/sources.parquet` (input), each skycell's coadd
+  (for WCS + weight map = footprint), each skycell's recovered
+  `_cat.parquet`.
+- **Writes:** `output/<tag>/compare/plots/<skycell>.png` (five panels:
+  completeness vs mag split by PSF/SER, flux residual vs mag,
+  PSF-vs-aperture mag, false-positive rate vs recovered mag, astrometric
+  residual vs mag, plus a text summary pane), and a one-row-per-skycell
+  `summary.csv` with N_input / N_recovered / N_matched / N_FP,
+  50%-completeness mag, median Δmag, median Δpos.
+- **Scope (v1):** per-skycell only (no pooling across skycells), top-N
+  deepest by cal-file count. Kron mag is the reference recovered
+  magnitude for the flux-residual panel. Aperture column is `aper08_flux`;
+  PSF is filtered to `psf_flags == 0`.
+- **Source of truth:** an input source is "expected to be detectable"
+  in a skycell only if its (ra, dec) projects onto a `weight > 0` pixel
+  of that skycell's coadd. Non-detections at the footprint edge don't
+  count against completeness.
 
 ## Running the whole thing
 

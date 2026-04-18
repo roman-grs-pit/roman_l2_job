@@ -57,6 +57,7 @@ $CONFIG)"`.
 | 03 asn | `03_build_asn.sh <config>` | matching cal files | `output/<tag>/asn/*.json` |
 | 04 mosaic | `04_run_mosaic.sh <config>` | asn jsons | `output/<tag>/mosaic/*_coadd.asdf` |
 | 05 catalog | `05_run_catalog.sh <config>` | mosaics | `output/<tag>/catalog/*_cat.parquet`, `*_segm.asdf` |
+| 06 compare | `06_compare_catalog.py <config>` | sources.parquet, coadds, recovered catalogs | `output/<tag>/compare/{plots/*.png, summary.csv}` |
 
 Stage 02 runs `00_verify_crds.py` as a pre-flight before the parallel xargs;
 set `SKIP_CRDS_VERIFY=1` to bypass it.
@@ -234,12 +235,13 @@ Smoke files: `r0000101015521001006_000{1,2,3}_wfi{01..18}_f158_cal.asdf`.
 
 Two directions of travel, in rough priority:
 
-1. **Recovery test (the science goal).** Match `SourceCatalogStep` outputs
-   in `output/<tag>/catalog/*_cat.parquet` back to the input catalog in
-   `data/metadata.parquet` (in maggies via `catalogs/sources.parquet`),
-   measure flux bias and completeness vs. input magnitude. Will likely live
-   in a new `scripts/06_compare_catalog.py` and a plotting notebook under
-   `docs/` or `notebooks/`. Not implemented yet.
+1. **Recovery test (the science goal).** `scripts/06_compare_catalog.py`
+   does the per-skycell comparison: crossmatches input `sources.parquet`
+   against recovered `*_cat.parquet` for the top-N deepest skycells,
+   emits a 5-panel PNG per skycell (completeness, flux residual, PSF vs
+   aperture, FP rate, astrometric residual) plus a `summary.csv`. v1 is
+   per-skycell only and hard-codes Kron mag as the reference recovered
+   mag; pooled-across-skycells and type-confusion would be v2.
 2. **Scale-up to full metadata.parquet.** Run over a much larger footprint
    (wider `filter_pointings.py --radius`, more pointings, eventually
    multiple filters) on a bigger AWS instance or NERSC Perlmutter. At that

@@ -8,6 +8,8 @@ output/smoke/catalog/*
 output/full/asn/*
 output/full/mosaic/*
 output/full/catalog/*
+output/smoke/compare/*
+output/full/compare/*
 output/*/sims.script
 output/*/sims_raw.script
 
