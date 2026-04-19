@@ -72,31 +72,76 @@ def maggies_to_abmag(maggies):
 @dataclass
 class SkycellAnalysis:
     name: str
-    n_cal: int
+    n_asn_members: int          # #cal files whose footprint touches the skycell
+    max_depth: int              # max per-pixel contributor count (from context)
+    pct_depth_3: float          # fraction of valid pixels with depth == 3
+    mean_depth: float           # mean per-pixel depth over weight>0 pixels
     n_input: int                # input sources inside weight>0 footprint
     n_recovered: int            # rows in recovered catalog
     n_matched: int
     n_fp: int                   # recovered with no input match
-    # summary stats
     completeness_overall: float
-    mag_50pct: float            # 50% completeness mag (linear interp), or NaN
+    mag_50pct: float
     median_dmag: float          # recovered Kron − input (matched only)
-    median_dpos_arcsec: float   # |Δpos| for matched, arcsec
+    median_dpos_arcsec: float
 
 
-def rank_skycells_by_depth(asn_dir: Path, max_skycells: int):
-    """Return [(skycell_base, n_cal), ...] sorted by n_cal descending."""
-    asns = sorted(asn_dir.glob("*_asn.json"))
-    ranked = []
-    for p in asns:
+def _depth_from_context(ctx: np.ndarray) -> np.ndarray:
+    """Per-pixel contributor count from a (possibly multi-layer) context array."""
+    if ctx.ndim == 3:
+        pc = np.zeros(ctx.shape[1:], dtype=np.int32)
+        for layer in ctx:
+            pc += np.bitwise_count(layer).astype(np.int32)
+        return pc
+    return np.bitwise_count(ctx).astype(np.int32)
+
+
+def skycell_depth_stats(coadd_path: Path) -> dict:
+    """Open a coadd and summarize per-pixel coverage (depth) stats."""
+    m = rdm.open(coadd_path)
+    ctx = np.asarray(m.context)
+    w = np.asarray(m.weight)
+    valid = w > 0
+    depth = _depth_from_context(ctx)
+    dv = depth[valid]
+    if dv.size == 0:
+        return {"max_depth": 0, "mean_depth": 0.0, "pct_depth_3": 0.0}
+    return {
+        "max_depth": int(dv.max()),
+        "mean_depth": float(dv.mean()),
+        "pct_depth_3": float((dv == 3).mean()),
+    }
+
+
+def rank_skycells_by_depth(asn_dir: Path, mosaic_dir: Path,
+                           max_skycells: int, prefilter_factor: int = 3):
+    """Rank skycells by the fraction of footprint pixels with full per-pixel
+    depth (from the coadd's context bitmask). We first pre-filter by asn
+    member count (which overestimates depth but is cheap to read), then open
+    the coadds for those candidates and re-rank by true depth.
+
+    Returns: [(base, n_asn_members, depth_stats), ...]
+    """
+    all_asn_counts = []
+    for p in sorted(asn_dir.glob("*_asn.json")):
         with p.open() as f:
             d = json.load(f)
         n = len(d["products"][0]["members"])
-        # strip "_asn.json"
         base = p.name[: -len("_asn.json")]
-        ranked.append((base, n))
-    ranked.sort(key=lambda x: (-x[1], x[0]))
-    return ranked[:max_skycells]
+        all_asn_counts.append((base, n))
+    all_asn_counts.sort(key=lambda x: (-x[1], x[0]))
+
+    candidates = all_asn_counts[: max(max_skycells * prefilter_factor,
+                                      max_skycells)]
+    enriched = []
+    for base, n_asn in candidates:
+        coadd_path = mosaic_dir / f"{base}_coadd.asdf"
+        if not coadd_path.is_file():
+            continue
+        stats = skycell_depth_stats(coadd_path)
+        enriched.append((base, n_asn, stats))
+    enriched.sort(key=lambda x: (-x[2]["pct_depth_3"], -x[2]["mean_depth"]))
+    return enriched[:max_skycells]
 
 
 def inside_footprint(wcs, weight: np.ndarray, ras: np.ndarray, decs: np.ndarray):
@@ -139,7 +184,8 @@ def mag_50_completeness(mag_edges, completeness):
     return float("nan")
 
 
-def analyze_skycell(base: str, n_cal: int, cfg, match_arcsec: float,
+def analyze_skycell(base: str, n_asn_members: int, depth_stats: dict,
+                    cfg, match_arcsec: float,
                     mag_bins: np.ndarray, mosaic_dir: Path, cat_dir: Path,
                     input_tbl: Table, plots_dir: Path) -> SkycellAnalysis:
     coadd_path = mosaic_dir / f"{base}_coadd.asdf"
@@ -329,9 +375,13 @@ def analyze_skycell(base: str, n_cal: int, cfg, match_arcsec: float,
     ax_meta.axis("off")
     info = [
         f"skycell: {base}",
-        f"n_cal: {n_cal}",
+        f"n_asn_members: {n_asn_members}",
         f"coadd shape: {m.data.shape[0]}×{m.data.shape[1]}",
         f"footprint fraction: {(weight > 0).mean():.3f}",
+        "",
+        f"max per-pixel depth: {depth_stats['max_depth']}",
+        f"mean per-pixel depth: {depth_stats['mean_depth']:.2f}",
+        f"pct pixels at depth 3: {depth_stats['pct_depth_3']:.1%}",
         "",
         f"n_input in footprint: {n_input}",
         f"n_recovered: {n_recovered}",
@@ -347,14 +397,21 @@ def analyze_skycell(base: str, n_cal: int, cfg, match_arcsec: float,
     ax_meta.text(0.02, 0.98, "\n".join(info), va="top", ha="left",
                  family="monospace", fontsize=10)
 
-    fig.suptitle(f"{base}  (n_cal={n_cal})", fontsize=12)
+    fig.suptitle(
+        f"{base}  (asn_members={n_asn_members}, "
+        f"pct_depth_3={depth_stats['pct_depth_3']:.1%})",
+        fontsize=12)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
     out_path = plots_dir / f"{base}.png"
     fig.savefig(out_path, dpi=110)
     plt.close(fig)
 
     return SkycellAnalysis(
-        name=base, n_cal=n_cal,
+        name=base,
+        n_asn_members=n_asn_members,
+        max_depth=depth_stats["max_depth"],
+        pct_depth_3=depth_stats["pct_depth_3"],
+        mean_depth=depth_stats["mean_depth"],
         n_input=n_input, n_recovered=n_recovered,
         n_matched=n_matched, n_fp=n_fp,
         completeness_overall=comp_overall,
@@ -389,10 +446,12 @@ def main():
     print(f"[config] {args.config}  tag={cfg.tag}")
     print(f"[io] asn={asn_dir}  mosaic={mosaic_dir}  cat={cat_dir}")
 
-    ranked = rank_skycells_by_depth(asn_dir, args.max_skycells)
-    print(f"[rank] processing top-{len(ranked)} skycells by cal-file count:")
-    for base, n in ranked:
-        print(f"         {n:2d}  {base}")
+    ranked = rank_skycells_by_depth(asn_dir, mosaic_dir, args.max_skycells)
+    print(f"[rank] processing top-{len(ranked)} skycells by pct_depth_3 "
+          "(fraction of valid pixels with full 3-exposure coverage):")
+    for base, n_asn, stats in ranked:
+        print(f"         pct_d3={stats['pct_depth_3']:.1%}  "
+              f"mean_d={stats['mean_depth']:.2f}  asn={n_asn:2d}  {base}")
 
     print("[input] loading catalogs/sources.parquet ...")
     input_tbl = Table.read("catalogs/sources.parquet")
@@ -403,11 +462,11 @@ def main():
                          args.mag_step)
 
     results: list[SkycellAnalysis] = []
-    for base, n_cal in ranked:
-        print(f"[skycell] {base}  n_cal={n_cal} ...")
+    for base, n_asn, stats in ranked:
+        print(f"[skycell] {base}  asn={n_asn}  pct_d3={stats['pct_depth_3']:.1%} ...")
         try:
             r = analyze_skycell(
-                base, n_cal, cfg, args.match_arcsec, mag_bins,
+                base, n_asn, stats, cfg, args.match_arcsec, mag_bins,
                 mosaic_dir, cat_dir, input_tbl, plots_dir,
             )
         except FileNotFoundError as e:
@@ -424,13 +483,16 @@ def main():
     with summary_path.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow([
-            "skycell", "n_cal", "n_input", "n_recovered", "n_matched", "n_fp",
+            "skycell", "n_asn_members", "max_depth", "pct_depth_3", "mean_depth",
+            "n_input", "n_recovered", "n_matched", "n_fp",
             "completeness_overall", "mag_50pct", "median_dmag_kron",
             "median_dpos_arcsec",
         ])
         for r in results:
             w.writerow([
-                r.name, r.n_cal, r.n_input, r.n_recovered, r.n_matched, r.n_fp,
+                r.name, r.n_asn_members, r.max_depth,
+                f"{r.pct_depth_3:.4f}", f"{r.mean_depth:.4f}",
+                r.n_input, r.n_recovered, r.n_matched, r.n_fp,
                 f"{r.completeness_overall:.4f}",
                 f"{r.mag_50pct:.3f}" if np.isfinite(r.mag_50pct) else "nan",
                 f"{r.median_dmag:+.4f}" if np.isfinite(r.median_dmag) else "nan",
