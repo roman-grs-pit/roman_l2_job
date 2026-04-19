@@ -18,10 +18,14 @@ website:
         text: Overview
       - href: pipeline.qmd
         text: Pipeline
-      - href: results.qmd
-        text: Results
-      - href: discussion.qmd
-        text: Discussion
+      - section: "Full run"
+        contents:
+          - href: full/design.qmd
+            text: Design
+          - href: full/results.qmd
+            text: Results
+          - href: full/discussion.qmd
+            text: Discussion
 
 format:
   html:

@@ -1,21 +1,155 @@
 ---
-title: "Pipeline architecture"
+title: "Pipeline"
+subtitle: "Architecture, installation, stages — common to every campaign"
 ---
 
-::: {.callout-note}
-This page is a high-level narrative of the pipeline — what each stage does,
-why it's shaped the way it is, and what files it reads and writes. For
-operator-level detail (sizing, parallelism math, CRDS troubleshooting),
-see `CLAUDE.md` in the repo. For the exact file-format schemas, see
+The pipeline is a linear chain of stages driven by a YAML config. The same
+stages and the same code are used for every campaign; only the config
+changes (see the Full run section for the config used in this report). This
+page documents what the pipeline is, how to install it, and what each stage
+does. Campaign-specific numbers live in the per-campaign pages.
+
+## What it does
+
+Starting from:
+
+- an **input source catalog** (maggies per bandpass, ra/dec, type)
+- a **pointings file** carved out of `catalogs/HLWAS.sim.ecsv` by a
+  cone- or box-shaped footprint filter
+
+the pipeline produces:
+
+- **L2 cal files**: one per (exposure × SCA), simulated with
+  `romanisim-make-image` under the real CRDS reference chain.
+- **L3 skycell coadds** and **associations**: Roman skycells that
+  overlap the L2 footprint, coadded with `romancal.pipeline.MosaicPipeline`.
+- **Source catalogs**: per-mosaic detections + photometry via
+  `romancal.source_catalog.SourceCatalogStep`.
+- **Recovery diagnostics**: per-skycell completeness, flux residual,
+  astrometric residual, FP rate, plus an aggregated depth histogram —
+  computed by `scripts/06_compare_catalog.py`.
+
+## Installation
+
+The project is managed by [pixi](https://pixi.sh). Once-only setup on a
+fresh Linux x86_64 host:
+
+```bash
+git clone git@github.com:roman-grs-pit/roman_l2_job.git
+cd roman_l2_job
+
+# install the default env (romanisim, romancal, stpsf, etc.)
+pixi install
+
+# install the report env (quarto + plotting stack)
+pixi install --environment report
+
+# download STPSF data + scaffold CRDS directory
+pixi run bash scripts/00_setup.sh
+
+# pre-populate the CRDS reference cache (serial, avoids parallel races)
+pixi run bash scripts/00_hydrate_crds.sh configs/smoke.yaml
+
+# copy your input catalog into place (not tracked by git)
+scp metadata.parquet user@host:roman_l2_job/data/
+
+# prepare the working catalog (mag → maggies if needed)
+pixi run python scripts/00_prepare_catalog.py configs/smoke.yaml
+```
+
+The env pins Python 3.12 + pinned-version romanisim, romancal, and stpsf.
+See `pixi.toml` for the dependency list. BLAS threads are pinned to 1 in
+the activation env so parallel `xargs -P` workers don't oversubscribe
+the box.
+
+## Pipeline shape
+
+Every numbered stage is a shell script (or Python) taking `configs/<tag>.yaml`
+as its single argument. Outputs are idempotent — each stage skips items
+that already exist, so re-running picks up partial state for free.
+
+| Stage | Script | Reads | Writes |
+|---|---|---|---|
+| setup | `00_setup.sh` | — | STPSF data, CRDS dir |
+| hydrate CRDS | `00_hydrate_crds.sh <config>` | CRDS server | populated `crds_cache/` |
+| verify CRDS | `00_verify_crds.py` | `crds_cache/` | exit nonzero on size outliers |
+| catalog prep | `00_prepare_catalog.py <config>` | `catalog.input` | `catalogs/sources.parquet` (maggies) |
+| filter pointings | `filter_pointings.py <config>` | `catalogs/HLWAS.sim.ecsv` | `pointings_<tag>.ecsv` |
+| 01 build | `01_build_script.sh <config>` | pointings + sources | `output/<tag>/sims.script` |
+| 02 sims | `02_run_sims.sh <config>` | sims.script | `output/cal/*_cal.asdf` |
+| 03 asn | `03_build_asn.sh <config>` | matching cal files | `output/<tag>/asn/*.json` |
+| 04 mosaic | `04_run_mosaic.sh <config>` | asn jsons | `output/<tag>/mosaic/*_coadd.asdf` |
+| 05 catalog | `05_run_catalog.sh <config>` | mosaics | `output/<tag>/catalog/*_cat.parquet` + `*_segm.asdf` |
+| 06 compare | `06_compare_catalog.py <config>` | sources, coadds, recovered catalogs | `output/<tag>/compare/{plots/*.png, summary.csv, depth_distribution.png}` |
+
+Stages 02, 04, and 05 use `xargs -P $PARALLELISM` (default taken from the
+config's `run.parallelism`, env var `PARALLELISM` overrides).
+
+## Configuration
+
+A minimal config (the actual `configs/full.yaml`):
+
+```yaml
+tag: full
+
+catalog:
+  input: data/metadata.parquet
+  input_units: mag            # or "maggies" (no-op the conversion)
+  bandpass_col: F158
+
+pointings:
+  region:
+    type: cone                # or "box" with ra_min/max + dec_min/max
+    ra: 10.0
+    dec: 0.0
+    radius_deg: 0.5
+  bandpass: F158
+  only_pass: null             # optional visit filter, null = no restriction
+  only_segment: null
+  only_visit: null
+
+run:
+  parallelism: 4
+```
+
+Every field is required — no hidden defaults in code. `only_pass/segment/visit`
+accept integer values to carve out sub-selections (the smoke config uses
+them to pick a single-visit subset for quick shake-downs).
+
+`scripts/_config.py` is the loader. It validates the schema and exposes a
+shell-export mode so bash stages can read values via
+`eval "$(pixi run python scripts/_config.py $CONFIG)"`.
+
+## Design choices
+
+A few deliberate deviations from upstream stock `romanisim` / `romancal` worth
+knowing about:
+
+- **Vendored `make_stack.py`.** Upstream `romanisim-make-stack` unconditionally
+  dereferences `apt_metadata` even in the no-APT path, which crashes the
+  script when `--apt` isn't supplied. `scripts/make_stack.py` is a verbatim
+  copy with one 3-line guard added. Delete when upstream merges a fix.
+- **Per-line deterministic seeds.** `romanisim-make-stack --make_script`
+  bakes the same `--rng_seed` into every generated line, defeating noise
+  realization between dithers. `scripts/_postprocess_sims.py` rewrites
+  each seed to `crc32(output_basename)` — reproducible, unique per
+  (visit × exposure × SCA).
+- **CRDS hydrate + verify.** The original smoke run crashed because a
+  worker was OOM-killed mid-CRDS-download, leaving a truncated reference
+  file that then broke every subsequent sim. `00_hydrate_crds.sh`
+  pre-fetches every CRDS reference our pipeline uses (14 reftypes,
+  serially via `crds.getreferences`) so the parallel stage-02 run never
+  races on downloads; `00_verify_crds.py` is a size-outlier check that
+  stage 02 runs as a pre-flight.
+- **Parallelism.** `PARALLELISM=4` on m5a.2xlarge, not the default
+  `nproc`, because the 8 vCPUs are SMT threads over 4 physical cores and
+  8-way romanisim spikes to ~62 GB RAM on a 32 GB box. Stage 04 uses the
+  same value for `strun MosaicPipeline` workers.
+- **Footprint mask = `weight > 0`.** The recovery analysis trusts only
+  sources whose (ra, dec) project onto a valid pixel of the coadd, so
+  edge-of-footprint non-detections don't count against completeness.
+
+For full operator detail (sizing, ETA, memory, troubleshooting recipes),
+see `CLAUDE.md` in the repo. For file-format specifics (recovered
+catalog columns, coadd array names, CRDS dataset dict shape), see
 `docs/data_model_reference.md`.
-:::
-
-## TODO
-
-- Stage-by-stage description (reads/writes/why)
-- Data flow diagram
-- Config schema walkthrough
-- Vendored `make_stack.py` + per-line seed post-processing — the two
-  deliberate deviations from upstream romanisim
-- CRDS hydration + verification design
-- Parallelism choices (stage 02 / 04 / 05) + memory math

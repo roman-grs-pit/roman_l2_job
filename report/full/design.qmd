@@ -1,0 +1,195 @@
+---
+title: "Full run — design"
+subtitle: "Footprint, parameters, and measured zodiacal background"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import sys
+import yaml
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+
+REPO = Path("../..").resolve()
+CONFIG_PATH = REPO / "configs/full.yaml"
+with CONFIG_PATH.open() as f:
+    cfg = yaml.safe_load(f)
+```
+
+## Science motivation
+
+This configuration was built to support simulated **grism observations** of a
+Wide-Field2 sub-region near **(RA = 10°, Dec = 0°)**, at four position angles
+(PA = 0°, 10°, 170°, 180°). We need imaging coverage of the grism reference
+position and a few arcminutes along the dispersion direction so that source
+positions measured from imaging constrain the spectral trace extraction.
+
+## Footprint filter
+
+The pointings file (`pointings_full.ecsv`) is a subset of
+`catalogs/HLWAS.sim.ecsv` (the full HLWAS-survey simulated pointings)
+produced by `scripts/filter_pointings.py`:
+
+```{python}
+#| echo: false
+cone = cfg["pointings"]["region"]
+print(f"region.type      = {cone['type']}")
+print(f"region.ra        = {cone['ra']}°")
+print(f"region.dec       = {cone['dec']}°")
+print(f"region.radius    = {cone['radius_deg']}°")
+print(f"bandpass         = {cfg['pointings']['bandpass']}")
+print(f"only_pass        = {cfg['pointings']['only_pass']}")
+print(f"only_segment     = {cfg['pointings']['only_segment']}")
+print(f"only_visit       = {cfg['pointings']['only_visit']}")
+```
+
+A visit survives the filter if *any* of its dithers lands inside the cone —
+matching visits contribute *all* their dithers (no partial inclusion). The
+`only_pass/segment/visit` nulls here mean no further restriction after the
+region test; the `smoke` config sets these to a single-visit subset.
+
+The selection yields **6 visits × 3 dithers = 18 exposures** across passes 15
+and 16, segments 490 and 521:
+
+```{python}
+#| echo: false
+#| tbl-cap: "The 18 pointings selected by the full-run filter."
+t = Table.read(REPO / "pointings_full.ecsv", format="ascii.ecsv")
+df = t.to_pandas()
+df[["PASS", "SEGMENT", "VISIT", "EXPOSURE", "RA", "DEC", "PA",
+    "BANDPASS", "MA_TABLE_NUMBER", "EXPOSURE_TIME"]]
+```
+
+Passes 15 and 16 share the same (RA, Dec, PA) for every exposure — they are
+**re-observations**, not distinct pointings. That's relevant when interpreting
+per-pixel depth later: the two passes stack at identical dither patterns,
+so depth contributions from them are always paired.
+
+## Pointings map
+
+```{python}
+#| echo: false
+#| fig-cap: "Pointings selected for the full run (red `+`), set against the HLWAS pointings the filter drew from (grey dots). The 0.5° cone used in the filter is drawn. The grism target (10°, 0°) is marked with a star."
+hlwas = Table.read(REPO / "catalogs/HLWAS.sim.ecsv", format="ascii.ecsv")
+hlwas = hlwas[hlwas["BANDPASS"] == cfg["pointings"]["bandpass"]]
+c0 = SkyCoord(ra=cone["ra"]*u.deg, dec=cone["dec"]*u.deg)
+ch = SkyCoord(ra=np.asarray(hlwas["RA"])*u.deg,
+              dec=np.asarray(hlwas["DEC"])*u.deg)
+# Plot only HLWAS pointings nearby, to avoid clutter.
+keep = c0.separation(ch).deg < 2.5
+hn = hlwas[keep]
+
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.scatter(hn["RA"], hn["DEC"], s=3, color="lightgray",
+           label=f"{len(hn)} nearby HLWAS {cone['type']} pointings")
+ax.scatter(df["RA"], df["DEC"], s=80, color="tab:red", marker="+",
+           lw=2, label=f"{len(df)} selected pointings")
+# Draw the filter cone.
+theta = np.linspace(0, 2*np.pi, 200)
+ax.plot(cone["ra"] + cone["radius_deg"]*np.cos(theta)/np.cos(np.deg2rad(cone["dec"])),
+        cone["dec"] + cone["radius_deg"]*np.sin(theta),
+        ls="--", color="k", lw=1, label=f"filter cone r={cone['radius_deg']}°")
+ax.plot(cone["ra"], cone["dec"], marker="*", color="tab:red",
+        markersize=20, label=f"({cone['ra']:.0f}, {cone['dec']:.0f}) grism target")
+ax.set_xlabel("RA (deg)")
+ax.set_ylabel("Dec (deg)")
+ax.invert_xaxis()
+ax.set_aspect("equal")
+ax.grid(True, alpha=0.3)
+ax.legend(loc="upper right")
+ax.set_title("Pointings selected for the full run")
+plt.show()
+```
+
+The 18 selected pointings form **three visit-clusters**: one near
+(9.6°, −0.1°) from segment 490, one near (10.5°, 0°) from segment 521 / visit 5,
+and one near (10.1°, +0.2°) from segment 521 / visit 6. Each cluster deeply
+covers its own ~1 WFI footprint; the *gaps between clusters* are covered
+shallowly, a structural feature of the design we re-encounter in the
+per-skycell depth distribution.
+
+## Run parameters
+
+```{python}
+#| echo: false
+rows = [
+    ("Tag",                 cfg["tag"]),
+    ("Input catalog",       cfg["catalog"]["input"]),
+    ("Input units",         cfg["catalog"]["input_units"]),
+    ("Bandpass column",     cfg["catalog"]["bandpass_col"]),
+    ("Pointings bandpass",  cfg["pointings"]["bandpass"]),
+    ("Region type",         cone["type"]),
+    ("Region centre",       f"({cone['ra']}°, {cone['dec']}°)"),
+    ("Region radius",       f"{cone['radius_deg']}°"),
+    ("Sim PSF type",        "stpsf (from 01_build_script.sh)"),
+    ("MA table number",     int(t["MA_TABLE_NUMBER"][0])),
+    ("Exposure time",       f"{float(t['EXPOSURE_TIME'][0]):.3f} s per exposure"),
+    ("Sim date",            "2026-01-01T00:00:00"),
+    ("N exposures",         f"{len(t)} × 18 SCAs = {len(t)*18} sims"),
+    ("Parallelism (xargs)", cfg["run"]["parallelism"]),
+]
+pd.DataFrame(rows, columns=["parameter", "value"])
+```
+
+## Measured zodiacal background
+
+```{python}
+#| echo: false
+#| tbl-cap: "Sigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN)."
+import roman_datamodels.datamodels as rdm
+from astropy.stats import sigma_clipped_stats
+
+GAIN_MEDIAN_EPERDN = 1.87  # CRDS gain reference median across the 18 SCAs
+L2_GLOB = sorted((REPO / "output/cal").glob(
+    "r0000101015521001006_0001_wfi*_f158_cal.asdf"))
+rows = []
+for p in L2_GLOB:
+    m = rdm.open(p)
+    data = np.asarray(m.data, dtype=np.float64)
+    _, med, std = sigma_clipped_stats(data, sigma=3, maxiters=3)
+    del m
+    sca = int(str(p.name).split("wfi")[1][:2])
+    rows.append({"SCA": sca, "sky_DN_per_s": med,
+                 "sky_e_per_pix_per_s": med * GAIN_MEDIAN_EPERDN})
+sky = pd.DataFrame(rows).sort_values("SCA")
+sky.style.format({"sky_DN_per_s": "{:.4f}",
+                  "sky_e_per_pix_per_s": "{:.3f}"})
+```
+
+```{python}
+#| echo: false
+mean_rate = sky["sky_e_per_pix_per_s"].mean()
+print(f"Mean across 18 SCAs: {mean_rate:.3f} e⁻/pix/s  "
+      f"(range {sky['sky_e_per_pix_per_s'].min():.3f} – "
+      f"{sky['sky_e_per_pix_per_s'].max():.3f})")
+
+c_target = SkyCoord(ra=10*u.deg, dec=0*u.deg)
+ecl = c_target.transform_to("barycentrictrueecliptic")
+print(f"Field at (RA=10, Dec=0): ecliptic latitude {ecl.lat.deg:+.2f}°")
+
+from astropy.coordinates import get_sun
+from astropy.time import Time
+sun = get_sun(Time("2026-01-01T00:00:00"))
+elong = c_target.separation(sun).deg
+print(f"Solar elongation on sim date: {elong:.1f}°")
+
+ratio = mean_rate / 0.375
+print()
+print(f"Reference (zodi pole-min × 1.5): 0.375 e⁻/pix/s")
+print(f"Observed / reference: {ratio:.2f}×")
+```
+
+The measured sky rate is consistent with expectations for a Dec ≈ 0 field
+observed at high elongation (~128°): basically **on the ecliptic** (latitude
+−4°), which is a structurally bright part of the sky. You cannot reach the
+polar-minimum zodi reference from this target. Within the Roman observing
+window (elongation ~54–126°), you want high elongation to minimize zodi, and
+this sim is already near the upper end — moving the sim date would make the
+background *worse*, not better.
+
+We re-visit the implications of this for grism SNR in the Discussion page.
