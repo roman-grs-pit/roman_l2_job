@@ -6,7 +6,6 @@ subtitle: "Footprint, parameters, and measured zodiacal background"
 ```{python}
 #| echo: false
 from pathlib import Path
-import sys
 import yaml
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +18,7 @@ REPO = Path("../..").resolve()
 CONFIG_PATH = REPO / "configs/full.yaml"
 with CONFIG_PATH.open() as f:
     cfg = yaml.safe_load(f)
+cone = cfg["pointings"]["region"]
 ```
 
 ## Science motivation
@@ -37,7 +37,6 @@ produced by `scripts/filter_pointings.py`:
 
 ```{python}
 #| echo: false
-cone = cfg["pointings"]["region"]
 print(f"region.type      = {cone['type']}")
 print(f"region.ra        = {cone['ra']}°")
 print(f"region.dec       = {cone['dec']}°")
@@ -60,58 +59,107 @@ and 16, segments 490 and 521:
 #| echo: false
 #| tbl-cap: "The 18 pointings selected by the full-run filter."
 t = Table.read(REPO / "pointings_full.ecsv", format="ascii.ecsv")
-df = t.to_pandas()
-df[["PASS", "SEGMENT", "VISIT", "EXPOSURE", "RA", "DEC", "PA",
-    "BANDPASS", "MA_TABLE_NUMBER", "EXPOSURE_TIME"]]
+df_p = t.to_pandas()
+df_p[["PASS", "SEGMENT", "VISIT", "EXPOSURE", "RA", "DEC", "PA",
+      "BANDPASS", "MA_TABLE_NUMBER", "EXPOSURE_TIME"]]
 ```
 
 Passes 15 and 16 share the same (RA, Dec, PA) for every exposure — they are
-**re-observations**, not distinct pointings. That's relevant when interpreting
-per-pixel depth later: the two passes stack at identical dither patterns,
-so depth contributions from them are always paired.
+**re-observations**, not distinct pointings. That matters for interpreting
+per-pixel depth: the two passes stack at identical dither patterns, so depth
+contributions from them are always paired.
 
-## Pointings map
+## Pointings map (wide view)
 
 ```{python}
 #| echo: false
-#| fig-cap: "Pointings selected for the full run (red `+`), set against the HLWAS pointings the filter drew from (grey dots). The 0.5° cone used in the filter is drawn. The grism target (10°, 0°) is marked with a star."
+#| fig-cap: "HLWAS F158 pointings near our field. Grey dots are the full HLWAS F158 catalog in a 5° window around our target; red `+` are the 18 selected for the full run; the 0.5° filter cone is drawn as a dashed circle; the grism target (10°, 0°) is the red star."
 hlwas = Table.read(REPO / "catalogs/HLWAS.sim.ecsv", format="ascii.ecsv")
-hlwas = hlwas[hlwas["BANDPASS"] == cfg["pointings"]["bandpass"]]
+hlwas_f158 = hlwas[hlwas["BANDPASS"] == cfg["pointings"]["bandpass"]]
 c0 = SkyCoord(ra=cone["ra"]*u.deg, dec=cone["dec"]*u.deg)
-ch = SkyCoord(ra=np.asarray(hlwas["RA"])*u.deg,
-              dec=np.asarray(hlwas["DEC"])*u.deg)
-# Plot only HLWAS pointings nearby, to avoid clutter.
-keep = c0.separation(ch).deg < 2.5
-hn = hlwas[keep]
+c_all = SkyCoord(ra=np.asarray(hlwas_f158["RA"])*u.deg,
+                 dec=np.asarray(hlwas_f158["DEC"])*u.deg)
+
+def _draw_pointings(ax, radius_deg):
+    near_mask = c0.separation(c_all).deg < radius_deg
+    ax.scatter(hlwas_f158["RA"][near_mask], hlwas_f158["DEC"][near_mask],
+               s=3, color="lightgray",
+               label=f"{near_mask.sum()} HLWAS F158 pointings")
+    ax.scatter(df_p["RA"], df_p["DEC"], s=80, color="tab:red", marker="+",
+               lw=2, label=f"{len(df_p)} selected pointings")
+    theta = np.linspace(0, 2*np.pi, 200)
+    ax.plot(cone["ra"] + cone["radius_deg"]*np.cos(theta)
+            / np.cos(np.deg2rad(cone["dec"])),
+            cone["dec"] + cone["radius_deg"]*np.sin(theta),
+            ls="--", color="k", lw=1, label=f"filter cone r={cone['radius_deg']}°")
+    ax.plot(cone["ra"], cone["dec"], marker="*", color="tab:red",
+            markersize=20, label="grism target")
+    ax.set_xlabel("RA (deg)")
+    ax.set_ylabel("Dec (deg)")
+    ax.invert_xaxis()
+    ax.set_aspect("equal")
+    ax.grid(True, alpha=0.3)
 
 fig, ax = plt.subplots(figsize=(8, 8))
-ax.scatter(hn["RA"], hn["DEC"], s=3, color="lightgray",
-           label=f"{len(hn)} nearby HLWAS {cone['type']} pointings")
-ax.scatter(df["RA"], df["DEC"], s=80, color="tab:red", marker="+",
-           lw=2, label=f"{len(df)} selected pointings")
-# Draw the filter cone.
-theta = np.linspace(0, 2*np.pi, 200)
-ax.plot(cone["ra"] + cone["radius_deg"]*np.cos(theta)/np.cos(np.deg2rad(cone["dec"])),
-        cone["dec"] + cone["radius_deg"]*np.sin(theta),
-        ls="--", color="k", lw=1, label=f"filter cone r={cone['radius_deg']}°")
+_draw_pointings(ax, radius_deg=5.0)
+ax.legend(loc="lower right")
+ax.set_title("Pointings — 5° around target")
+plt.show()
+```
+
+**The HLWAS F158 footprint has a hard upper edge around Dec ≈ +1°** (the
+simulated survey ends there). Our target at Dec = 0° sits ~1° from that
+edge, which is why there are visibly fewer F158 pointings on the northward
+side — it's a real footprint feature of the HLWAS simulation, not an
+artifact of filtering.
+
+## Pointings map (close-up)
+
+```{python}
+#| echo: false
+#| fig-cap: "Close-up around the 0.5° filter cone. The 18 selected pointings form three visit-clusters — one from segment 490 near (9.6°, −0.1°), and two from segment 521 near (10.5°, 0°) and (10.1°, +0.2°)."
+fig, ax = plt.subplots(figsize=(8, 8))
+_draw_pointings(ax, radius_deg=0.8)
+ax.set_xlim(cone["ra"] + 0.9, cone["ra"] - 0.9)  # invert x
+ax.set_ylim(cone["dec"] - 0.7, cone["dec"] + 0.7)
+ax.legend(loc="upper right")
+ax.set_title("Pointings — close-up on the filter cone")
+plt.show()
+```
+
+Each of the three visit-clusters covers its own ~1 WFI footprint; the gaps
+between clusters are covered shallowly, which has consequences for per-skycell
+coverage.
+
+## Skycell coverage map
+
+```{python}
+#| echo: false
+#| fig-cap: "Skycell centres from the full run, coloured by per-skycell median per-pixel depth (coverage count). Depth 6 is the design-intent for pixels seeing all 3 dithers of both passes; it is reached in only ~16% of skycells, concentrated where visit-cluster overlaps fall. The edge-heavy skycells at the periphery sit at depth 2 (single-dither coverage or between-cluster gaps)."
+summary = pd.read_csv(REPO / "output/full/compare/summary.csv")
+fig, ax = plt.subplots(figsize=(9, 8))
+sc = ax.scatter(summary["center_ra"], summary["center_dec"],
+                c=summary["median_depth"], cmap="viridis",
+                vmin=2, vmax=8,
+                s=35, edgecolor="k", lw=0.2)
 ax.plot(cone["ra"], cone["dec"], marker="*", color="tab:red",
-        markersize=20, label=f"({cone['ra']:.0f}, {cone['dec']:.0f}) grism target")
+        markersize=20, label="grism target")
+theta = np.linspace(0, 2*np.pi, 200)
+ax.plot(cone["ra"] + cone["radius_deg"]*np.cos(theta)
+        / np.cos(np.deg2rad(cone["dec"])),
+        cone["dec"] + cone["radius_deg"]*np.sin(theta),
+        ls="--", color="k", lw=1)
+cb = plt.colorbar(sc, ax=ax, ticks=[2, 4, 6, 8])
+cb.set_label("median per-pixel depth")
 ax.set_xlabel("RA (deg)")
 ax.set_ylabel("Dec (deg)")
 ax.invert_xaxis()
 ax.set_aspect("equal")
 ax.grid(True, alpha=0.3)
 ax.legend(loc="upper right")
-ax.set_title("Pointings selected for the full run")
+ax.set_title(f"{len(summary)} skycells, coloured by median depth")
 plt.show()
 ```
-
-The 18 selected pointings form **three visit-clusters**: one near
-(9.6°, −0.1°) from segment 490, one near (10.5°, 0°) from segment 521 / visit 5,
-and one near (10.1°, +0.2°) from segment 521 / visit 6. Each cluster deeply
-covers its own ~1 WFI footprint; the *gaps between clusters* are covered
-shallowly, a structural feature of the design we re-encounter in the
-per-skycell depth distribution.
 
 ## Run parameters
 
@@ -138,13 +186,17 @@ pd.DataFrame(rows, columns=["parameter", "value"])
 
 ## Measured zodiacal background
 
+Per-bandpass expected zodi rates for Roman WFI are documented on the
+[Roman WFI technical page](https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/);
+our measurement below compares against that reference.
+
 ```{python}
 #| echo: false
 #| tbl-cap: "Sigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN)."
 import roman_datamodels.datamodels as rdm
 from astropy.stats import sigma_clipped_stats
 
-GAIN_MEDIAN_EPERDN = 1.87  # CRDS gain reference median across the 18 SCAs
+GAIN_MEDIAN_EPERDN = 1.87
 L2_GLOB = sorted((REPO / "output/cal").glob(
     "r0000101015521001006_0001_wfi*_f158_cal.asdf"))
 rows = []
@@ -177,19 +229,13 @@ from astropy.time import Time
 sun = get_sun(Time("2026-01-01T00:00:00"))
 elong = c_target.separation(sun).deg
 print(f"Solar elongation on sim date: {elong:.1f}°")
-
-ratio = mean_rate / 0.375
-print()
-print(f"Reference (zodi pole-min × 1.5): 0.375 e⁻/pix/s")
-print(f"Observed / reference: {ratio:.2f}×")
 ```
 
-The measured sky rate is consistent with expectations for a Dec ≈ 0 field
-observed at high elongation (~128°): basically **on the ecliptic** (latitude
-−4°), which is a structurally bright part of the sky. You cannot reach the
-polar-minimum zodi reference from this target. Within the Roman observing
-window (elongation ~54–126°), you want high elongation to minimize zodi, and
-this sim is already near the upper end — moving the sim date would make the
-background *worse*, not better.
-
-We re-visit the implications of this for grism SNR in the Discussion page.
+The measured sky rate reflects the zodiacal background that the romanisim
+sim computed for this field and date: **on-ecliptic** (latitude −4°) and at
+a large solar elongation (~128°), which is a structurally bright but
+well-observed part of the sky for a Dec ≈ 0 target. Within the Roman
+observing constraint (elongation roughly 54°–126°), higher elongation
+minimises zodi for an ecliptic target; the sim date is already near the
+upper end of that window, so shifting dates cannot meaningfully lower the
+background from this pointing.

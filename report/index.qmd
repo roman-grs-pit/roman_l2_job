@@ -15,7 +15,7 @@ to support simulated grism observations of a Wide-Field2 sub-region near
 (RA=10°, Dec=0°), but generalizes to any footprint and any input source
 catalog.
 
-Code, configs, and this report all live in the
+Code, configs, and this report live in the
 [roman_l2_job](https://github.com/roman-grs-pit/roman_l2_job) GitHub repo.
 
 ## How this report is organized
@@ -29,32 +29,10 @@ Code, configs, and this report all live in the
     - [Design](full/design.qmd) — pointings, parameters, measured zodi.
     - [Results](full/results.qmd) — per-skycell completeness, flux residual,
       astrometric residual, depth distribution.
-    - [Discussion](full/discussion.qmd) — what the numbers mean for grism
-      support, caveats on Kron bias, footprint non-uniformity.
+    - [Discussion](full/discussion.qmd) — observations and caveats.
 
-Future campaigns (e.g. a lower-zodi comparison run) will sit as siblings of
-"Full run" in the sidebar.
+## Useful references
 
-## Headline numbers from the full run
-
-::: {.callout-note}
-6 visits × 3 dithers × 18 SCAs = **324 F158 sims**,
-**320 skycell coadds + catalogs**, ~15 h end-to-end on m5a.2xlarge at 4-way.
-
-- **Median 50%-completeness (AB):** 23.95 over all skycells, 24.05 in the
-  deep-pixel subset, peaks at **24.50** in the deepest skycells.
-- **Kron flux residual:** **+0.17 mag** (recovered − input), flat across
-  depth — it's a Kron-photometry property on extended sources, not a
-  pipeline calibration issue.
-- **Astrometric residual:** **~0.017″**, sub-coadd-pixel across every
-  skycell.
-- **Depth structure:** only even integers appear in per-pixel depth
-  (2, 4, 6, 8); pass 15 and pass 16 re-observe identical pointings, so sum
-  is always 2× an integer.
-- **Field geometry:** only ~25% of skycells within 0.5° of the field
-  center hit the intended design depth; the 18 pointings form three
-  visit-cluster patches with shallow gaps between.
-- **Zodiacal background:** **1.28 e⁻/pix/s** (sigma-clipped), ~3.4× the
-  polar-minimum reference — expected for a field essentially on the
-  ecliptic observed at high (~128°) elongation.
-:::
+- [Roman WFI technical page](https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/)
+  — authoritative source for WFI per-bandpass zodi, detector specs, and other
+  pre-launch numbers we compare against.

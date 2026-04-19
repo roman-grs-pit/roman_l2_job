@@ -31,6 +31,9 @@ stpsf-data/
 report/_site/
 report/.quarto/
 report/_freeze/
+# Image assets symlinked/copied into the report tree from output/ at render time
+report/full/_plots
+report/full/_depth_distribution.png
 
 # Agent / editor state
 .claude/

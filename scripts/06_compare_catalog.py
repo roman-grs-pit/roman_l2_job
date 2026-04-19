@@ -74,6 +74,13 @@ def maggies_to_abmag(maggies):
 class SkycellAnalysis:
     name: str
     n_asn_members: int
+    # WCS: center of coadd + bounding box in RA/Dec from the 4 pixel corners
+    center_ra: float
+    center_dec: float
+    ra_min: float
+    ra_max: float
+    dec_min: float
+    dec_max: float
     min_depth: int
     median_depth: float
     max_depth: int
@@ -210,6 +217,14 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
     weight = np.asarray(m.weight)
     wcs = m.meta.wcs
     depth = _depth_from_context(np.asarray(m.context))
+
+    ny, nx = m.data.shape
+    center_ra, center_dec = wcs.pixel_to_world_values(nx / 2.0, ny / 2.0)
+    corner_ras, corner_decs = wcs.pixel_to_world_values(
+        [0, nx - 1, nx - 1, 0], [0, 0, ny - 1, ny - 1])
+    ra_min, ra_max = float(np.min(corner_ras)), float(np.max(corner_ras))
+    dec_min, dec_max = float(np.min(corner_decs)), float(np.max(corner_decs))
+    center_ra, center_dec = float(center_ra), float(center_dec)
 
     valid = weight > 0
     depth_valid = depth[valid]
@@ -444,6 +459,9 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
 
     return (SkycellAnalysis(
         name=base, n_asn_members=n_asn_members,
+        center_ra=center_ra, center_dec=center_dec,
+        ra_min=ra_min, ra_max=ra_max,
+        dec_min=dec_min, dec_max=dec_max,
         min_depth=d_min, median_depth=d_median,
         max_depth=d_max, mean_depth=d_mean,
         n_recovered=n_recovered, n_fp=n_fp,
@@ -556,6 +574,8 @@ def main():
         w = csv.writer(f)
         w.writerow([
             "skycell", "n_asn_members",
+            "center_ra", "center_dec",
+            "ra_min", "ra_max", "dec_min", "dec_max",
             "min_depth", "median_depth", "max_depth", "mean_depth",
             "n_recovered", "n_fp",
             "n_input_all", "n_matched_all",
@@ -572,6 +592,9 @@ def main():
                 return f"{x:+.{nd}f}" if np.isfinite(x) else "nan"
             w.writerow([
                 r.name, r.n_asn_members,
+                f"{r.center_ra:.6f}", f"{r.center_dec:.6f}",
+                f"{r.ra_min:.6f}", f"{r.ra_max:.6f}",
+                f"{r.dec_min:.6f}", f"{r.dec_max:.6f}",
                 r.min_depth, f"{r.median_depth:.2f}",
                 r.max_depth, f"{r.mean_depth:.4f}",
                 r.n_recovered, r.n_fp,

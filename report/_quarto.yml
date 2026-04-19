@@ -39,6 +39,7 @@ format:
     fig-cap-location: bottom
     tbl-cap-location: top
     number-sections: false
+    lightbox: auto
 
 execute:
   freeze: auto   # cache rendered outputs; re-run only when .qmd source changes

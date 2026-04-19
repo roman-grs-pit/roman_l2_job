@@ -1,10 +1,11 @@
 ---
-title: "Results"
+title: "Full run — results"
 ---
 
 ::: {.callout-note}
-Numbers on this page are computed at render time from `output/full/compare/summary.csv`
-and the coadd `.asdf` files. Re-rendering the report picks up any re-run results.
+Numbers on this page are computed at render time from
+`output/full/compare/summary.csv` and the coadd `.asdf` files, so a
+re-rendered report picks up any re-run results.
 :::
 
 ```{python}
@@ -13,20 +14,20 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 
-SUMMARY = Path("../../output/full/compare/summary.csv")
-df = pd.read_csv(SUMMARY)
+REPO = Path("../..").resolve()
+df = pd.read_csv(REPO / "output/full/compare/summary.csv")
 ```
 
-## Full-run configuration
+## Configuration
 
-324 sims over 6 visits (2 passes × 3 dithers × segments 490+521), 320 skycells
-after `skycell_asn --product-type full`.
+324 sims over 6 visits (2 passes × 3 dithers × segments 490 + 521),
+320 skycells after `skycell_asn --product-type full`.
 
 ## Depth distribution
 
 ```{python}
 #| echo: false
-#| fig-cap: "Distribution of per-skycell depth metrics (max_depth, median_depth) across the full run."
+#| fig-cap: "Distribution of per-skycell depth metrics across the full run. Left: the maximum per-pixel depth reached in each skycell. Right: the median per-pixel depth (a proxy for how well the skycell is covered overall)."
 import matplotlib.pyplot as plt
 fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 for ax, col in zip(axes, ["max_depth", "median_depth"]):
@@ -40,12 +41,12 @@ fig.tight_layout()
 plt.show()
 ```
 
-## Completeness and flux residual headlines
+## Headline numbers
 
 ```{python}
 #| echo: false
 #| tbl-cap: "Headline recovery numbers, medians across all 320 skycells."
-summary = pd.DataFrame({
+summary_tbl = pd.DataFrame({
     "metric": [
         "50%-completeness mag (all sources)",
         "50%-completeness mag (deep subset)",
@@ -63,13 +64,38 @@ summary = pd.DataFrame({
         f"{df['median_dpos_all'].median():.3f}″",
     ],
 })
-summary
+summary_tbl
 ```
 
-## TODO
+## Per-skycell figure gallery
 
-- Completeness-vs-magnitude panel pulled from the per-skycell PNGs
-- Recovered-vs-input flux scatter (aggregated)
-- Sky distribution colored by depth
-- Distance-from-(10,0) analysis
-- Individual per-skycell figures linked (gallery page?)
+Showing the 60 skycells with the largest `mean_depth` (deepest coverage),
+sorted deepest-first. Click any thumbnail to zoom.
+
+```{python}
+#| echo: false
+#| output: asis
+top = df.sort_values("mean_depth", ascending=False).head(60)
+print("::: {layout-ncol=3}\n")
+for _, row in top.iterrows():
+    name = row["skycell"]
+    cap = (f"{name} — "
+           f"mean_depth={row['mean_depth']:.2f}, "
+           f"mag50={row['mag_50pct_all']:.2f}")
+    print(f"![{cap}](_plots/{name}.png)\n\n")
+print(":::")
+```
+
+Each figure has five panels (completeness vs input mag, flux residual vs
+input mag with the deep subset highlighted, PSF-vs-aperture magnitude, FP
+fraction vs recovered mag, astrometric residual vs input mag) plus a text
+summary panel with headline numbers for that skycell.
+
+## Aggregated depth histogram
+
+```{python}
+#| echo: false
+#| fig-cap: "Per-pixel depth aggregated across every valid pixel of every skycell. Produced by stage 06 as `depth_distribution.png`; inlined here for reference."
+```
+
+![](_depth_distribution.png){fig-alt="Per-pixel depth histogram"}
