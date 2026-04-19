@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "roman_l2_job",
     "section": "",
-    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations centered on a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any F158 footprint and any input source catalog.\nThe code, configs, and this report all live in the roman_l2_job GitHub repo.",
+    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.\nCode, configs, and this report all live in the roman_l2_job GitHub repo.",
     "crumbs": [
       "Overview"
     ]
@@ -14,129 +14,232 @@
     "href": "index.html#what-this-is",
     "title": "roman_l2_job",
     "section": "",
-    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations centered on a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any F158 footprint and any input source catalog.\nThe code, configs, and this report all live in the roman_l2_job GitHub repo.",
+    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.\nCode, configs, and this report all live in the roman_l2_job GitHub repo.",
     "crumbs": [
       "Overview"
     ]
   },
   {
-    "objectID": "index.html#contents",
-    "href": "index.html#contents",
+    "objectID": "index.html#how-this-report-is-organized",
+    "href": "index.html#how-this-report-is-organized",
     "title": "roman_l2_job",
-    "section": "Contents",
-    "text": "Contents\n\nPipeline — architecture, stages, data models, design choices (why certain scripts are vendored, how CRDS is hydrated, etc.).\nResults — numbers from the full 324-sim run over the 6-visit / 2-segment footprint: depth distribution, completeness vs magnitude, flux residual, astrometric residual, PSF vs aperture photometry.\nDiscussion — what the numbers mean for the intended science use (grism support), with notes on depth geometry, Kron flux bias, and zodiacal background.",
+    "section": "How this report is organized",
+    "text": "How this report is organized\n\nPipeline — what the pipeline does, how to install it, what each stage reads and writes, and the deliberate deviations from stock upstream (vendored make_stack.py, per-line deterministic seeds, CRDS hydration). Common to every campaign.\nFull run — the first real campaign on configs/full.yaml, 324 sims across 6 visits of the (RA=10°, Dec=0°) field.\n\nDesign — pointings, parameters, measured zodi.\nResults — per-skycell completeness, flux residual, astrometric residual, depth distribution.\nDiscussion — what the numbers mean for grism support, caveats on Kron bias, footprint non-uniformity.\n\n\nFuture campaigns (e.g. a lower-zodi comparison run) will sit as siblings of “Full run” in the sidebar.",
     "crumbs": [
       "Overview"
     ]
   },
   {
-    "objectID": "index.html#headline-numbers",
-    "href": "index.html#headline-numbers",
+    "objectID": "index.html#headline-numbers-from-the-full-run",
+    "href": "index.html#headline-numbers-from-the-full-run",
     "title": "roman_l2_job",
-    "section": "Headline numbers",
-    "text": "Headline numbers\n\n\n\n\n\n\nNote\n\n\n\nFrom the full run (6 visits × 3 dithers × 18 SCAs = 324 F158 sims, 320 skycell coadds + catalogs, 4 h 5 min stage-04 on 4 m5a.2xlarge cores):\n\nMedian 50%-completeness (AB): 23.95 over all skycells, 24.05 in the deep-pixel subset, peaks at 24.50 in the deepest skycells.\nKron flux residual: +0.17 mag (recovered − input), unchanged across depth — it’s a Kron-photometry property on extended sources, not a pipeline calibration issue.\nAstrometric residual: ~0.017″, sub-coadd-pixel across every skycell.\nDepth distribution: only even integers appear in the per-pixel depth (2, 4, 6, 8), because pass 15 and pass 16 re-observe each pointing at the identical dither pattern — sum is always 2× an integer.\nField geometry: only ~25% of skycells within 0.5° of the field center hit the intended design depth; the full run is more a union of three visit-cluster cores than a uniform 1° disk.",
+    "section": "Headline numbers from the full run",
+    "text": "Headline numbers from the full run\n\n\n\n\n\n\nNote\n\n\n\n6 visits × 3 dithers × 18 SCAs = 324 F158 sims, 320 skycell coadds + catalogs, ~15 h end-to-end on m5a.2xlarge at 4-way.\n\nMedian 50%-completeness (AB): 23.95 over all skycells, 24.05 in the deep-pixel subset, peaks at 24.50 in the deepest skycells.\nKron flux residual: +0.17 mag (recovered − input), flat across depth — it’s a Kron-photometry property on extended sources, not a pipeline calibration issue.\nAstrometric residual: ~0.017″, sub-coadd-pixel across every skycell.\nDepth structure: only even integers appear in per-pixel depth (2, 4, 6, 8); pass 15 and pass 16 re-observe identical pointings, so sum is always 2× an integer.\nField geometry: only ~25% of skycells within 0.5° of the field center hit the intended design depth; the 18 pointings form three visit-cluster patches with shallow gaps between.\nZodiacal background: 1.28 e⁻/pix/s (sigma-clipped), ~3.4× the polar-minimum reference — expected for a field essentially on the ecliptic observed at high (~128°) elongation.",
     "crumbs": [
       "Overview"
     ]
   },
   {
-    "objectID": "index.html#pipeline-overview",
-    "href": "index.html#pipeline-overview",
-    "title": "roman_l2_job",
-    "section": "Pipeline overview",
-    "text": "Pipeline overview\n\n\n\n\n\n\nTipStage summary\n\n\n\n\n\n\n\n\n\n\n\n\n\nStage\nScript\nWhat it does\n\n\n\n\nsetup\n00_setup.sh\nInstall STPSF data + CRDS scaffold\n\n\nhydrate CRDS\n00_hydrate_crds.sh\nPre-populate cache serially; avoids parallel-download races\n\n\nverify CRDS\n00_verify_crds.py\nSize-based corruption check on ref files\n\n\ncatalog prep\n00_prepare_catalog.py\nConvert input catalog (mag or maggies) → catalogs/sources.parquet\n\n\nfilter pointings\nfilter_pointings.py\nCarve a sub-region out of HLWAS.sim.ecsv\n\n\n01 build\n01_build_script.sh\nGenerate per-sim commands via a patched make_stack.py\n\n\n02 sims\n02_run_sims.sh\nParallel romanisim-make-image → L2 cal files\n\n\n03 asn\n03_build_asn.sh\nskycell_asn on the L2s → one JSON per skycell\n\n\n04 mosaic\n04_run_mosaic.sh\nParallel MosaicPipeline → L3 _coadd.asdf\n\n\n05 catalog\n05_run_catalog.sh\nParallel SourceCatalogStep → _cat.parquet, _segm.asdf\n\n\n06 compare\n06_compare_catalog.py\nPer-skycell recovery analysis; writes summary.csv + plots\n\n\n\nEvery stage is idempotent (skip-if-exists), takes configs/&lt;tag&gt;.yaml as its single argument, and logs under output/logs/.",
+    "objectID": "full/discussion.html",
+    "href": "full/discussion.html",
+    "title": "Discussion",
+    "section": "",
+    "text": "Depth quantization. Why per-pixel depths only land on even integers (passes 15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).\nField coverage non-uniformity. Only ~25% of skycells within 0.5° of (10, 0) reach the design depth. The 0.5° cone is not the right way to think about the footprint — it’s a union of three visit-cluster patches plus the gaps.\nKron flux bias. The +0.17 mag under-measurement is a Kron-photometry property on extended sources; unbiased recovered flux for galaxies would use larger aperture (e.g. aper16_flux) or segment flux. Relevant for downstream science.\nZodiacal background. Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum reference. Expected for a field at ecliptic latitude −4° observed at elongation 128°. Already near the best achievable for this target — the field is structurally on the ecliptic, and the sim date is near the best observable elongation.\nGrism implications. Discussion of what the recovered per-skycell depth and completeness mean for the grism observations the campaign is intended to support.",
     "crumbs": [
-      "Overview"
+      "Full run",
+      "Discussion"
+    ]
+  },
+  {
+    "objectID": "full/discussion.html#todo",
+    "href": "full/discussion.html#todo",
+    "title": "Discussion",
+    "section": "",
+    "text": "Depth quantization. Why per-pixel depths only land on even integers (passes 15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).\nField coverage non-uniformity. Only ~25% of skycells within 0.5° of (10, 0) reach the design depth. The 0.5° cone is not the right way to think about the footprint — it’s a union of three visit-cluster patches plus the gaps.\nKron flux bias. The +0.17 mag under-measurement is a Kron-photometry property on extended sources; unbiased recovered flux for galaxies would use larger aperture (e.g. aper16_flux) or segment flux. Relevant for downstream science.\nZodiacal background. Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum reference. Expected for a field at ecliptic latitude −4° observed at elongation 128°. Already near the best achievable for this target — the field is structurally on the ecliptic, and the sim date is near the best observable elongation.\nGrism implications. Discussion of what the recovered per-skycell depth and completeness mean for the grism observations the campaign is intended to support.",
+    "crumbs": [
+      "Full run",
+      "Discussion"
+    ]
+  },
+  {
+    "objectID": "full/results.html",
+    "href": "full/results.html",
+    "title": "Results",
+    "section": "",
+    "text": "Note\n\n\n\nNumbers on this page are computed at render time from output/full/compare/summary.csv and the coadd .asdf files. Re-rendering the report picks up any re-run results.",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/results.html#full-run-configuration",
+    "href": "full/results.html#full-run-configuration",
+    "title": "Results",
+    "section": "Full-run configuration",
+    "text": "Full-run configuration\n324 sims over 6 visits (2 passes × 3 dithers × segments 490+521), 320 skycells after skycell_asn --product-type full.",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/results.html#depth-distribution",
+    "href": "full/results.html#depth-distribution",
+    "title": "Results",
+    "section": "Depth distribution",
+    "text": "Depth distribution\n\n\n\n\n\nDistribution of per-skycell depth metrics (max_depth, median_depth) across the full run.",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/results.html#completeness-and-flux-residual-headlines",
+    "href": "full/results.html#completeness-and-flux-residual-headlines",
+    "title": "Results",
+    "section": "Completeness and flux residual headlines",
+    "text": "Completeness and flux residual headlines\n\n\n\n\n\n\nHeadline recovery numbers, medians across all 320 skycells.\n\n\n\nmetric\nmedian\n\n\n\n\n0\n50%-completeness mag (all sources)\n23.95\n\n\n1\n50%-completeness mag (deep subset)\n24.05\n\n\n2\noverall completeness (all sources)\n0.356\n\n\n3\noverall completeness (deep subset)\n0.384\n\n\n4\nKron flux residual (median, matched)\n+0.166 mag\n\n\n5\nastrometric residual (median, matched)\n0.017″",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/results.html#todo",
+    "href": "full/results.html#todo",
+    "title": "Results",
+    "section": "TODO",
+    "text": "TODO\n\nCompleteness-vs-magnitude panel pulled from the per-skycell PNGs\nRecovered-vs-input flux scatter (aggregated)\nSky distribution colored by depth\nDistance-from-(10,0) analysis\nIndividual per-skycell figures linked (gallery page?)",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/design.html",
+    "href": "full/design.html",
+    "title": "Full run — design",
+    "section": "",
+    "text": "This configuration was built to support simulated grism observations of a Wide-Field2 sub-region near (RA = 10°, Dec = 0°), at four position angles (PA = 0°, 10°, 170°, 180°). We need imaging coverage of the grism reference position and a few arcminutes along the dispersion direction so that source positions measured from imaging constrain the spectral trace extraction.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#science-motivation",
+    "href": "full/design.html#science-motivation",
+    "title": "Full run — design",
+    "section": "",
+    "text": "This configuration was built to support simulated grism observations of a Wide-Field2 sub-region near (RA = 10°, Dec = 0°), at four position angles (PA = 0°, 10°, 170°, 180°). We need imaging coverage of the grism reference position and a few arcminutes along the dispersion direction so that source positions measured from imaging constrain the spectral trace extraction.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#footprint-filter",
+    "href": "full/design.html#footprint-filter",
+    "title": "Full run — design",
+    "section": "Footprint filter",
+    "text": "Footprint filter\nThe pointings file (pointings_full.ecsv) is a subset of catalogs/HLWAS.sim.ecsv (the full HLWAS-survey simulated pointings) produced by scripts/filter_pointings.py:\n\n\nregion.type      = cone\nregion.ra        = 10.0°\nregion.dec       = 0.0°\nregion.radius    = 0.5°\nbandpass         = F158\nonly_pass        = None\nonly_segment     = None\nonly_visit       = None\n\n\nA visit survives the filter if any of its dithers lands inside the cone — matching visits contribute all their dithers (no partial inclusion). The only_pass/segment/visit nulls here mean no further restriction after the region test; the smoke config sets these to a single-visit subset.\nThe selection yields 6 visits × 3 dithers = 18 exposures across passes 15 and 16, segments 490 and 521:\n\n\n\n\n\n\nThe 18 pointings selected by the full-run filter.\n\n\n\nPASS\nSEGMENT\nVISIT\nEXPOSURE\nRA\nDEC\nPA\nBANDPASS\nMA_TABLE_NUMBER\nEXPOSURE_TIME\n\n\n\n\n0\n15\n490\n13\n1\n9.528996\n-0.044368\n0.0\nF158\n1007\n107.52399\n\n\n1\n15\n490\n13\n2\n9.609599\n-0.123239\n0.0\nF158\n1007\n107.52399\n\n\n2\n15\n490\n13\n3\n9.752089\n-0.262651\n0.0\nF158\n1007\n107.52399\n\n\n3\n15\n521\n5\n1\n10.453631\n0.003358\n0.0\nF158\n1007\n107.52399\n\n\n4\n15\n521\n5\n2\n10.534262\n-0.075513\n0.0\nF158\n1007\n107.52399\n\n\n5\n15\n521\n5\n3\n10.676812\n-0.214957\n0.0\nF158\n1007\n107.52399\n\n\n6\n15\n521\n6\n1\n10.111833\n0.200645\n0.0\nF158\n1007\n107.52399\n\n\n7\n15\n521\n6\n2\n10.192456\n0.121800\n0.0\nF158\n1007\n107.52399\n\n\n8\n15\n521\n6\n3\n10.334991\n-0.017608\n0.0\nF158\n1007\n107.52399\n\n\n9\n16\n490\n13\n1\n9.528996\n-0.044368\n0.0\nF158\n1007\n107.52399\n\n\n10\n16\n490\n13\n2\n9.609599\n-0.123239\n0.0\nF158\n1007\n107.52399\n\n\n11\n16\n490\n13\n3\n9.752089\n-0.262651\n0.0\nF158\n1007\n107.52399\n\n\n12\n16\n521\n5\n1\n10.453631\n0.003358\n0.0\nF158\n1007\n107.52399\n\n\n13\n16\n521\n5\n2\n10.534262\n-0.075513\n0.0\nF158\n1007\n107.52399\n\n\n14\n16\n521\n5\n3\n10.676812\n-0.214957\n0.0\nF158\n1007\n107.52399\n\n\n15\n16\n521\n6\n1\n10.111833\n0.200645\n0.0\nF158\n1007\n107.52399\n\n\n16\n16\n521\n6\n2\n10.192456\n0.121800\n0.0\nF158\n1007\n107.52399\n\n\n17\n16\n521\n6\n3\n10.334991\n-0.017608\n0.0\nF158\n1007\n107.52399\n\n\n\n\n\n\n\nPasses 15 and 16 share the same (RA, Dec, PA) for every exposure — they are re-observations, not distinct pointings. That’s relevant when interpreting per-pixel depth later: the two passes stack at identical dither patterns, so depth contributions from them are always paired.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#pointings-map",
+    "href": "full/design.html#pointings-map",
+    "title": "Full run — design",
+    "section": "Pointings map",
+    "text": "Pointings map\n\n\n\n\n\nPointings selected for the full run (red +), set against the HLWAS pointings the filter drew from (grey dots). The 0.5° cone used in the filter is drawn. The grism target (10°, 0°) is marked with a star.\n\n\n\n\nThe 18 selected pointings form three visit-clusters: one near (9.6°, −0.1°) from segment 490, one near (10.5°, 0°) from segment 521 / visit 5, and one near (10.1°, +0.2°) from segment 521 / visit 6. Each cluster deeply covers its own ~1 WFI footprint; the gaps between clusters are covered shallowly, a structural feature of the design we re-encounter in the per-skycell depth distribution.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#run-parameters",
+    "href": "full/design.html#run-parameters",
+    "title": "Full run — design",
+    "section": "Run parameters",
+    "text": "Run parameters\n\n\n\n\n\n\n\n\n\nparameter\nvalue\n\n\n\n\n0\nTag\nfull\n\n\n1\nInput catalog\ndata/metadata.parquet\n\n\n2\nInput units\nmag\n\n\n3\nBandpass column\nF158\n\n\n4\nPointings bandpass\nF158\n\n\n5\nRegion type\ncone\n\n\n6\nRegion centre\n(10.0°, 0.0°)\n\n\n7\nRegion radius\n0.5°\n\n\n8\nSim PSF type\nstpsf (from 01_build_script.sh)\n\n\n9\nMA table number\n1007\n\n\n10\nExposure time\n107.524 s per exposure\n\n\n11\nSim date\n2026-01-01T00:00:00\n\n\n12\nN exposures\n18 × 18 SCAs = 324 sims\n\n\n13\nParallelism (xargs)\n4",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#measured-zodiacal-background",
+    "href": "full/design.html#measured-zodiacal-background",
+    "title": "Full run — design",
+    "section": "Measured zodiacal background",
+    "text": "Measured zodiacal background\n\n\n\n\n\nSigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN).\n\n\n \nSCA\nsky_DN_per_s\nsky_e_per_pix_per_s\n\n\n\n\n0\n1\n0.6504\n1.216\n\n\n1\n2\n0.6782\n1.268\n\n\n2\n3\n0.6674\n1.248\n\n\n3\n4\n0.7076\n1.323\n\n\n4\n5\n0.6704\n1.254\n\n\n5\n6\n0.7187\n1.344\n\n\n6\n7\n0.6316\n1.181\n\n\n7\n8\n0.7126\n1.333\n\n\n8\n9\n0.6656\n1.245\n\n\n9\n10\n0.6664\n1.246\n\n\n10\n11\n0.6528\n1.221\n\n\n11\n12\n0.6849\n1.281\n\n\n12\n13\n0.6740\n1.260\n\n\n13\n14\n0.6734\n1.259\n\n\n14\n15\n0.6484\n1.213\n\n\n15\n16\n0.6900\n1.290\n\n\n16\n17\n0.7758\n1.451\n\n\n17\n18\n0.7477\n1.398\n\n\n\n\n\n\n\nMean across 18 SCAs: 1.279 e⁻/pix/s  (range 1.181 – 1.451)\nField at (RA=10, Dec=0): ecliptic latitude -3.96°\nSolar elongation on sim date: 128.2°\n\nReference (zodi pole-min × 1.5): 0.375 e⁻/pix/s\nObserved / reference: 3.41×\n\n\nThe measured sky rate is consistent with expectations for a Dec ≈ 0 field observed at high elongation (~128°): basically on the ecliptic (latitude −4°), which is a structurally bright part of the sky. You cannot reach the polar-minimum zodi reference from this target. Within the Roman observing window (elongation ~54–126°), you want high elongation to minimize zodi, and this sim is already near the upper end — moving the sim date would make the background worse, not better.\nWe re-visit the implications of this for grism SNR in the Discussion page.",
+    "crumbs": [
+      "Full run",
+      "Design"
     ]
   },
   {
     "objectID": "pipeline.html",
     "href": "pipeline.html",
-    "title": "Pipeline architecture",
+    "title": "Pipeline",
     "section": "",
-    "text": "Note\n\n\n\nThis page is a high-level narrative of the pipeline — what each stage does, why it’s shaped the way it is, and what files it reads and writes. For operator-level detail (sizing, parallelism math, CRDS troubleshooting), see CLAUDE.md in the repo. For the exact file-format schemas, see docs/data_model_reference.md.",
+    "text": "The pipeline is a linear chain of stages driven by a YAML config. The same stages and the same code are used for every campaign; only the config changes (see the Full run section for the config used in this report). This page documents what the pipeline is, how to install it, and what each stage does. Campaign-specific numbers live in the per-campaign pages.",
     "crumbs": [
       "Pipeline"
     ]
   },
   {
-    "objectID": "pipeline.html#todo",
-    "href": "pipeline.html#todo",
-    "title": "Pipeline architecture",
-    "section": "TODO",
-    "text": "TODO\n\nStage-by-stage description (reads/writes/why)\nData flow diagram\nConfig schema walkthrough\nVendored make_stack.py + per-line seed post-processing — the two deliberate deviations from upstream romanisim\nCRDS hydration + verification design\nParallelism choices (stage 02 / 04 / 05) + memory math",
+    "objectID": "pipeline.html#what-it-does",
+    "href": "pipeline.html#what-it-does",
+    "title": "Pipeline",
+    "section": "What it does",
+    "text": "What it does\nStarting from:\n\nan input source catalog (maggies per bandpass, ra/dec, type)\na pointings file carved out of catalogs/HLWAS.sim.ecsv by a cone- or box-shaped footprint filter\n\nthe pipeline produces:\n\nL2 cal files: one per (exposure × SCA), simulated with romanisim-make-image under the real CRDS reference chain.\nL3 skycell coadds and associations: Roman skycells that overlap the L2 footprint, coadded with romancal.pipeline.MosaicPipeline.\nSource catalogs: per-mosaic detections + photometry via romancal.source_catalog.SourceCatalogStep.\nRecovery diagnostics: per-skycell completeness, flux residual, astrometric residual, FP rate, plus an aggregated depth histogram — computed by scripts/06_compare_catalog.py.",
     "crumbs": [
       "Pipeline"
     ]
   },
   {
-    "objectID": "results.html",
-    "href": "results.html",
-    "title": "Results",
-    "section": "",
-    "text": "Note\n\n\n\nNumbers on this page are computed at render time from output/full/compare/summary.csv and the coadd .asdf files. Re-rendering the report picks up any re-run results.",
+    "objectID": "pipeline.html#installation",
+    "href": "pipeline.html#installation",
+    "title": "Pipeline",
+    "section": "Installation",
+    "text": "Installation\nThe project is managed by pixi. Once-only setup on a fresh Linux x86_64 host:\ngit clone git@github.com:roman-grs-pit/roman_l2_job.git\ncd roman_l2_job\n\n# install the default env (romanisim, romancal, stpsf, etc.)\npixi install\n\n# install the report env (quarto + plotting stack)\npixi install --environment report\n\n# download STPSF data + scaffold CRDS directory\npixi run bash scripts/00_setup.sh\n\n# pre-populate the CRDS reference cache (serial, avoids parallel races)\npixi run bash scripts/00_hydrate_crds.sh configs/smoke.yaml\n\n# copy your input catalog into place (not tracked by git)\nscp metadata.parquet user@host:roman_l2_job/data/\n\n# prepare the working catalog (mag → maggies if needed)\npixi run python scripts/00_prepare_catalog.py configs/smoke.yaml\nThe env pins Python 3.12 + pinned-version romanisim, romancal, and stpsf. See pixi.toml for the dependency list. BLAS threads are pinned to 1 in the activation env so parallel xargs -P workers don’t oversubscribe the box.",
     "crumbs": [
-      "Results"
+      "Pipeline"
     ]
   },
   {
-    "objectID": "results.html#full-run-configuration",
-    "href": "results.html#full-run-configuration",
-    "title": "Results",
-    "section": "Full-run configuration",
-    "text": "Full-run configuration\n324 sims over 6 visits (2 passes × 3 dithers × segments 490+521), 320 skycells after skycell_asn --product-type full.",
+    "objectID": "pipeline.html#pipeline-shape",
+    "href": "pipeline.html#pipeline-shape",
+    "title": "Pipeline",
+    "section": "Pipeline shape",
+    "text": "Pipeline shape\nEvery numbered stage is a shell script (or Python) taking configs/&lt;tag&gt;.yaml as its single argument. Outputs are idempotent — each stage skips items that already exist, so re-running picks up partial state for free.\n\n\n\n\n\n\n\n\n\nStage\nScript\nReads\nWrites\n\n\n\n\nsetup\n00_setup.sh\n—\nSTPSF data, CRDS dir\n\n\nhydrate CRDS\n00_hydrate_crds.sh &lt;config&gt;\nCRDS server\npopulated crds_cache/\n\n\nverify CRDS\n00_verify_crds.py\ncrds_cache/\nexit nonzero on size outliers\n\n\ncatalog prep\n00_prepare_catalog.py &lt;config&gt;\ncatalog.input\ncatalogs/sources.parquet (maggies)\n\n\nfilter pointings\nfilter_pointings.py &lt;config&gt;\ncatalogs/HLWAS.sim.ecsv\npointings_&lt;tag&gt;.ecsv\n\n\n01 build\n01_build_script.sh &lt;config&gt;\npointings + sources\noutput/&lt;tag&gt;/sims.script\n\n\n02 sims\n02_run_sims.sh &lt;config&gt;\nsims.script\noutput/cal/*_cal.asdf\n\n\n03 asn\n03_build_asn.sh &lt;config&gt;\nmatching cal files\noutput/&lt;tag&gt;/asn/*.json\n\n\n04 mosaic\n04_run_mosaic.sh &lt;config&gt;\nasn jsons\noutput/&lt;tag&gt;/mosaic/*_coadd.asdf\n\n\n05 catalog\n05_run_catalog.sh &lt;config&gt;\nmosaics\noutput/&lt;tag&gt;/catalog/*_cat.parquet + *_segm.asdf\n\n\n06 compare\n06_compare_catalog.py &lt;config&gt;\nsources, coadds, recovered catalogs\noutput/&lt;tag&gt;/compare/{plots/*.png, summary.csv, depth_distribution.png}\n\n\n\nStages 02, 04, and 05 use xargs -P $PARALLELISM (default taken from the config’s run.parallelism, env var PARALLELISM overrides).",
     "crumbs": [
-      "Results"
+      "Pipeline"
     ]
   },
   {
-    "objectID": "results.html#depth-distribution",
-    "href": "results.html#depth-distribution",
-    "title": "Results",
-    "section": "Depth distribution",
-    "text": "Depth distribution\n\n\n\n\n\nDistribution of per-skycell depth metrics (max_depth, median_depth) across the full run.",
+    "objectID": "pipeline.html#configuration",
+    "href": "pipeline.html#configuration",
+    "title": "Pipeline",
+    "section": "Configuration",
+    "text": "Configuration\nA minimal config (the actual configs/full.yaml):\ntag: full\n\ncatalog:\n  input: data/metadata.parquet\n  input_units: mag            # or \"maggies\" (no-op the conversion)\n  bandpass_col: F158\n\npointings:\n  region:\n    type: cone                # or \"box\" with ra_min/max + dec_min/max\n    ra: 10.0\n    dec: 0.0\n    radius_deg: 0.5\n  bandpass: F158\n  only_pass: null             # optional visit filter, null = no restriction\n  only_segment: null\n  only_visit: null\n\nrun:\n  parallelism: 4\nEvery field is required — no hidden defaults in code. only_pass/segment/visit accept integer values to carve out sub-selections (the smoke config uses them to pick a single-visit subset for quick shake-downs).\nscripts/_config.py is the loader. It validates the schema and exposes a shell-export mode so bash stages can read values via eval \"$(pixi run python scripts/_config.py $CONFIG)\".",
     "crumbs": [
-      "Results"
+      "Pipeline"
     ]
   },
   {
-    "objectID": "results.html#completeness-and-flux-residual-headlines",
-    "href": "results.html#completeness-and-flux-residual-headlines",
-    "title": "Results",
-    "section": "Completeness and flux residual headlines",
-    "text": "Completeness and flux residual headlines\n\n\n\n\n\n\nHeadline recovery numbers, medians across all 320 skycells.\n\n\n\nmetric\nmedian\n\n\n\n\n0\n50%-completeness mag (all sources)\n23.95\n\n\n1\n50%-completeness mag (deep subset)\n24.05\n\n\n2\noverall completeness (all sources)\n0.356\n\n\n3\noverall completeness (deep subset)\n0.384\n\n\n4\nKron flux residual (median, matched)\n+0.166 mag\n\n\n5\nastrometric residual (median, matched)\n0.017″",
+    "objectID": "pipeline.html#design-choices",
+    "href": "pipeline.html#design-choices",
+    "title": "Pipeline",
+    "section": "Design choices",
+    "text": "Design choices\nA few deliberate deviations from upstream stock romanisim / romancal worth knowing about:\n\nVendored make_stack.py. Upstream romanisim-make-stack unconditionally dereferences apt_metadata even in the no-APT path, which crashes the script when --apt isn’t supplied. scripts/make_stack.py is a verbatim copy with one 3-line guard added. Delete when upstream merges a fix.\nPer-line deterministic seeds. romanisim-make-stack --make_script bakes the same --rng_seed into every generated line, defeating noise realization between dithers. scripts/_postprocess_sims.py rewrites each seed to crc32(output_basename) — reproducible, unique per (visit × exposure × SCA).\nCRDS hydrate + verify. The original smoke run crashed because a worker was OOM-killed mid-CRDS-download, leaving a truncated reference file that then broke every subsequent sim. 00_hydrate_crds.sh pre-fetches every CRDS reference our pipeline uses (14 reftypes, serially via crds.getreferences) so the parallel stage-02 run never races on downloads; 00_verify_crds.py is a size-outlier check that stage 02 runs as a pre-flight.\nParallelism. PARALLELISM=4 on m5a.2xlarge, not the default nproc, because the 8 vCPUs are SMT threads over 4 physical cores and 8-way romanisim spikes to ~62 GB RAM on a 32 GB box. Stage 04 uses the same value for strun MosaicPipeline workers.\nFootprint mask = weight &gt; 0. The recovery analysis trusts only sources whose (ra, dec) project onto a valid pixel of the coadd, so edge-of-footprint non-detections don’t count against completeness.\n\nFor full operator detail (sizing, ETA, memory, troubleshooting recipes), see CLAUDE.md in the repo. For file-format specifics (recovered catalog columns, coadd array names, CRDS dataset dict shape), see docs/data_model_reference.md.",
     "crumbs": [
-      "Results"
-    ]
-  },
-  {
-    "objectID": "results.html#todo",
-    "href": "results.html#todo",
-    "title": "Results",
-    "section": "TODO",
-    "text": "TODO\n\nCompleteness-vs-magnitude panel pulled from the per-skycell PNGs\nRecovered-vs-input flux scatter (aggregated)\nSky distribution colored by depth\nDistance-from-(10,0) analysis\nIndividual per-skycell figures linked (gallery page?)",
-    "crumbs": [
-      "Results"
-    ]
-  },
-  {
-    "objectID": "discussion.html",
-    "href": "discussion.html",
-    "title": "Discussion",
-    "section": "",
-    "text": "Depth quantization. Why per-pixel depths only land on even integers (passes 15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).\nField coverage non-uniformity. Only ~25% of skycells within 0.5° of (10, 0) reach the design depth. The 0.5° cone is not the right way to think about the footprint — it’s a union of three visit-cluster patches plus the gaps.\nKron flux bias. The +0.17 mag under-measurement is a Kron-photometry property on extended sources; unbiased recovered flux for galaxies would use larger aperture (e.g. aper16_flux) or segment flux. Relevant for downstream science.\nZodiacal background. Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum reference. Expected for a field at ecliptic latitude −4° observed at elongation 128°. Already near the best achievable for this target — the field is structurally on the ecliptic, and the sim date is near the best observable elongation.\nGrism implications. Discussion of what the recovered per-skycell depth and completeness mean for the grism observations the campaign is intended to support.",
-    "crumbs": [
-      "Discussion"
-    ]
-  },
-  {
-    "objectID": "discussion.html#todo",
-    "href": "discussion.html#todo",
-    "title": "Discussion",
-    "section": "",
-    "text": "Depth quantization. Why per-pixel depths only land on even integers (passes 15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).\nField coverage non-uniformity. Only ~25% of skycells within 0.5° of (10, 0) reach the design depth. The 0.5° cone is not the right way to think about the footprint — it’s a union of three visit-cluster patches plus the gaps.\nKron flux bias. The +0.17 mag under-measurement is a Kron-photometry property on extended sources; unbiased recovered flux for galaxies would use larger aperture (e.g. aper16_flux) or segment flux. Relevant for downstream science.\nZodiacal background. Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum reference. Expected for a field at ecliptic latitude −4° observed at elongation 128°. Already near the best achievable for this target — the field is structurally on the ecliptic, and the sim date is near the best observable elongation.\nGrism implications. Discussion of what the recovered per-skycell depth and completeness mean for the grism observations the campaign is intended to support.",
-    "crumbs": [
-      "Discussion"
+      "Pipeline"
     ]
   }
 ]

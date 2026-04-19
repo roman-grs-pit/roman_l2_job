@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Pipeline architecture – roman_l2_job</title>
+<title>Pipeline – roman_l2_job</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -164,18 +164,35 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
  <span class="menu-text">Pipeline</span></a>
   </div>
 </li>
-        <li class="sidebar-item">
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Full run</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./results.html" class="sidebar-item-text sidebar-link">
+  <a href="./full/design.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Design</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./full/results.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Results</span></a>
   </div>
 </li>
-        <li class="sidebar-item">
+          <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./discussion.html" class="sidebar-item-text sidebar-link">
+  <a href="./full/discussion.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Discussion</span></a>
   </div>
 </li>
+      </ul>
+  </li>
     </ul>
     </div>
 </nav>
@@ -186,7 +203,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#todo" id="toc-todo" class="nav-link active" data-scroll-target="#todo">TODO</a></li>
+  <li><a href="#what-it-does" id="toc-what-it-does" class="nav-link active" data-scroll-target="#what-it-does">What it does</a></li>
+  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
+  <li><a href="#pipeline-shape" id="toc-pipeline-shape" class="nav-link" data-scroll-target="#pipeline-shape">Pipeline shape</a></li>
+  <li><a href="#configuration" id="toc-configuration" class="nav-link" data-scroll-target="#configuration">Configuration</a></li>
+  <li><a href="#design-choices" id="toc-design-choices" class="nav-link" data-scroll-target="#design-choices">Design choices</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/roman-grs-pit/roman_l2_job/edit/main/pipeline.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/roman-grs-pit/roman_l2_job/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -195,7 +216,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<div class="quarto-title-block"><div><h1 class="title">Pipeline architecture</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<div class="quarto-title-block"><div><h1 class="title">Pipeline</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+<p class="subtitle lead">Architecture, installation, stages — common to every campaign</p>
 </div>
 
 
@@ -212,29 +234,173 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>This page is a high-level narrative of the pipeline — what each stage does, why it’s shaped the way it is, and what files it reads and writes. For operator-level detail (sizing, parallelism math, CRDS troubleshooting), see <code>CLAUDE.md</code> in the repo. For the exact file-format schemas, see <code>docs/data_model_reference.md</code>.</p>
-</div>
-</div>
-<section id="todo" class="level2">
-<h2 class="anchored" data-anchor-id="todo">TODO</h2>
+<p>The pipeline is a linear chain of stages driven by a YAML config. The same stages and the same code are used for every campaign; only the config changes (see the Full run section for the config used in this report). This page documents what the pipeline is, how to install it, and what each stage does. Campaign-specific numbers live in the per-campaign pages.</p>
+<section id="what-it-does" class="level2">
+<h2 class="anchored" data-anchor-id="what-it-does">What it does</h2>
+<p>Starting from:</p>
 <ul>
-<li>Stage-by-stage description (reads/writes/why)</li>
-<li>Data flow diagram</li>
-<li>Config schema walkthrough</li>
-<li>Vendored <code>make_stack.py</code> + per-line seed post-processing — the two deliberate deviations from upstream romanisim</li>
-<li>CRDS hydration + verification design</li>
-<li>Parallelism choices (stage 02 / 04 / 05) + memory math</li>
+<li>an <strong>input source catalog</strong> (maggies per bandpass, ra/dec, type)</li>
+<li>a <strong>pointings file</strong> carved out of <code>catalogs/HLWAS.sim.ecsv</code> by a cone- or box-shaped footprint filter</li>
 </ul>
+<p>the pipeline produces:</p>
+<ul>
+<li><strong>L2 cal files</strong>: one per (exposure × SCA), simulated with <code>romanisim-make-image</code> under the real CRDS reference chain.</li>
+<li><strong>L3 skycell coadds</strong> and <strong>associations</strong>: Roman skycells that overlap the L2 footprint, coadded with <code>romancal.pipeline.MosaicPipeline</code>.</li>
+<li><strong>Source catalogs</strong>: per-mosaic detections + photometry via <code>romancal.source_catalog.SourceCatalogStep</code>.</li>
+<li><strong>Recovery diagnostics</strong>: per-skycell completeness, flux residual, astrometric residual, FP rate, plus an aggregated depth histogram — computed by <code>scripts/06_compare_catalog.py</code>.</li>
+</ul>
+</section>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<p>The project is managed by <a href="https://pixi.sh">pixi</a>. Once-only setup on a fresh Linux x86_64 host:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:roman-grs-pit/roman_l2_job.git</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> roman_l2_job</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># install the default env (romanisim, romancal, stpsf, etc.)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># install the report env (quarto + plotting stack)</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install <span class="at">--environment</span> report</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># download STPSF data + scaffold CRDS directory</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run bash scripts/00_setup.sh</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># pre-populate the CRDS reference cache (serial, avoids parallel races)</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run bash scripts/00_hydrate_crds.sh configs/smoke.yaml</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># copy your input catalog into place (not tracked by git)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">scp</span> metadata.parquet user@host:roman_l2_job/data/</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co"># prepare the working catalog (mag → maggies if needed)</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/00_prepare_catalog.py configs/smoke.yaml</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The env pins Python 3.12 + pinned-version romanisim, romancal, and stpsf. See <code>pixi.toml</code> for the dependency list. BLAS threads are pinned to 1 in the activation env so parallel <code>xargs -P</code> workers don’t oversubscribe the box.</p>
+</section>
+<section id="pipeline-shape" class="level2">
+<h2 class="anchored" data-anchor-id="pipeline-shape">Pipeline shape</h2>
+<p>Every numbered stage is a shell script (or Python) taking <code>configs/&lt;tag&gt;.yaml</code> as its single argument. Outputs are idempotent — each stage skips items that already exist, so re-running picks up partial state for free.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stage</th>
+<th>Script</th>
+<th>Reads</th>
+<th>Writes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>setup</td>
+<td><code>00_setup.sh</code></td>
+<td>—</td>
+<td>STPSF data, CRDS dir</td>
+</tr>
+<tr class="even">
+<td>hydrate CRDS</td>
+<td><code>00_hydrate_crds.sh &lt;config&gt;</code></td>
+<td>CRDS server</td>
+<td>populated <code>crds_cache/</code></td>
+</tr>
+<tr class="odd">
+<td>verify CRDS</td>
+<td><code>00_verify_crds.py</code></td>
+<td><code>crds_cache/</code></td>
+<td>exit nonzero on size outliers</td>
+</tr>
+<tr class="even">
+<td>catalog prep</td>
+<td><code>00_prepare_catalog.py &lt;config&gt;</code></td>
+<td><code>catalog.input</code></td>
+<td><code>catalogs/sources.parquet</code> (maggies)</td>
+</tr>
+<tr class="odd">
+<td>filter pointings</td>
+<td><code>filter_pointings.py &lt;config&gt;</code></td>
+<td><code>catalogs/HLWAS.sim.ecsv</code></td>
+<td><code>pointings_&lt;tag&gt;.ecsv</code></td>
+</tr>
+<tr class="even">
+<td>01 build</td>
+<td><code>01_build_script.sh &lt;config&gt;</code></td>
+<td>pointings + sources</td>
+<td><code>output/&lt;tag&gt;/sims.script</code></td>
+</tr>
+<tr class="odd">
+<td>02 sims</td>
+<td><code>02_run_sims.sh &lt;config&gt;</code></td>
+<td>sims.script</td>
+<td><code>output/cal/*_cal.asdf</code></td>
+</tr>
+<tr class="even">
+<td>03 asn</td>
+<td><code>03_build_asn.sh &lt;config&gt;</code></td>
+<td>matching cal files</td>
+<td><code>output/&lt;tag&gt;/asn/*.json</code></td>
+</tr>
+<tr class="odd">
+<td>04 mosaic</td>
+<td><code>04_run_mosaic.sh &lt;config&gt;</code></td>
+<td>asn jsons</td>
+<td><code>output/&lt;tag&gt;/mosaic/*_coadd.asdf</code></td>
+</tr>
+<tr class="even">
+<td>05 catalog</td>
+<td><code>05_run_catalog.sh &lt;config&gt;</code></td>
+<td>mosaics</td>
+<td><code>output/&lt;tag&gt;/catalog/*_cat.parquet</code> + <code>*_segm.asdf</code></td>
+</tr>
+<tr class="odd">
+<td>06 compare</td>
+<td><code>06_compare_catalog.py &lt;config&gt;</code></td>
+<td>sources, coadds, recovered catalogs</td>
+<td><code>output/&lt;tag&gt;/compare/{plots/*.png, summary.csv, depth_distribution.png}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Stages 02, 04, and 05 use <code>xargs -P $PARALLELISM</code> (default taken from the config’s <code>run.parallelism</code>, env var <code>PARALLELISM</code> overrides).</p>
+</section>
+<section id="configuration" class="level2">
+<h2 class="anchored" data-anchor-id="configuration">Configuration</h2>
+<p>A minimal config (the actual <code>configs/full.yaml</code>):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tag</span><span class="kw">:</span><span class="at"> full</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">catalog</span><span class="kw">:</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">input</span><span class="kw">:</span><span class="at"> data/metadata.parquet</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">input_units</span><span class="kw">:</span><span class="at"> mag</span><span class="co">            # or "maggies" (no-op the conversion)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">bandpass_col</span><span class="kw">:</span><span class="at"> F158</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">pointings</span><span class="kw">:</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">region</span><span class="kw">:</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">type</span><span class="kw">:</span><span class="at"> cone</span><span class="co">                # or "box" with ra_min/max + dec_min/max</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ra</span><span class="kw">:</span><span class="at"> </span><span class="fl">10.0</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">dec</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.0</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">radius_deg</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">bandpass</span><span class="kw">:</span><span class="at"> F158</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">only_pass</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">             # optional visit filter, null = no restriction</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">only_segment</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">only_visit</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">run</span><span class="kw">:</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parallelism</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Every field is required — no hidden defaults in code. <code>only_pass/segment/visit</code> accept integer values to carve out sub-selections (the smoke config uses them to pick a single-visit subset for quick shake-downs).</p>
+<p><code>scripts/_config.py</code> is the loader. It validates the schema and exposes a shell-export mode so bash stages can read values via <code>eval "$(pixi run python scripts/_config.py $CONFIG)"</code>.</p>
+</section>
+<section id="design-choices" class="level2">
+<h2 class="anchored" data-anchor-id="design-choices">Design choices</h2>
+<p>A few deliberate deviations from upstream stock <code>romanisim</code> / <code>romancal</code> worth knowing about:</p>
+<ul>
+<li><strong>Vendored <code>make_stack.py</code>.</strong> Upstream <code>romanisim-make-stack</code> unconditionally dereferences <code>apt_metadata</code> even in the no-APT path, which crashes the script when <code>--apt</code> isn’t supplied. <code>scripts/make_stack.py</code> is a verbatim copy with one 3-line guard added. Delete when upstream merges a fix.</li>
+<li><strong>Per-line deterministic seeds.</strong> <code>romanisim-make-stack --make_script</code> bakes the same <code>--rng_seed</code> into every generated line, defeating noise realization between dithers. <code>scripts/_postprocess_sims.py</code> rewrites each seed to <code>crc32(output_basename)</code> — reproducible, unique per (visit × exposure × SCA).</li>
+<li><strong>CRDS hydrate + verify.</strong> The original smoke run crashed because a worker was OOM-killed mid-CRDS-download, leaving a truncated reference file that then broke every subsequent sim. <code>00_hydrate_crds.sh</code> pre-fetches every CRDS reference our pipeline uses (14 reftypes, serially via <code>crds.getreferences</code>) so the parallel stage-02 run never races on downloads; <code>00_verify_crds.py</code> is a size-outlier check that stage 02 runs as a pre-flight.</li>
+<li><strong>Parallelism.</strong> <code>PARALLELISM=4</code> on m5a.2xlarge, not the default <code>nproc</code>, because the 8 vCPUs are SMT threads over 4 physical cores and 8-way romanisim spikes to ~62 GB RAM on a 32 GB box. Stage 04 uses the same value for <code>strun MosaicPipeline</code> workers.</li>
+<li><strong>Footprint mask = <code>weight &gt; 0</code>.</strong> The recovery analysis trusts only sources whose (ra, dec) project onto a valid pixel of the coadd, so edge-of-footprint non-detections don’t count against completeness.</li>
+</ul>
+<p>For full operator detail (sizing, ETA, memory, troubleshooting recipes), see <code>CLAUDE.md</code> in the repo. For file-format specifics (recovered catalog columns, coadd array names, CRDS dataset dict shape), see <code>docs/data_model_reference.md</code>.</p>
 
 
 <!-- -->
@@ -693,27 +859,161 @@ Note
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Pipeline architecture"</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>This page is a high-level narrative of the pipeline — what each stage does,</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>why it's shaped the way it is, and what files it reads and writes. For</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>operator-level detail (sizing, parallelism math, CRDS troubleshooting),</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>see <span class="in">`CLAUDE.md`</span> in the repo. For the exact file-format schemas, see</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="in">`docs/data_model_reference.md`</span>.</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## TODO</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Stage-by-stage description (reads/writes/why)</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Data flow diagram</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Config schema walkthrough</span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Vendored <span class="in">`make_stack.py`</span> + per-line seed post-processing — the two</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  deliberate deviations from upstream romanisim</span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>CRDS hydration + verification design</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Parallelism choices (stage 02 / 04 / 05) + memory math</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Pipeline"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Architecture, installation, stages — common to every campaign"</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>The pipeline is a linear chain of stages driven by a YAML config. The same</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>stages and the same code are used for every campaign; only the config</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>changes (see the Full run section for the config used in this report). This</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>page documents what the pipeline is, how to install it, and what each stage</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>does. Campaign-specific numbers live in the per-campaign pages.</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="fu">## What it does</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>Starting from:</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>an **input source catalog** (maggies per bandpass, ra/dec, type)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>a **pointings file** carved out of <span class="in">`catalogs/HLWAS.sim.ecsv`</span> by a</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  cone- or box-shaped footprint filter</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>the pipeline produces:</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**L2 cal files**: one per (exposure × SCA), simulated with</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="in">`romanisim-make-image`</span> under the real CRDS reference chain.</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**L3 skycell coadds** and **associations**: Roman skycells that</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>  overlap the L2 footprint, coadded with <span class="in">`romancal.pipeline.MosaicPipeline`</span>.</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Source catalogs**: per-mosaic detections + photometry via</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="in">`romancal.source_catalog.SourceCatalogStep`</span>.</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Recovery diagnostics**: per-skycell completeness, flux residual,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  astrometric residual, FP rate, plus an aggregated depth histogram —</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  computed by <span class="in">`scripts/06_compare_catalog.py`</span>.</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a><span class="fu">## Installation</span></span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>The project is managed by <span class="co">[</span><span class="ot">pixi</span><span class="co">](https://pixi.sh)</span>. Once-only setup on a</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>fresh Linux x86_64 host:</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone git@github.com:roman-grs-pit/roman_l2_job.git</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> roman_l2_job</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="co"># install the default env (romanisim, romancal, stpsf, etc.)</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a><span class="co"># install the report env (quarto + plotting stack)</span></span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> install <span class="at">--environment</span> report</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="co"># download STPSF data + scaffold CRDS directory</span></span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run bash scripts/00_setup.sh</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="co"># pre-populate the CRDS reference cache (serial, avoids parallel races)</span></span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run bash scripts/00_hydrate_crds.sh configs/smoke.yaml</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="co"># copy your input catalog into place (not tracked by git)</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="fu">scp</span> metadata.parquet user@host:roman_l2_job/data/</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="co"># prepare the working catalog (mag → maggies if needed)</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/00_prepare_catalog.py configs/smoke.yaml</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>The env pins Python 3.12 + pinned-version romanisim, romancal, and stpsf.</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a>See <span class="in">`pixi.toml`</span> for the dependency list. BLAS threads are pinned to 1 in</span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>the activation env so parallel <span class="in">`xargs -P`</span> workers don't oversubscribe</span>
+<span id="cb3-63"><a href="#cb3-63" aria-hidden="true" tabindex="-1"></a>the box.</span>
+<span id="cb3-64"><a href="#cb3-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-65"><a href="#cb3-65" aria-hidden="true" tabindex="-1"></a><span class="fu">## Pipeline shape</span></span>
+<span id="cb3-66"><a href="#cb3-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-67"><a href="#cb3-67" aria-hidden="true" tabindex="-1"></a>Every numbered stage is a shell script (or Python) taking <span class="in">`configs/&lt;tag&gt;.yaml`</span></span>
+<span id="cb3-68"><a href="#cb3-68" aria-hidden="true" tabindex="-1"></a>as its single argument. Outputs are idempotent — each stage skips items</span>
+<span id="cb3-69"><a href="#cb3-69" aria-hidden="true" tabindex="-1"></a>that already exist, so re-running picks up partial state for free.</span>
+<span id="cb3-70"><a href="#cb3-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-71"><a href="#cb3-71" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stage <span class="pp">|</span> Script <span class="pp">|</span> Reads <span class="pp">|</span> Writes <span class="pp">|</span></span>
+<span id="cb3-72"><a href="#cb3-72" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|---|</span></span>
+<span id="cb3-73"><a href="#cb3-73" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> setup <span class="pp">|</span> <span class="in">`00_setup.sh`</span> <span class="pp">|</span> — <span class="pp">|</span> STPSF data, CRDS dir <span class="pp">|</span></span>
+<span id="cb3-74"><a href="#cb3-74" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> hydrate CRDS <span class="pp">|</span> <span class="in">`00_hydrate_crds.sh &lt;config&gt;`</span> <span class="pp">|</span> CRDS server <span class="pp">|</span> populated <span class="in">`crds_cache/`</span> <span class="pp">|</span></span>
+<span id="cb3-75"><a href="#cb3-75" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> verify CRDS <span class="pp">|</span> <span class="in">`00_verify_crds.py`</span> <span class="pp">|</span> <span class="in">`crds_cache/`</span> <span class="pp">|</span> exit nonzero on size outliers <span class="pp">|</span></span>
+<span id="cb3-76"><a href="#cb3-76" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> catalog prep <span class="pp">|</span> <span class="in">`00_prepare_catalog.py &lt;config&gt;`</span> <span class="pp">|</span> <span class="in">`catalog.input`</span> <span class="pp">|</span> <span class="in">`catalogs/sources.parquet`</span> (maggies) <span class="pp">|</span></span>
+<span id="cb3-77"><a href="#cb3-77" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> filter pointings <span class="pp">|</span> <span class="in">`filter_pointings.py &lt;config&gt;`</span> <span class="pp">|</span> <span class="in">`catalogs/HLWAS.sim.ecsv`</span> <span class="pp">|</span> <span class="in">`pointings_&lt;tag&gt;.ecsv`</span> <span class="pp">|</span></span>
+<span id="cb3-78"><a href="#cb3-78" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 01 build <span class="pp">|</span> <span class="in">`01_build_script.sh &lt;config&gt;`</span> <span class="pp">|</span> pointings + sources <span class="pp">|</span> <span class="in">`output/&lt;tag&gt;/sims.script`</span> <span class="pp">|</span></span>
+<span id="cb3-79"><a href="#cb3-79" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 02 sims <span class="pp">|</span> <span class="in">`02_run_sims.sh &lt;config&gt;`</span> <span class="pp">|</span> sims.script <span class="pp">|</span> <span class="in">`output/cal/*_cal.asdf`</span> <span class="pp">|</span></span>
+<span id="cb3-80"><a href="#cb3-80" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 03 asn <span class="pp">|</span> <span class="in">`03_build_asn.sh &lt;config&gt;`</span> <span class="pp">|</span> matching cal files <span class="pp">|</span> <span class="in">`output/&lt;tag&gt;/asn/*.json`</span> <span class="pp">|</span></span>
+<span id="cb3-81"><a href="#cb3-81" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 04 mosaic <span class="pp">|</span> <span class="in">`04_run_mosaic.sh &lt;config&gt;`</span> <span class="pp">|</span> asn jsons <span class="pp">|</span> <span class="in">`output/&lt;tag&gt;/mosaic/*_coadd.asdf`</span> <span class="pp">|</span></span>
+<span id="cb3-82"><a href="#cb3-82" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 05 catalog <span class="pp">|</span> <span class="in">`05_run_catalog.sh &lt;config&gt;`</span> <span class="pp">|</span> mosaics <span class="pp">|</span> <span class="in">`output/&lt;tag&gt;/catalog/*_cat.parquet`</span> + <span class="in">`*_segm.asdf`</span> <span class="pp">|</span></span>
+<span id="cb3-83"><a href="#cb3-83" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 06 compare <span class="pp">|</span> <span class="in">`06_compare_catalog.py &lt;config&gt;`</span> <span class="pp">|</span> sources, coadds, recovered catalogs <span class="pp">|</span> <span class="in">`output/&lt;tag&gt;/compare/{plots/*.png, summary.csv, depth_distribution.png}`</span> <span class="pp">|</span></span>
+<span id="cb3-84"><a href="#cb3-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-85"><a href="#cb3-85" aria-hidden="true" tabindex="-1"></a>Stages 02, 04, and 05 use <span class="in">`xargs -P $PARALLELISM`</span> (default taken from the</span>
+<span id="cb3-86"><a href="#cb3-86" aria-hidden="true" tabindex="-1"></a>config's <span class="in">`run.parallelism`</span>, env var <span class="in">`PARALLELISM`</span> overrides).</span>
+<span id="cb3-87"><a href="#cb3-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-88"><a href="#cb3-88" aria-hidden="true" tabindex="-1"></a><span class="fu">## Configuration</span></span>
+<span id="cb3-89"><a href="#cb3-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-90"><a href="#cb3-90" aria-hidden="true" tabindex="-1"></a>A minimal config (the actual <span class="in">`configs/full.yaml`</span>):</span>
+<span id="cb3-91"><a href="#cb3-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-92"><a href="#cb3-92" aria-hidden="true" tabindex="-1"></a><span class="in">```yaml</span></span>
+<span id="cb3-93"><a href="#cb3-93" aria-hidden="true" tabindex="-1"></a><span class="fu">tag</span><span class="kw">:</span><span class="at"> full</span></span>
+<span id="cb3-94"><a href="#cb3-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-95"><a href="#cb3-95" aria-hidden="true" tabindex="-1"></a><span class="fu">catalog</span><span class="kw">:</span></span>
+<span id="cb3-96"><a href="#cb3-96" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">input</span><span class="kw">:</span><span class="at"> data/metadata.parquet</span></span>
+<span id="cb3-97"><a href="#cb3-97" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">input_units</span><span class="kw">:</span><span class="at"> mag</span><span class="co">            # or "maggies" (no-op the conversion)</span></span>
+<span id="cb3-98"><a href="#cb3-98" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">bandpass_col</span><span class="kw">:</span><span class="at"> F158</span></span>
+<span id="cb3-99"><a href="#cb3-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-100"><a href="#cb3-100" aria-hidden="true" tabindex="-1"></a><span class="fu">pointings</span><span class="kw">:</span></span>
+<span id="cb3-101"><a href="#cb3-101" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">region</span><span class="kw">:</span></span>
+<span id="cb3-102"><a href="#cb3-102" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">type</span><span class="kw">:</span><span class="at"> cone</span><span class="co">                # or "box" with ra_min/max + dec_min/max</span></span>
+<span id="cb3-103"><a href="#cb3-103" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">ra</span><span class="kw">:</span><span class="at"> </span><span class="fl">10.0</span></span>
+<span id="cb3-104"><a href="#cb3-104" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">dec</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.0</span></span>
+<span id="cb3-105"><a href="#cb3-105" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">radius_deg</span><span class="kw">:</span><span class="at"> </span><span class="fl">0.5</span></span>
+<span id="cb3-106"><a href="#cb3-106" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">bandpass</span><span class="kw">:</span><span class="at"> F158</span></span>
+<span id="cb3-107"><a href="#cb3-107" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">only_pass</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span><span class="co">             # optional visit filter, null = no restriction</span></span>
+<span id="cb3-108"><a href="#cb3-108" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">only_segment</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb3-109"><a href="#cb3-109" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">only_visit</span><span class="kw">:</span><span class="at"> </span><span class="ch">null</span></span>
+<span id="cb3-110"><a href="#cb3-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-111"><a href="#cb3-111" aria-hidden="true" tabindex="-1"></a><span class="fu">run</span><span class="kw">:</span></span>
+<span id="cb3-112"><a href="#cb3-112" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">parallelism</span><span class="kw">:</span><span class="at"> </span><span class="dv">4</span></span>
+<span id="cb3-113"><a href="#cb3-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-114"><a href="#cb3-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-115"><a href="#cb3-115" aria-hidden="true" tabindex="-1"></a>Every field is required — no hidden defaults in code. <span class="in">`only_pass/segment/visit`</span></span>
+<span id="cb3-116"><a href="#cb3-116" aria-hidden="true" tabindex="-1"></a>accept integer values to carve out sub-selections (the smoke config uses</span>
+<span id="cb3-117"><a href="#cb3-117" aria-hidden="true" tabindex="-1"></a>them to pick a single-visit subset for quick shake-downs).</span>
+<span id="cb3-118"><a href="#cb3-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-119"><a href="#cb3-119" aria-hidden="true" tabindex="-1"></a><span class="in">`scripts/_config.py`</span> is the loader. It validates the schema and exposes a</span>
+<span id="cb3-120"><a href="#cb3-120" aria-hidden="true" tabindex="-1"></a>shell-export mode so bash stages can read values via</span>
+<span id="cb3-121"><a href="#cb3-121" aria-hidden="true" tabindex="-1"></a><span class="in">`eval "$(pixi run python scripts/_config.py $CONFIG)"`</span>.</span>
+<span id="cb3-122"><a href="#cb3-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-123"><a href="#cb3-123" aria-hidden="true" tabindex="-1"></a><span class="fu">## Design choices</span></span>
+<span id="cb3-124"><a href="#cb3-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-125"><a href="#cb3-125" aria-hidden="true" tabindex="-1"></a>A few deliberate deviations from upstream stock <span class="in">`romanisim`</span> / <span class="in">`romancal`</span> worth</span>
+<span id="cb3-126"><a href="#cb3-126" aria-hidden="true" tabindex="-1"></a>knowing about:</span>
+<span id="cb3-127"><a href="#cb3-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-128"><a href="#cb3-128" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Vendored `make_stack.py`.** Upstream <span class="in">`romanisim-make-stack`</span> unconditionally</span>
+<span id="cb3-129"><a href="#cb3-129" aria-hidden="true" tabindex="-1"></a>  dereferences <span class="in">`apt_metadata`</span> even in the no-APT path, which crashes the</span>
+<span id="cb3-130"><a href="#cb3-130" aria-hidden="true" tabindex="-1"></a>  script when <span class="in">`--apt`</span> isn't supplied. <span class="in">`scripts/make_stack.py`</span> is a verbatim</span>
+<span id="cb3-131"><a href="#cb3-131" aria-hidden="true" tabindex="-1"></a>  copy with one 3-line guard added. Delete when upstream merges a fix.</span>
+<span id="cb3-132"><a href="#cb3-132" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Per-line deterministic seeds.** <span class="in">`romanisim-make-stack --make_script`</span></span>
+<span id="cb3-133"><a href="#cb3-133" aria-hidden="true" tabindex="-1"></a>  bakes the same <span class="in">`--rng_seed`</span> into every generated line, defeating noise</span>
+<span id="cb3-134"><a href="#cb3-134" aria-hidden="true" tabindex="-1"></a>  realization between dithers. <span class="in">`scripts/_postprocess_sims.py`</span> rewrites</span>
+<span id="cb3-135"><a href="#cb3-135" aria-hidden="true" tabindex="-1"></a>  each seed to <span class="in">`crc32(output_basename)`</span> — reproducible, unique per</span>
+<span id="cb3-136"><a href="#cb3-136" aria-hidden="true" tabindex="-1"></a>  (visit × exposure × SCA).</span>
+<span id="cb3-137"><a href="#cb3-137" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**CRDS hydrate + verify.** The original smoke run crashed because a</span>
+<span id="cb3-138"><a href="#cb3-138" aria-hidden="true" tabindex="-1"></a>  worker was OOM-killed mid-CRDS-download, leaving a truncated reference</span>
+<span id="cb3-139"><a href="#cb3-139" aria-hidden="true" tabindex="-1"></a>  file that then broke every subsequent sim. <span class="in">`00_hydrate_crds.sh`</span></span>
+<span id="cb3-140"><a href="#cb3-140" aria-hidden="true" tabindex="-1"></a>  pre-fetches every CRDS reference our pipeline uses (14 reftypes,</span>
+<span id="cb3-141"><a href="#cb3-141" aria-hidden="true" tabindex="-1"></a>  serially via <span class="in">`crds.getreferences`</span>) so the parallel stage-02 run never</span>
+<span id="cb3-142"><a href="#cb3-142" aria-hidden="true" tabindex="-1"></a>  races on downloads; <span class="in">`00_verify_crds.py`</span> is a size-outlier check that</span>
+<span id="cb3-143"><a href="#cb3-143" aria-hidden="true" tabindex="-1"></a>  stage 02 runs as a pre-flight.</span>
+<span id="cb3-144"><a href="#cb3-144" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Parallelism.** <span class="in">`PARALLELISM=4`</span> on m5a.2xlarge, not the default</span>
+<span id="cb3-145"><a href="#cb3-145" aria-hidden="true" tabindex="-1"></a>  <span class="in">`nproc`</span>, because the 8 vCPUs are SMT threads over 4 physical cores and</span>
+<span id="cb3-146"><a href="#cb3-146" aria-hidden="true" tabindex="-1"></a>  8-way romanisim spikes to ~62 GB RAM on a 32 GB box. Stage 04 uses the</span>
+<span id="cb3-147"><a href="#cb3-147" aria-hidden="true" tabindex="-1"></a>  same value for <span class="in">`strun MosaicPipeline`</span> workers.</span>
+<span id="cb3-148"><a href="#cb3-148" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Footprint mask = `weight &gt; 0`.** The recovery analysis trusts only</span>
+<span id="cb3-149"><a href="#cb3-149" aria-hidden="true" tabindex="-1"></a>  sources whose (ra, dec) project onto a valid pixel of the coadd, so</span>
+<span id="cb3-150"><a href="#cb3-150" aria-hidden="true" tabindex="-1"></a>  edge-of-footprint non-detections don't count against completeness.</span>
+<span id="cb3-151"><a href="#cb3-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-152"><a href="#cb3-152" aria-hidden="true" tabindex="-1"></a>For full operator detail (sizing, ETA, memory, troubleshooting recipes),</span>
+<span id="cb3-153"><a href="#cb3-153" aria-hidden="true" tabindex="-1"></a>see <span class="in">`CLAUDE.md`</span> in the repo. For file-format specifics (recovered</span>
+<span id="cb3-154"><a href="#cb3-154" aria-hidden="true" tabindex="-1"></a>catalog columns, coadd array names, CRDS dataset dict shape), see</span>
+<span id="cb3-155"><a href="#cb3-155" aria-hidden="true" tabindex="-1"></a><span class="in">`docs/data_model_reference.md`</span>.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
