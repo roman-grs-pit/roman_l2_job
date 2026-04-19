@@ -94,13 +94,13 @@ class SkycellAnalysis:
     mag_50pct_all: float
     median_dmag_all: float
     median_dpos_all: float
-    # "deep": sources at pixels where depth > median_depth of this skycell
-    n_input_deep: int
-    n_matched_deep: int
-    completeness_deep: float
-    mag_50pct_deep: float
-    median_dmag_deep: float
-    median_dpos_deep: float
+    # "design": sources at pixels where depth >= config's pointings.design_depth
+    n_input_design: int
+    n_matched_design: int
+    completeness_design: float
+    mag_50pct_design: float
+    median_dmag_design: float
+    median_dpos_design: float
 
 
 def _depth_from_context(ctx: np.ndarray) -> np.ndarray:
@@ -253,8 +253,9 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
     in_mag = mag_in[foot_mask]
     # Per-source depth (at the source's pixel):
     in_depth = depth[iy_in[foot_mask], ix_in[foot_mask]]
-    deep_mask = in_depth > d_median   # strictly greater than skycell median
-    n_input_deep = int(deep_mask.sum())
+    design_depth = cfg.pointings.design_depth
+    design_mask = in_depth >= design_depth  # hit the config's design depth
+    n_input_design = int(design_mask.sum())
 
     rec_bytes = cat_path.stat().st_size
     if rec_bytes:
@@ -291,7 +292,7 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
         rec_matched = np.zeros(n_recovered, dtype=bool)
 
     n_matched_all = int(matched.sum())
-    n_matched_deep = int((matched & deep_mask).sum())
+    n_matched_design = int((matched & design_mask).sum())
     n_fp = int((~rec_matched).sum())
 
     def pop_stats(sub_mask):
@@ -314,7 +315,7 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
 
     all_mask = np.ones_like(in_mag, dtype=bool)
     stats_all = pop_stats(all_mask)
-    stats_deep = pop_stats(deep_mask)
+    stats_design = pop_stats(design_mask)
 
     # Pre-computed curves for plotting.
     centers = 0.5 * (mag_bins[:-1] + mag_bins[1:])
@@ -323,17 +324,18 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
     N_ser, _, C_ser = _binned_completeness(mag_bins, in_mag, matched,
                                            mask=(in_type == "SER"))
     _, _, C_all = _binned_completeness(mag_bins, in_mag, matched, mask=all_mask)
-    _, _, C_deep = _binned_completeness(mag_bins, in_mag, matched, mask=deep_mask)
+    _, _, C_design = _binned_completeness(mag_bins, in_mag, matched,
+                                          mask=design_mask)
 
     # ----- figure -----
     fig, axes = plt.subplots(2, 3, figsize=(15, 9))
     ((ax_c, ax_d, ax_ap), (ax_fp, ax_ast, ax_meta)) = axes
 
-    # Panel 1: completeness (all + deep + type splits)
+    # Panel 1: completeness (all + design + type splits)
     ax_c.step(centers, C_all, where="mid", color="k", lw=1.5,
               label=f"all (n={n_input_all})")
-    ax_c.step(centers, C_deep, where="mid", color="C3", lw=1.5, ls="--",
-              label=f"deep d>{d_median:.0f} (n={n_input_deep})")
+    ax_c.step(centers, C_design, where="mid", color="C3", lw=1.5, ls="--",
+              label=f"design d>={design_depth} (n={n_input_design})")
     ax_c.step(centers, C_psf, where="mid", color="C0", alpha=0.6,
               label=f"PSF (n={int(N_psf.sum())})")
     ax_c.step(centers, C_ser, where="mid", color="C1", alpha=0.6,
@@ -341,8 +343,8 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
     ax_c.axhline(0.5, ls=":", color="gray", lw=1)
     if np.isfinite(stats_all["mag50"]):
         ax_c.axvline(stats_all["mag50"], ls=":", color="k", lw=1)
-    if np.isfinite(stats_deep["mag50"]):
-        ax_c.axvline(stats_deep["mag50"], ls=":", color="C3", lw=1)
+    if np.isfinite(stats_design["mag50"]):
+        ax_c.axvline(stats_design["mag50"], ls=":", color="C3", lw=1)
     ax_c.set_xlabel("input mag (AB)")
     ax_c.set_ylabel("completeness")
     ax_c.set_ylim(-0.05, 1.1)
@@ -350,40 +352,57 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
     ax_c.legend(loc="lower left", fontsize=8)
     ax_c.grid(True, alpha=0.3)
 
-    # Panel 2: flux residual scatter, matched only; highlight deep in red.
+    # Panel 2: flux residual scatter, matched only; highlight design in red.
     if n_matched_all:
         all_sel = matched
-        deep_sel = matched & deep_mask
-        ax_d.scatter(in_mag[all_sel & ~deep_sel],
-                     rec_kron_mag[idx[all_sel & ~deep_sel]] - in_mag[all_sel & ~deep_sel],
-                     s=5, alpha=0.25, color="gray", label="shallow")
-        ax_d.scatter(in_mag[deep_sel],
-                     rec_kron_mag[idx[deep_sel]] - in_mag[deep_sel],
-                     s=5, alpha=0.45, color="C3", label="deep")
+        design_sel = matched & design_mask
+        ax_d.scatter(in_mag[all_sel & ~design_sel],
+                     rec_kron_mag[idx[all_sel & ~design_sel]] - in_mag[all_sel & ~design_sel],
+                     s=5, alpha=0.25, color="gray", label="below design depth")
+        ax_d.scatter(in_mag[design_sel],
+                     rec_kron_mag[idx[design_sel]] - in_mag[design_sel],
+                     s=5, alpha=0.45, color="C3", label="at design depth")
         ax_d.legend(fontsize=8, loc="upper left")
     ax_d.axhline(0, color="k", lw=0.8)
-    if np.isfinite(stats_deep["dmag"]):
-        ax_d.axhline(stats_deep["dmag"], color="C3", ls="--", lw=1,
-                     label=f"deep median={stats_deep['dmag']:+.3f}")
+    if np.isfinite(stats_design["dmag"]):
+        ax_d.axhline(stats_design["dmag"], color="C3", ls="--", lw=1,
+                     label=f"design median={stats_design['dmag']:+.3f}")
     ax_d.set_xlabel("input mag (AB)")
     ax_d.set_ylabel("recovered Kron − input (mag)")
     ax_d.set_title(f"Flux residual (n_matched={n_matched_all}, "
-                   f"deep={n_matched_deep})")
+                   f"design={n_matched_design})")
     ax_d.set_ylim(-2, 2)
     ax_d.grid(True, alpha=0.3)
 
-    # Panel 3: aperture vs PSF
+    # Panel 3: aperture vs PSF, split by input type. For input PSF sources,
+    # PSF-fit and aperture mags should agree (Δ~0). For extended sources,
+    # PSF-fit underestimates (Δ>0).
     ap_mag = flux_njy_to_abmag(rec_aper8)
     psf_mag = flux_njy_to_abmag(rec_psf_flux)
     psf_trust = (rec_psf_flags == 0) & np.isfinite(ap_mag) & np.isfinite(psf_mag)
-    if psf_trust.any():
-        ax_ap.scatter(ap_mag[psf_trust], psf_mag[psf_trust] - ap_mag[psf_trust],
-                      s=5, alpha=0.4, color="C2")
+    # Map trusted recovered rows back to their matched input type (if any)
+    # so we can colour by PSF vs SER input. Length = n_recovered always.
+    in_type_for_rec = np.full(n_recovered, "?", dtype=object)
+    if n_input_all and n_recovered:
+        in_type_for_rec[rec_matched] = in_type[idx_r[rec_matched]]
+    is_psf_rec = (in_type_for_rec == "PSF") & psf_trust
+    is_ser_rec = (in_type_for_rec == "SER") & psf_trust
+    if is_psf_rec.any():
+        ax_ap.scatter(ap_mag[is_psf_rec],
+                      psf_mag[is_psf_rec] - ap_mag[is_psf_rec],
+                      s=5, alpha=0.5, color="C0",
+                      label=f"PSF input ({int(is_psf_rec.sum())})")
+    if is_ser_rec.any():
+        ax_ap.scatter(ap_mag[is_ser_rec],
+                      psf_mag[is_ser_rec] - ap_mag[is_ser_rec],
+                      s=5, alpha=0.35, color="C1",
+                      label=f"SER input ({int(is_ser_rec.sum())})")
     ax_ap.axhline(0, color="k", lw=0.8)
     ax_ap.set_xlabel("aper08 mag (AB)")
     ax_ap.set_ylabel("psf − aper08 (mag)")
     ax_ap.set_title(f"PSF vs aper08 (psf_flags=0, n={int(psf_trust.sum())})")
     ax_ap.set_ylim(-2, 2)
+    ax_ap.legend(fontsize=8, loc="upper left")
     ax_ap.grid(True, alpha=0.3)
 
     # Panel 4: FP fraction vs recovered Kron mag
@@ -427,7 +446,7 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
         f"footprint fraction: {valid.mean():.3f}",
         "",
         f"depth: min={d_min} median={d_median:.1f} mean={d_mean:.2f} max={d_max}",
-        f"deep threshold: depth > {d_median:.1f}",
+        f"design threshold: depth >= {design_depth}",
         "",
         "— all sources —",
         f"  n_input={n_input_all}  n_matched={n_matched_all}",
@@ -436,11 +455,11 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
         f"  median Δmag={stats_all['dmag']:+.3f}" if np.isfinite(stats_all['dmag']) else "  median Δmag=—",
         f"  median Δpos={stats_all['dpos']:.3f}\"" if np.isfinite(stats_all['dpos']) else "  median Δpos=—",
         "",
-        "— deep subset —",
-        f"  n_input={n_input_deep}  n_matched={n_matched_deep}",
-        f"  completeness={stats_deep['comp']:.3f}",
-        f"  50% mag={stats_deep['mag50']:.2f}" if np.isfinite(stats_deep['mag50']) else "  50% mag=—",
-        f"  median Δmag={stats_deep['dmag']:+.3f}" if np.isfinite(stats_deep['dmag']) else "  median Δmag=—",
+        "— design subset —",
+        f"  n_input={n_input_design}  n_matched={n_matched_design}",
+        f"  completeness={stats_design['comp']:.3f}",
+        f"  50% mag={stats_design['mag50']:.2f}" if np.isfinite(stats_design['mag50']) else "  50% mag=—",
+        f"  median Δmag={stats_design['dmag']:+.3f}" if np.isfinite(stats_design['dmag']) else "  median Δmag=—",
         "",
         f"n_recovered={n_recovered}  n_fp={n_fp}",
         f"match radius: {match_arcsec:.2f}\"",
@@ -470,16 +489,22 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
         mag_50pct_all=stats_all["mag50"],
         median_dmag_all=stats_all["dmag"],
         median_dpos_all=stats_all["dpos"],
-        n_input_deep=n_input_deep, n_matched_deep=n_matched_deep,
-        completeness_deep=stats_deep["comp"],
-        mag_50pct_deep=stats_deep["mag50"],
-        median_dmag_deep=stats_deep["dmag"],
-        median_dpos_deep=stats_deep["dpos"],
+        n_input_design=n_input_design, n_matched_design=n_matched_design,
+        completeness_design=stats_design["comp"],
+        mag_50pct_design=stats_design["mag50"],
+        median_dmag_design=stats_design["dmag"],
+        median_dpos_design=stats_design["dpos"],
     ), depth_hist)
 
 
-def write_depth_distribution(hists: list[np.ndarray], out_path: Path):
-    """Aggregate per-skycell depth histograms, plot the global distribution."""
+def write_depth_distribution(hists: list[np.ndarray],
+                             results: list[SkycellAnalysis],
+                             out_path: Path):
+    """Aggregate per-skycell depth histograms and emit two panels:
+    (1) per-pixel depth aggregated across every valid pixel in every skycell
+        (pixel-weighted — most common depth);
+    (2) per-skycell median-depth histogram (skycell-weighted — how coverage
+        is distributed across the skycells themselves)."""
     if not hists:
         return
     max_len = max(len(h) for h in hists)
@@ -490,24 +515,28 @@ def write_depth_distribution(hists: list[np.ndarray], out_path: Path):
     total = agg.sum()
     if total == 0:
         return
-    frac = agg / total
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-    ax_abs, ax_rel = axes
+    ax_pix, ax_sky = axes
 
-    ax_abs.bar(depths, agg, color="C0", edgecolor="k", lw=0.5)
-    ax_abs.set_xlabel("per-pixel depth (# cal files)")
-    ax_abs.set_ylabel("# pixels (aggregated over all skycells)")
-    ax_abs.set_title(f"Depth distribution ({total:,} pixels, {len(hists)} skycells)")
-    ax_abs.grid(True, axis="y", alpha=0.3)
-    ax_abs.set_xticks(depths)
+    ax_pix.bar(depths, agg, color="C0", edgecolor="k", lw=0.5)
+    ax_pix.set_xlabel("per-pixel depth (# cal files)")
+    ax_pix.set_ylabel("# pixels (aggregated over all skycells)")
+    ax_pix.set_title(f"Per-pixel depth — pixel-weighted "
+                     f"({total:,} pixels, {len(hists)} skycells)")
+    ax_pix.grid(True, axis="y", alpha=0.3)
+    ax_pix.set_xticks(depths)
 
-    ax_rel.bar(depths, frac * 100, color="C1", edgecolor="k", lw=0.5)
-    ax_rel.set_xlabel("per-pixel depth (# cal files)")
-    ax_rel.set_ylabel("% of valid pixels")
-    ax_rel.set_title("Depth distribution (relative)")
-    ax_rel.grid(True, axis="y", alpha=0.3)
-    ax_rel.set_xticks(depths)
+    # Per-skycell median_depth histogram
+    medians = np.array([r.median_depth for r in results])
+    # Integer bin centres: 1,2,3,... up to max observed.
+    med_bins = np.arange(0, int(np.max(medians)) + 2) - 0.5
+    ax_sky.hist(medians, bins=med_bins, color="C1", edgecolor="k", lw=0.5)
+    ax_sky.set_xlabel("per-skycell median depth")
+    ax_sky.set_ylabel("# skycells")
+    ax_sky.set_title("Skycell median depth — skycell-weighted")
+    ax_sky.set_xticks(np.arange(0, int(np.max(medians)) + 1))
+    ax_sky.grid(True, axis="y", alpha=0.3)
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=110)
@@ -566,8 +595,8 @@ def main():
         depth_hists.append(hist)
         print(f"  [{i:3d}/{len(skycells)}] {base}  "
               f"asn={n_asn:3d}  depth min/med/max={r.min_depth}/{r.median_depth:.0f}/{r.max_depth}  "
-              f"comp_all={r.completeness_all:.3f}  comp_deep={r.completeness_deep:.3f}  "
-              f"mag50_all={r.mag_50pct_all:.2f}  mag50_deep={r.mag_50pct_deep:.2f}")
+              f"comp_all={r.completeness_all:.3f}  comp_design={r.completeness_design:.3f}  "
+              f"mag50_all={r.mag_50pct_all:.2f}  mag50_design={r.mag_50pct_design:.2f}")
 
     summary_path = out_dir / "summary.csv"
     with summary_path.open("w", newline="") as f:
@@ -581,9 +610,9 @@ def main():
             "n_input_all", "n_matched_all",
             "completeness_all", "mag_50pct_all",
             "median_dmag_all", "median_dpos_all",
-            "n_input_deep", "n_matched_deep",
-            "completeness_deep", "mag_50pct_deep",
-            "median_dmag_deep", "median_dpos_deep",
+            "n_input_design", "n_matched_design",
+            "completeness_design", "mag_50pct_design",
+            "median_dmag_design", "median_dpos_design",
         ])
         for r in results:
             def fmt(x, nd=4):
@@ -601,13 +630,13 @@ def main():
                 r.n_input_all, r.n_matched_all,
                 fmt(r.completeness_all), fmt(r.mag_50pct_all, 3),
                 sfmt(r.median_dmag_all), fmt(r.median_dpos_all),
-                r.n_input_deep, r.n_matched_deep,
-                fmt(r.completeness_deep), fmt(r.mag_50pct_deep, 3),
-                sfmt(r.median_dmag_deep), fmt(r.median_dpos_deep),
+                r.n_input_design, r.n_matched_design,
+                fmt(r.completeness_design), fmt(r.mag_50pct_design, 3),
+                sfmt(r.median_dmag_design), fmt(r.median_dpos_design),
             ])
 
     depth_plot = out_dir / "depth_distribution.png"
-    write_depth_distribution(depth_hists, depth_plot)
+    write_depth_distribution(depth_hists, results, depth_plot)
 
     print(f"[done] wrote {summary_path} "
           f"({len(results)} rows) and {len(results)} plots -> {plots_dir}")

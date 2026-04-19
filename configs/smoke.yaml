@@ -17,6 +17,7 @@ pointings:
   only_pass: 15
   only_segment: 521
   only_visit: 6
+  design_depth: 3             # 1 visit × 3 dithers
 
 run:
   parallelism: 4              # SMT threads × 4 physical cores on m5a.2xlarge

@@ -16,6 +16,7 @@ pointings:
   only_pass: null             # keep all visits matching the region
   only_segment: null
   only_visit: null
+  design_depth: 6             # 2 passes × 3 dithers per visit
 
 run:
   parallelism: 4

@@ -72,6 +72,7 @@ class Pointings:
     only_pass: int | None
     only_segment: int | None
     only_visit: int | None
+    design_depth: int  # per-pixel coverage count intended by the filter choice
 
 
 @dataclass
@@ -112,6 +113,7 @@ REQUIRED_POINTINGS = {
     "only_pass": object,       # int | None
     "only_segment": object,
     "only_visit": object,
+    "design_depth": int,
 }
 REQUIRED_RUN = {
     "parallelism": int,
@@ -198,7 +200,8 @@ def load_config(path: str | Path) -> Config:
                             bandpass=pts["bandpass"],
                             only_pass=pts["only_pass"],
                             only_segment=pts["only_segment"],
-                            only_visit=pts["only_visit"]),
+                            only_visit=pts["only_visit"],
+                            design_depth=pts["design_depth"]),
         run=Run(parallelism=raw["run"]["parallelism"]),
         path=path,
     )
@@ -221,6 +224,7 @@ def _export_for_shell(cfg: Config) -> str:
         f"export POINTINGS_ONLY_PASS={_shell_quote(cfg.pointings.only_pass)}",
         f"export POINTINGS_ONLY_SEGMENT={_shell_quote(cfg.pointings.only_segment)}",
         f"export POINTINGS_ONLY_VISIT={_shell_quote(cfg.pointings.only_visit)}",
+        f"export POINTINGS_DESIGN_DEPTH={_shell_quote(cfg.pointings.design_depth)}",
         f"export POINTINGS_REGION_TYPE={_shell_quote(cfg.pointings.region.type)}",
         f"export RUN_PARALLELISM={_shell_quote(cfg.run.parallelism)}",
     ]

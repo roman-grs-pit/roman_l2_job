@@ -21,13 +21,16 @@ df = pd.read_csv(REPO / "output/full/compare/summary.csv")
 ## Configuration
 
 324 sims over 6 visits (2 passes × 3 dithers × segments 490 + 521),
-320 skycells after `skycell_asn --product-type full`.
+320 skycells after `skycell_asn --product-type full`. The **design depth**
+for this run is `pointings.design_depth = 6` (both passes × all 3 dithers);
+the "design subset" below picks input sources whose (ra, dec) lands on a
+coadd pixel of depth ≥ 6.
 
 ## Depth distribution
 
 ```{python}
 #| echo: false
-#| fig-cap: "Distribution of per-skycell depth metrics across the full run. Left: the maximum per-pixel depth reached in each skycell. Right: the median per-pixel depth (a proxy for how well the skycell is covered overall)."
+#| fig-cap: "Distribution of per-skycell depth metrics across the full run. Left: the maximum per-pixel depth reached in each skycell. Right: the median per-pixel depth (a proxy for how well each skycell is covered overall)."
 import matplotlib.pyplot as plt
 fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 for ax, col in zip(axes, ["max_depth", "median_depth"]):
@@ -49,17 +52,17 @@ plt.show()
 summary_tbl = pd.DataFrame({
     "metric": [
         "50%-completeness mag (all sources)",
-        "50%-completeness mag (deep subset)",
+        "50%-completeness mag (design subset)",
         "overall completeness (all sources)",
-        "overall completeness (deep subset)",
+        "overall completeness (design subset)",
         "Kron flux residual (median, matched)",
         "astrometric residual (median, matched)",
     ],
     "median": [
         f"{df['mag_50pct_all'].median():.2f}",
-        f"{df['mag_50pct_deep'].median():.2f}",
+        f"{df['mag_50pct_design'].median():.2f}",
         f"{df['completeness_all'].median():.3f}",
-        f"{df['completeness_deep'].median():.3f}",
+        f"{df['completeness_design'].median():.3f}",
         f"{df['median_dmag_all'].median():+.3f} mag",
         f"{df['median_dpos_all'].median():.3f}″",
     ],
@@ -67,10 +70,43 @@ summary_tbl = pd.DataFrame({
 summary_tbl
 ```
 
+## How to read a per-skycell figure
+
+Each per-skycell PNG has six panels. In brief:
+
+- **Detection completeness** (top-left). Binned completeness vs input
+  magnitude. The black curve is all in-footprint sources; the dashed red
+  curve is the "design subset" (sources on pixels with depth ≥ 6). PSF
+  and SER inputs are shown faintly for context. Dotted verticals mark
+  the interpolated 50%-completeness magnitudes.
+- **Flux residual** (top-middle). `recovered kron mag − input mag` vs
+  input mag, matched sources only. Grey = sources below design depth,
+  red = design-depth sources. The red dashed line is the design-subset
+  median bias (typically +0.15–0.20 mag, a Kron-photometry property on
+  extended sources).
+- **PSF vs aper08** (top-right). `psf_mag − aper08_mag` vs `aper08_mag`,
+  for recovered sources with `psf_flags = 0`, coloured by the *input*
+  type: blue = input PSF, orange = input SER. Input PSFs should
+  concentrate near Δ = 0 (PSF fit and aperture agree on point sources);
+  input SERs should sit above Δ = 0 (PSF-fit underestimates extended
+  flux). It's a consistency check on the PSF model more than a primary
+  science number.
+- **False-positive rate** (bottom-left). Fraction of recovered sources
+  per recovered-mag bin that have no matching input within the match
+  radius. Spurious detections / blends; usually well below 10% except at
+  the faint end.
+- **Astrometric residual** (bottom-middle). `|Δpos|` between matched
+  recovered and input positions. Roman WFI is astrometrically very tight
+  — typically ~0.015–0.020″, sub-coadd-pixel, across the full input-mag
+  range.
+- **Metadata panel** (bottom-right). Skycell identifiers, coadd shape,
+  depth statistics, and headline numbers for both the "all" and
+  "design" sub-populations.
+
 ## Per-skycell figure gallery
 
-Showing the 60 skycells with the largest `mean_depth` (deepest coverage),
-sorted deepest-first. Click any thumbnail to zoom.
+Top 60 skycells by `mean_depth` (deepest first). Click any thumbnail to
+zoom.
 
 ```{python}
 #| echo: false
@@ -86,16 +122,13 @@ for _, row in top.iterrows():
 print(":::")
 ```
 
-Each figure has five panels (completeness vs input mag, flux residual vs
-input mag with the deep subset highlighted, PSF-vs-aperture magnitude, FP
-fraction vs recovered mag, astrometric residual vs input mag) plus a text
-summary panel with headline numbers for that skycell.
+## Aggregated depth histograms
 
-## Aggregated depth histogram
+Two views of the same data. The left panel is **pixel-weighted** (which
+depths the actual valid pixels sit at); the right panel is
+**skycell-weighted** (how many skycells have each median-depth value).
+The pixel view tells you the typical sensitivity regime; the skycell
+view tells you the distribution of "how well-covered" whole skycells
+are.
 
-```{python}
-#| echo: false
-#| fig-cap: "Per-pixel depth aggregated across every valid pixel of every skycell. Produced by stage 06 as `depth_distribution.png`; inlined here for reference."
-```
-
-![](_depth_distribution.png){fig-alt="Per-pixel depth histogram"}
+![](_depth_distribution.png){fig-alt="Per-pixel depth histogram + per-skycell median depth histogram"}

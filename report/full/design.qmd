@@ -69,6 +69,37 @@ Passes 15 and 16 share the same (RA, Dec, PA) for every exposure — they are
 per-pixel depth: the two passes stack at identical dither patterns, so depth
 contributions from them are always paired.
 
+## Pointings map (full HLWAS footprint)
+
+```{python}
+#| echo: false
+#| fig-cap: "The full HLWAS F158 footprint (grey dots = all ~67k pointings) with our target (red star) marked and the 0.5° filter cone drawn. The simulated survey sits south of Dec ≈ +1°, so our target at (10°, 0°) is near the northern edge — any roughly-isotropic filter cone drawn around it will necessarily have a lopsided pointing sample."
+hlwas = Table.read(REPO / "catalogs/HLWAS.sim.ecsv", format="ascii.ecsv")
+hlwas_f158 = hlwas[hlwas["BANDPASS"] == cfg["pointings"]["bandpass"]]
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.scatter(hlwas_f158["RA"], hlwas_f158["DEC"], s=0.5, color="lightgray", alpha=0.5,
+           label=f"{len(hlwas_f158):,} HLWAS F158 pointings")
+ax.plot(10, 0, marker="*", color="tab:red", markersize=18,
+        label="our target (10°, 0°)")
+theta = np.linspace(0, 2*np.pi, 200)
+ax.plot(10 + cone["radius_deg"]*np.cos(theta)/np.cos(0),
+        0 + cone["radius_deg"]*np.sin(theta),
+        ls="--", color="tab:red", lw=1, label="our 0.5° filter cone")
+ax.set_xlabel("RA (deg)")
+ax.set_ylabel("Dec (deg)")
+ax.invert_xaxis()
+ax.grid(True, alpha=0.3)
+ax.legend(loc="lower left", markerscale=3)
+ax.set_title("HLWAS F158 — full simulated footprint")
+plt.show()
+```
+
+The HLWAS F158 footprint as simulated runs from Dec ≈ −53° to Dec ≈ +3°,
+with a hard upper edge around Dec ≈ +1° where the survey planning
+truncates. **Our target at (10°, 0°) sits ~1° from that edge** — which is
+why wide-area maps around it look asymmetric in Dec. It is not an artifact
+of our filter.
+
 ## Pointings map (wide view)
 
 ```{python}
@@ -107,11 +138,8 @@ ax.set_title("Pointings — 5° around target")
 plt.show()
 ```
 
-**The HLWAS F158 footprint has a hard upper edge around Dec ≈ +1°** (the
-simulated survey ends there). Our target at Dec = 0° sits ~1° from that
-edge, which is why there are visibly fewer F158 pointings on the northward
-side — it's a real footprint feature of the HLWAS simulation, not an
-artifact of filtering.
+Zooming in, the northern truncation from the full-footprint view above is
+still visible as the thinning of grey points above Dec = 0°.
 
 ## Pointings map (close-up)
 
@@ -135,7 +163,7 @@ coverage.
 
 ```{python}
 #| echo: false
-#| fig-cap: "Skycell centres from the full run, coloured by per-skycell median per-pixel depth (coverage count). Depth 6 is the design-intent for pixels seeing all 3 dithers of both passes; it is reached in only ~16% of skycells, concentrated where visit-cluster overlaps fall. The edge-heavy skycells at the periphery sit at depth 2 (single-dither coverage or between-cluster gaps)."
+#| fig-cap: "Skycell centres from the full run, coloured by per-skycell median per-pixel depth. The design depth for this config is 6 (all 3 dithers of both passes); it is reached only in the cluster cores, not across the full filter cone."
 summary = pd.read_csv(REPO / "output/full/compare/summary.csv")
 fig, ax = plt.subplots(figsize=(9, 8))
 sc = ax.scatter(summary["center_ra"], summary["center_dec"],
@@ -179,6 +207,7 @@ rows = [
     ("Exposure time",       f"{float(t['EXPOSURE_TIME'][0]):.3f} s per exposure"),
     ("Sim date",            "2026-01-01T00:00:00"),
     ("N exposures",         f"{len(t)} × 18 SCAs = {len(t)*18} sims"),
+    ("Design depth",        cfg["pointings"]["design_depth"]),
     ("Parallelism (xargs)", cfg["run"]["parallelism"]),
 ]
 pd.DataFrame(rows, columns=["parameter", "value"])
