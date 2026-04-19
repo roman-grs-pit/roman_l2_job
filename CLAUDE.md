@@ -4,7 +4,11 @@ This bundle runs a Roman WFI L2 → L3 mosaic → source-catalog pipeline on a
 fresh Linux x86_64 host. Designed to be tarballed from a Mac, scp'd to AWS,
 and run end-to-end with `pixi`.
 
-Companion: `README.md` is the quick-start; this file is the deeper context.
+Companion: `README.md` is the quick-start; this file is the deeper
+operator context; `docs/tutorial_l2_l3.md` walks through what each stage
+does; `docs/data_model_reference.md` documents the fields / columns of
+the file formats the pipeline reads and writes (catalog parquet, coadd
+asdf, L2 cal asdf, asn JSON, input catalog, CRDS dataset dict).
 
 ## Science goal
 
