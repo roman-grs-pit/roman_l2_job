@@ -1,0 +1,39 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "roman_l2_job"
+  description: "Roman WFI L2 → L3 simulation + source-catalog recovery test"
+  repo-url: https://github.com/roman-grs-pit/roman_l2_job
+  repo-actions: [edit, issue]
+  navbar:
+    left:
+      - href: index.qmd
+        text: Overview
+      - href: pipeline.qmd
+        text: Pipeline
+      - href: results.qmd
+        text: Results
+      - href: discussion.qmd
+        text: Discussion
+    right:
+      - icon: github
+        href: https://github.com/roman-grs-pit/roman_l2_job
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    code-tools: true
+    code-overflow: wrap
+    fig-cap-location: bottom
+    tbl-cap-location: top
+    number-sections: false
+
+execute:
+  freeze: auto   # cache rendered outputs; re-run only when .qmd source changes
+  echo: true
+  warning: false

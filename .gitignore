@@ -27,6 +27,11 @@ pointings_*.ecsv
 crds_cache/
 stpsf-data/
 
+# Quarto render caches and output (rebuilt from source)
+report/_site/
+report/.quarto/
+report/_freeze/
+
 # Agent / editor state
 .claude/
 

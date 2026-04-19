@@ -1,0 +1,23 @@
+---
+title: "Discussion"
+---
+
+## TODO
+
+- **Depth quantization.** Why per-pixel depths only land on even integers (passes
+  15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).
+- **Field coverage non-uniformity.** Only ~25% of skycells within 0.5° of (10, 0)
+  reach the design depth. The 0.5° cone is not the right way to think about the
+  footprint — it's a union of three visit-cluster patches plus the gaps.
+- **Kron flux bias.** The +0.17 mag under-measurement is a Kron-photometry
+  property on extended sources; unbiased recovered flux for galaxies would use
+  larger aperture (e.g. `aper16_flux`) or segment flux. Relevant for downstream
+  science.
+- **Zodiacal background.** Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum
+  reference. Expected for a field at ecliptic latitude −4° observed at
+  elongation 128°. Already near the best achievable for this target — the
+  field is structurally on the ecliptic, and the sim date is near the best
+  observable elongation.
+- **Grism implications.** Discussion of what the recovered per-skycell depth
+  and completeness mean for the grism observations the campaign is intended
+  to support.

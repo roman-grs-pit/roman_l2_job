@@ -1,0 +1,73 @@
+---
+title: "roman_l2_job"
+subtitle: "Roman WFI L2 → L3 simulation pipeline + photometry recovery test"
+author: "Nikhil Padmanabhan"
+date: last-modified
+---
+
+## What this is
+
+`roman_l2_job` is a self-contained pipeline that simulates Roman WFI Level-2
+calibrated images over a chosen footprint, builds Level-3 skycell coadds and
+source catalogs from them, and measures how faithfully the recovered catalog
+reproduces the input catalog — a **photometry recovery test**. It was built
+to support simulated grism observations centered on a Wide-Field2 sub-region
+near (RA=10°, Dec=0°), but generalizes to any F158 footprint and any input
+source catalog.
+
+The code, configs, and this report all live in the
+[roman_l2_job](https://github.com/roman-grs-pit/roman_l2_job) GitHub repo.
+
+## Contents
+
+- [**Pipeline**](pipeline.qmd) — architecture, stages, data models, design
+  choices (why certain scripts are vendored, how CRDS is hydrated, etc.).
+- [**Results**](results.qmd) — numbers from the full 324-sim run over the
+  6-visit / 2-segment footprint: depth distribution, completeness vs magnitude,
+  flux residual, astrometric residual, PSF vs aperture photometry.
+- [**Discussion**](discussion.qmd) — what the numbers mean for the intended
+  science use (grism support), with notes on depth geometry, Kron flux bias,
+  and zodiacal background.
+
+## Headline numbers
+
+::: {.callout-note}
+From the full run (6 visits × 3 dithers × 18 SCAs = 324 F158 sims,
+320 skycell coadds + catalogs, 4 h 5 min stage-04 on 4 m5a.2xlarge cores):
+
+- **Median 50%-completeness (AB):** 23.95 over all skycells, 24.05 in the
+  deep-pixel subset, peaks at **24.50** in the deepest skycells.
+- **Kron flux residual:** **+0.17 mag** (recovered − input), unchanged across
+  depth — it's a Kron-photometry property on extended sources, not a pipeline
+  calibration issue.
+- **Astrometric residual:** **~0.017″**, sub-coadd-pixel across every skycell.
+- **Depth distribution:** only even integers appear in the per-pixel depth
+  (2, 4, 6, 8), because pass 15 and pass 16 re-observe each pointing at the
+  identical dither pattern — sum is always 2× an integer.
+- **Field geometry:** only ~25% of skycells within 0.5° of the field center
+  hit the intended design depth; the full run is more a union of three
+  visit-cluster cores than a uniform 1° disk.
+:::
+
+## Pipeline overview
+
+::: {.callout-tip collapse="true"}
+## Stage summary
+
+| Stage | Script | What it does |
+|---|---|---|
+| setup | `00_setup.sh` | Install STPSF data + CRDS scaffold |
+| hydrate CRDS | `00_hydrate_crds.sh` | Pre-populate cache serially; avoids parallel-download races |
+| verify CRDS | `00_verify_crds.py` | Size-based corruption check on ref files |
+| catalog prep | `00_prepare_catalog.py` | Convert input catalog (mag or maggies) → `catalogs/sources.parquet` |
+| filter pointings | `filter_pointings.py` | Carve a sub-region out of `HLWAS.sim.ecsv` |
+| 01 build | `01_build_script.sh` | Generate per-sim commands via a patched `make_stack.py` |
+| 02 sims | `02_run_sims.sh` | Parallel `romanisim-make-image` → L2 cal files |
+| 03 asn | `03_build_asn.sh` | `skycell_asn` on the L2s → one JSON per skycell |
+| 04 mosaic | `04_run_mosaic.sh` | Parallel `MosaicPipeline` → L3 `_coadd.asdf` |
+| 05 catalog | `05_run_catalog.sh` | Parallel `SourceCatalogStep` → `_cat.parquet`, `_segm.asdf` |
+| 06 compare | `06_compare_catalog.py` | Per-skycell recovery analysis; writes `summary.csv` + plots |
+
+Every stage is idempotent (skip-if-exists), takes `configs/<tag>.yaml` as its
+single argument, and logs under `output/logs/`.
+:::

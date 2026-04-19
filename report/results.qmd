@@ -1,0 +1,75 @@
+---
+title: "Results"
+---
+
+::: {.callout-note}
+Numbers on this page are computed at render time from `output/full/compare/summary.csv`
+and the coadd `.asdf` files. Re-rendering the report picks up any re-run results.
+:::
+
+```{python}
+#| echo: false
+import pandas as pd
+import numpy as np
+from pathlib import Path
+
+SUMMARY = Path("../output/full/compare/summary.csv")
+df = pd.read_csv(SUMMARY)
+```
+
+## Full-run configuration
+
+324 sims over 6 visits (2 passes × 3 dithers × segments 490+521), 320 skycells
+after `skycell_asn --product-type full`.
+
+## Depth distribution
+
+```{python}
+#| echo: false
+#| fig-cap: "Distribution of per-skycell depth metrics (max_depth, median_depth) across the full run."
+import matplotlib.pyplot as plt
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+for ax, col in zip(axes, ["max_depth", "median_depth"]):
+    counts = df[col].value_counts().sort_index()
+    ax.bar(counts.index, counts.values, edgecolor="k", lw=0.5)
+    ax.set_xlabel(col)
+    ax.set_ylabel("# skycells")
+    ax.set_xticks(sorted(df[col].unique()))
+    ax.grid(True, axis="y", alpha=0.3)
+fig.tight_layout()
+plt.show()
+```
+
+## Completeness and flux residual headlines
+
+```{python}
+#| echo: false
+#| tbl-cap: "Headline recovery numbers, medians across all 320 skycells."
+summary = pd.DataFrame({
+    "metric": [
+        "50%-completeness mag (all sources)",
+        "50%-completeness mag (deep subset)",
+        "overall completeness (all sources)",
+        "overall completeness (deep subset)",
+        "Kron flux residual (median, matched)",
+        "astrometric residual (median, matched)",
+    ],
+    "median": [
+        f"{df['mag_50pct_all'].median():.2f}",
+        f"{df['mag_50pct_deep'].median():.2f}",
+        f"{df['completeness_all'].median():.3f}",
+        f"{df['completeness_deep'].median():.3f}",
+        f"{df['median_dmag_all'].median():+.3f} mag",
+        f"{df['median_dpos_all'].median():.3f}″",
+    ],
+})
+summary
+```
+
+## TODO
+
+- Completeness-vs-magnitude panel pulled from the per-skycell PNGs
+- Recovered-vs-input flux scatter (aggregated)
+- Sky distribution colored by depth
+- Distance-from-(10,0) analysis
+- Individual per-skycell figures linked (gallery page?)

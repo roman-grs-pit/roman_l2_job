@@ -8,6 +8,18 @@ python = "3.12.*"
 fftw = "*"
 pyarrow = "*"
 
+[feature.report.dependencies]
+quarto = "*"
+jupyter = "*"
+ipykernel = "*"
+nbformat = "*"
+matplotlib = "*"
+pandas = "*"
+
+[environments]
+default = { solve-group = "default" }
+report = { features = ["report"], solve-group = "default" }
+
 [pypi-dependencies]
 romancal = "*"
 romanisim = "*"

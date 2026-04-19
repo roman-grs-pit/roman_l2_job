@@ -1,0 +1,21 @@
+---
+title: "Pipeline architecture"
+---
+
+::: {.callout-note}
+This page is a high-level narrative of the pipeline — what each stage does,
+why it's shaped the way it is, and what files it reads and writes. For
+operator-level detail (sizing, parallelism math, CRDS troubleshooting),
+see `CLAUDE.md` in the repo. For the exact file-format schemas, see
+`docs/data_model_reference.md`.
+:::
+
+## TODO
+
+- Stage-by-stage description (reads/writes/why)
+- Data flow diagram
+- Config schema walkthrough
+- Vendored `make_stack.py` + per-line seed post-processing — the two
+  deliberate deviations from upstream romanisim
+- CRDS hydration + verification design
+- Parallelism choices (stage 02 / 04 / 05) + memory math
