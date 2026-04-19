@@ -1,0 +1,30 @@
+/*-- scss:defaults --*/
+
+/*-- scss:rules --*/
+
+// Let figures overflow the content column and scroll horizontally/vertically
+// instead of being shrunk to fit. Useful for wide panel plots and tall
+// multi-panel figures.
+.cell-output-display,
+figure,
+.figure {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-width: 100%;
+}
+
+// Allow images inside figures to keep their native size; scrolling is on the
+// surrounding container.
+figure > img,
+.figure > img,
+.cell-output-display > img {
+  max-width: none;
+}
+
+// Tables similarly — long tables scroll horizontally instead of wrapping.
+.cell-output-display > table,
+.table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}
