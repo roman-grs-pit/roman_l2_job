@@ -77,7 +77,7 @@
     "href": "full/results.html#configuration",
     "title": "Full run — results",
     "section": "Configuration",
-    "text": "Configuration\n324 sims over 6 visits (2 passes × 3 dithers × segments 490 + 521), 320 skycells after skycell_asn --product-type full.",
+    "text": "Configuration\n324 sims over 6 visits (2 passes × 3 dithers × segments 490 + 521), 320 skycells after skycell_asn --product-type full. The design depth for this run is pointings.design_depth = 6 (both passes × all 3 dithers); the “design subset” below picks input sources whose (ra, dec) lands on a coadd pixel of depth ≥ 6.",
     "crumbs": [
       "Full run",
       "Results"
@@ -88,7 +88,7 @@
     "href": "full/results.html#depth-distribution",
     "title": "Full run — results",
     "section": "Depth distribution",
-    "text": "Depth distribution\n\n\n\n\n\nDistribution of per-skycell depth metrics across the full run. Left: the maximum per-pixel depth reached in each skycell. Right: the median per-pixel depth (a proxy for how well the skycell is covered overall).",
+    "text": "Depth distribution\n\n\n\n\n\nDistribution of per-skycell depth metrics across the full run. Left: the maximum per-pixel depth reached in each skycell. Right: the median per-pixel depth (a proxy for how well each skycell is covered overall).",
     "crumbs": [
       "Full run",
       "Results"
@@ -99,7 +99,18 @@
     "href": "full/results.html#headline-numbers",
     "title": "Full run — results",
     "section": "Headline numbers",
-    "text": "Headline numbers\n\n\n\n\n\n\nHeadline recovery numbers, medians across all 320 skycells.\n\n\n\nmetric\nmedian\n\n\n\n\n0\n50%-completeness mag (all sources)\n23.95\n\n\n1\n50%-completeness mag (deep subset)\n24.05\n\n\n2\noverall completeness (all sources)\n0.356\n\n\n3\noverall completeness (deep subset)\n0.384\n\n\n4\nKron flux residual (median, matched)\n+0.166 mag\n\n\n5\nastrometric residual (median, matched)\n0.017″",
+    "text": "Headline numbers\n\n\n\n\n\n\nHeadline recovery numbers, medians across all 320 skycells.\n\n\n\nmetric\nmedian\n\n\n\n\n0\n50%-completeness mag (all sources)\n23.95\n\n\n1\n50%-completeness mag (design subset)\n24.13\n\n\n2\noverall completeness (all sources)\n0.356\n\n\n3\noverall completeness (design subset)\n0.404\n\n\n4\nKron flux residual (median, matched)\n+0.166 mag\n\n\n5\nastrometric residual (median, matched)\n0.017″",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/results.html#how-to-read-a-per-skycell-figure",
+    "href": "full/results.html#how-to-read-a-per-skycell-figure",
+    "title": "Full run — results",
+    "section": "How to read a per-skycell figure",
+    "text": "How to read a per-skycell figure\nEach per-skycell PNG has six panels. In brief:\n\nDetection completeness (top-left). Binned completeness vs input magnitude. The black curve is all in-footprint sources; the dashed red curve is the “design subset” (sources on pixels with depth ≥ 6). PSF and SER inputs are shown faintly for context. Dotted verticals mark the interpolated 50%-completeness magnitudes.\nFlux residual (top-middle). recovered kron mag − input mag vs input mag, matched sources only. Grey = sources below design depth, red = design-depth sources. The red dashed line is the design-subset median bias (typically +0.15–0.20 mag, a Kron-photometry property on extended sources).\nPSF vs aper08 (top-right). psf_mag − aper08_mag vs aper08_mag, for recovered sources with psf_flags = 0, coloured by the input type: blue = input PSF, orange = input SER. Input PSFs should concentrate near Δ = 0 (PSF fit and aperture agree on point sources); input SERs should sit above Δ = 0 (PSF-fit underestimates extended flux). It’s a consistency check on the PSF model more than a primary science number.\nFalse-positive rate (bottom-left). Fraction of recovered sources per recovered-mag bin that have no matching input within the match radius. Spurious detections / blends; usually well below 10% except at the faint end.\nAstrometric residual (bottom-middle). |Δpos| between matched recovered and input positions. Roman WFI is astrometrically very tight — typically ~0.015–0.020″, sub-coadd-pixel, across the full input-mag range.\nMetadata panel (bottom-right). Skycell identifiers, coadd shape, depth statistics, and headline numbers for both the “all” and “design” sub-populations.",
     "crumbs": [
       "Full run",
       "Results"
@@ -110,18 +121,18 @@
     "href": "full/results.html#per-skycell-figure-gallery",
     "title": "Full run — results",
     "section": "Per-skycell figure gallery",
-    "text": "Per-skycell figure gallery\nShowing the 60 skycells with the largest mean_depth (deepest coverage), sorted deepest-first. Click any thumbnail to zoom.\n\n\n\n\n\n\nfull_p_full_010p00x50y42_f158 — mean_depth=7.00, mag50=24.38\n\n\n\n\n\n\n\nfull_p_full_010p00x49y42_f158 — mean_depth=6.33, mag50=24.25\n\n\n\n\n\n\n\nfull_p_full_010p00x49y44_f158 — mean_depth=6.29, mag50=24.35\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x47y46_f158 — mean_depth=6.28, mag50=24.27\n\n\n\n\n\n\n\nfull_p_full_010p00x49y43_f158 — mean_depth=5.92, mag50=24.22\n\n\n\n\n\n\n\nfull_p_full_010p00x49y54_f158 — mean_depth=5.63, mag50=24.21\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x47y45_f158 — mean_depth=5.62, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x46y52_f158 — mean_depth=5.60, mag50=24.18\n\n\n\n\n\n\n\nfull_p_full_010p00x45y50_f158 — mean_depth=5.58, mag50=24.25\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x50y43_f158 — mean_depth=5.56, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x47y53_f158 — mean_depth=5.45, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x50y49_f158 — mean_depth=5.36, mag50=24.14\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y53_f158 — mean_depth=5.34, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x53y50_f158 — mean_depth=5.32, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x51y51_f158 — mean_depth=5.30, mag50=24.19\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x49y50_f158 — mean_depth=5.30, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x47y41_f158 — mean_depth=5.29, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x54y50_f158 — mean_depth=5.27, mag50=24.20\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x52y53_f158 — mean_depth=5.26, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x49y48_f158 — mean_depth=5.26, mag50=24.18\n\n\n\n\n\n\n\nfull_p_full_010p00x48y44_f158 — mean_depth=5.26, mag50=24.20\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x53y52_f158 — mean_depth=5.25, mag50=24.11\n\n\n\n\n\n\n\nfull_p_full_010p00x47y47_f158 — mean_depth=5.23, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x50y51_f158 — mean_depth=5.22, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y47_f158 — mean_depth=5.22, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x50y54_f158 — mean_depth=5.20, mag50=24.09\n\n\n\n\n\n\n\nfull_p_full_010p00x51y42_f158 — mean_depth=5.20, mag50=24.12\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x54y52_f158 — mean_depth=5.20, mag50=24.21\n\n\n\n\n\n\n\nfull_p_full_010p00x53y51_f158 — mean_depth=5.18, mag50=24.07\n\n\n\n\n\n\n\nfull_p_full_010p00x47y49_f158 — mean_depth=5.18, mag50=24.16\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x55y50_f158 — mean_depth=5.16, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x47y50_f158 — mean_depth=5.16, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x52y50_f158 — mean_depth=5.15, mag50=24.15\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y49_f158 — mean_depth=5.14, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x48y45_f158 — mean_depth=5.14, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x52y42_f158 — mean_depth=5.12, mag50=24.21\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x45y39_f158 — mean_depth=5.09, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x48y49_f158 — mean_depth=5.09, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x52y52_f158 — mean_depth=5.08, mag50=24.09\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y54_f158 — mean_depth=5.06, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x48y48_f158 — mean_depth=5.05, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x51y50_f158 — mean_depth=5.02, mag50=24.13\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x52y55_f158 — mean_depth=5.01, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x49y52_f158 — mean_depth=4.99, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x51y55_f158 — mean_depth=4.98, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y51_f158 — mean_depth=4.98, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x46y40_f158 — mean_depth=4.96, mag50=24.08\n\n\n\n\n\n\n\nfull_p_full_010p00x46y49_f158 — mean_depth=4.94, mag50=24.14\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x46y51_f158 — mean_depth=4.92, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x50y52_f158 — mean_depth=4.92, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x47y52_f158 — mean_depth=4.90, mag50=24.09\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x46y48_f158 — mean_depth=4.89, mag50=24.10\n\n\n\n\n\n\n\nfull_p_full_010p00x44y38_f158 — mean_depth=4.88, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x45y51_f158 — mean_depth=4.87, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y41_f158 — mean_depth=4.87, mag50=24.07\n\n\n\n\n\n\n\nfull_p_full_010p00x48y54_f158 — mean_depth=4.87, mag50=24.10\n\n\n\n\n\n\n\nfull_p_full_010p00x50y53_f158 — mean_depth=4.86, mag50=24.16\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y53_f158 — mean_depth=4.85, mag50=24.09\n\n\n\n\n\n\n\nfull_p_full_010p00x53y54_f158 — mean_depth=4.84, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x52y54_f158 — mean_depth=4.83, mag50=24.13\n\n\n\n\n\nEach figure has five panels (completeness vs input mag, flux residual vs input mag with the deep subset highlighted, PSF-vs-aperture magnitude, FP fraction vs recovered mag, astrometric residual vs input mag) plus a text summary panel with headline numbers for that skycell.",
+    "text": "Per-skycell figure gallery\nTop 60 skycells by mean_depth (deepest first). Click any thumbnail to zoom.\n\n\n\n\n\n\nfull_p_full_010p00x50y42_f158 — mean_depth=7.00, mag50=24.38\n\n\n\n\n\n\n\nfull_p_full_010p00x49y42_f158 — mean_depth=6.33, mag50=24.25\n\n\n\n\n\n\n\nfull_p_full_010p00x49y44_f158 — mean_depth=6.29, mag50=24.35\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x47y46_f158 — mean_depth=6.28, mag50=24.27\n\n\n\n\n\n\n\nfull_p_full_010p00x49y43_f158 — mean_depth=5.92, mag50=24.22\n\n\n\n\n\n\n\nfull_p_full_010p00x49y54_f158 — mean_depth=5.63, mag50=24.21\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x47y45_f158 — mean_depth=5.62, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x46y52_f158 — mean_depth=5.60, mag50=24.18\n\n\n\n\n\n\n\nfull_p_full_010p00x45y50_f158 — mean_depth=5.58, mag50=24.25\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x50y43_f158 — mean_depth=5.56, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x47y53_f158 — mean_depth=5.45, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x50y49_f158 — mean_depth=5.36, mag50=24.14\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y53_f158 — mean_depth=5.34, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x53y50_f158 — mean_depth=5.32, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x51y51_f158 — mean_depth=5.30, mag50=24.19\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x49y50_f158 — mean_depth=5.30, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x47y41_f158 — mean_depth=5.29, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x54y50_f158 — mean_depth=5.27, mag50=24.20\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x52y53_f158 — mean_depth=5.26, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x49y48_f158 — mean_depth=5.26, mag50=24.18\n\n\n\n\n\n\n\nfull_p_full_010p00x48y44_f158 — mean_depth=5.26, mag50=24.20\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x53y52_f158 — mean_depth=5.25, mag50=24.11\n\n\n\n\n\n\n\nfull_p_full_010p00x47y47_f158 — mean_depth=5.23, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x50y51_f158 — mean_depth=5.22, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y47_f158 — mean_depth=5.22, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x50y54_f158 — mean_depth=5.20, mag50=24.09\n\n\n\n\n\n\n\nfull_p_full_010p00x51y42_f158 — mean_depth=5.20, mag50=24.12\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x54y52_f158 — mean_depth=5.20, mag50=24.21\n\n\n\n\n\n\n\nfull_p_full_010p00x53y51_f158 — mean_depth=5.18, mag50=24.07\n\n\n\n\n\n\n\nfull_p_full_010p00x47y49_f158 — mean_depth=5.18, mag50=24.16\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x55y50_f158 — mean_depth=5.16, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x47y50_f158 — mean_depth=5.16, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x52y50_f158 — mean_depth=5.15, mag50=24.15\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y49_f158 — mean_depth=5.14, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x48y45_f158 — mean_depth=5.14, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x52y42_f158 — mean_depth=5.12, mag50=24.21\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x45y39_f158 — mean_depth=5.09, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x48y49_f158 — mean_depth=5.09, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x52y52_f158 — mean_depth=5.08, mag50=24.09\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y54_f158 — mean_depth=5.06, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x48y48_f158 — mean_depth=5.05, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x51y50_f158 — mean_depth=5.02, mag50=24.13\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x52y55_f158 — mean_depth=5.01, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x49y52_f158 — mean_depth=4.99, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x51y55_f158 — mean_depth=4.98, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y51_f158 — mean_depth=4.98, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x46y40_f158 — mean_depth=4.96, mag50=24.08\n\n\n\n\n\n\n\nfull_p_full_010p00x46y49_f158 — mean_depth=4.94, mag50=24.14\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x46y51_f158 — mean_depth=4.92, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x50y52_f158 — mean_depth=4.92, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x47y52_f158 — mean_depth=4.90, mag50=24.09\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x46y48_f158 — mean_depth=4.89, mag50=24.10\n\n\n\n\n\n\n\nfull_p_full_010p00x44y38_f158 — mean_depth=4.88, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x45y51_f158 — mean_depth=4.87, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y41_f158 — mean_depth=4.87, mag50=24.07\n\n\n\n\n\n\n\nfull_p_full_010p00x48y54_f158 — mean_depth=4.87, mag50=24.10\n\n\n\n\n\n\n\nfull_p_full_010p00x50y53_f158 — mean_depth=4.86, mag50=24.16\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y53_f158 — mean_depth=4.85, mag50=24.09\n\n\n\n\n\n\n\nfull_p_full_010p00x53y54_f158 — mean_depth=4.84, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x52y54_f158 — mean_depth=4.83, mag50=24.13",
     "crumbs": [
       "Full run",
       "Results"
     ]
   },
   {
-    "objectID": "full/results.html#aggregated-depth-histogram",
-    "href": "full/results.html#aggregated-depth-histogram",
+    "objectID": "full/results.html#aggregated-depth-histograms",
+    "href": "full/results.html#aggregated-depth-histograms",
     "title": "Full run — results",
-    "section": "Aggregated depth histogram",
-    "text": "Aggregated depth histogram",
+    "section": "Aggregated depth histograms",
+    "text": "Aggregated depth histograms\nTwo views of the same data. The left panel is pixel-weighted (which depths the actual valid pixels sit at); the right panel is skycell-weighted (how many skycells have each median-depth value). The pixel view tells you the typical sensitivity regime; the skycell view tells you the distribution of “how well-covered” whole skycells are.",
     "crumbs": [
       "Full run",
       "Results"
@@ -161,11 +172,22 @@
     ]
   },
   {
+    "objectID": "full/design.html#pointings-map-full-hlwas-footprint",
+    "href": "full/design.html#pointings-map-full-hlwas-footprint",
+    "title": "Full run — design",
+    "section": "Pointings map (full HLWAS footprint)",
+    "text": "Pointings map (full HLWAS footprint)\n\n\n\n\n\nThe full HLWAS F158 footprint (grey dots = all ~67k pointings) with our target (red star) marked and the 0.5° filter cone drawn. The simulated survey sits south of Dec ≈ +1°, so our target at (10°, 0°) is near the northern edge — any roughly-isotropic filter cone drawn around it will necessarily have a lopsided pointing sample.\n\n\n\n\nThe HLWAS F158 footprint as simulated runs from Dec ≈ −53° to Dec ≈ +3°, with a hard upper edge around Dec ≈ +1° where the survey planning truncates. Our target at (10°, 0°) sits ~1° from that edge — which is why wide-area maps around it look asymmetric in Dec. It is not an artifact of our filter.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
     "objectID": "full/design.html#pointings-map-wide-view",
     "href": "full/design.html#pointings-map-wide-view",
     "title": "Full run — design",
     "section": "Pointings map (wide view)",
-    "text": "Pointings map (wide view)\n\n\n\n\n\nHLWAS F158 pointings near our field. Grey dots are the full HLWAS F158 catalog in a 5° window around our target; red + are the 18 selected for the full run; the 0.5° filter cone is drawn as a dashed circle; the grism target (10°, 0°) is the red star.\n\n\n\n\nThe HLWAS F158 footprint has a hard upper edge around Dec ≈ +1° (the simulated survey ends there). Our target at Dec = 0° sits ~1° from that edge, which is why there are visibly fewer F158 pointings on the northward side — it’s a real footprint feature of the HLWAS simulation, not an artifact of filtering.",
+    "text": "Pointings map (wide view)\n\n\n\n\n\nHLWAS F158 pointings near our field. Grey dots are the full HLWAS F158 catalog in a 5° window around our target; red + are the 18 selected for the full run; the 0.5° filter cone is drawn as a dashed circle; the grism target (10°, 0°) is the red star.\n\n\n\n\nZooming in, the northern truncation from the full-footprint view above is still visible as the thinning of grey points above Dec = 0°.",
     "crumbs": [
       "Full run",
       "Design"
@@ -187,7 +209,7 @@
     "href": "full/design.html#skycell-coverage-map",
     "title": "Full run — design",
     "section": "Skycell coverage map",
-    "text": "Skycell coverage map\n\n\n\n\n\nSkycell centres from the full run, coloured by per-skycell median per-pixel depth (coverage count). Depth 6 is the design-intent for pixels seeing all 3 dithers of both passes; it is reached in only ~16% of skycells, concentrated where visit-cluster overlaps fall. The edge-heavy skycells at the periphery sit at depth 2 (single-dither coverage or between-cluster gaps).",
+    "text": "Skycell coverage map\n\n\n\n\n\nSkycell centres from the full run, coloured by per-skycell median per-pixel depth. The design depth for this config is 6 (all 3 dithers of both passes); it is reached only in the cluster cores, not across the full filter cone.",
     "crumbs": [
       "Full run",
       "Design"
@@ -198,7 +220,7 @@
     "href": "full/design.html#run-parameters",
     "title": "Full run — design",
     "section": "Run parameters",
-    "text": "Run parameters\n\n\n\n\n\n\n\n\n\nparameter\nvalue\n\n\n\n\n0\nTag\nfull\n\n\n1\nInput catalog\ndata/metadata.parquet\n\n\n2\nInput units\nmag\n\n\n3\nBandpass column\nF158\n\n\n4\nPointings bandpass\nF158\n\n\n5\nRegion type\ncone\n\n\n6\nRegion centre\n(10.0°, 0.0°)\n\n\n7\nRegion radius\n0.5°\n\n\n8\nSim PSF type\nstpsf (from 01_build_script.sh)\n\n\n9\nMA table number\n1007\n\n\n10\nExposure time\n107.524 s per exposure\n\n\n11\nSim date\n2026-01-01T00:00:00\n\n\n12\nN exposures\n18 × 18 SCAs = 324 sims\n\n\n13\nParallelism (xargs)\n4",
+    "text": "Run parameters\n\n\n\n\n\n\n\n\n\nparameter\nvalue\n\n\n\n\n0\nTag\nfull\n\n\n1\nInput catalog\ndata/metadata.parquet\n\n\n2\nInput units\nmag\n\n\n3\nBandpass column\nF158\n\n\n4\nPointings bandpass\nF158\n\n\n5\nRegion type\ncone\n\n\n6\nRegion centre\n(10.0°, 0.0°)\n\n\n7\nRegion radius\n0.5°\n\n\n8\nSim PSF type\nstpsf (from 01_build_script.sh)\n\n\n9\nMA table number\n1007\n\n\n10\nExposure time\n107.524 s per exposure\n\n\n11\nSim date\n2026-01-01T00:00:00\n\n\n12\nN exposures\n18 × 18 SCAs = 324 sims\n\n\n13\nDesign depth\n6\n\n\n14\nParallelism (xargs)\n4",
     "crumbs": [
       "Full run",
       "Design"
