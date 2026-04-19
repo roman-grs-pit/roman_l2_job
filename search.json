@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "roman_l2_job",
     "section": "",
-    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.\nCode, configs, and this report all live in the roman_l2_job GitHub repo.",
+    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.\nCode, configs, and this report live in the roman_l2_job GitHub repo.",
     "crumbs": [
       "Overview"
     ]
@@ -14,7 +14,7 @@
     "href": "index.html#what-this-is",
     "title": "roman_l2_job",
     "section": "",
-    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.\nCode, configs, and this report all live in the roman_l2_job GitHub repo.",
+    "text": "roman_l2_job is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a photometry recovery test. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.\nCode, configs, and this report live in the roman_l2_job GitHub repo.",
     "crumbs": [
       "Overview"
     ]
@@ -24,17 +24,17 @@
     "href": "index.html#how-this-report-is-organized",
     "title": "roman_l2_job",
     "section": "How this report is organized",
-    "text": "How this report is organized\n\nPipeline — what the pipeline does, how to install it, what each stage reads and writes, and the deliberate deviations from stock upstream (vendored make_stack.py, per-line deterministic seeds, CRDS hydration). Common to every campaign.\nFull run — the first real campaign on configs/full.yaml, 324 sims across 6 visits of the (RA=10°, Dec=0°) field.\n\nDesign — pointings, parameters, measured zodi.\nResults — per-skycell completeness, flux residual, astrometric residual, depth distribution.\nDiscussion — what the numbers mean for grism support, caveats on Kron bias, footprint non-uniformity.\n\n\nFuture campaigns (e.g. a lower-zodi comparison run) will sit as siblings of “Full run” in the sidebar.",
+    "text": "How this report is organized\n\nPipeline — what the pipeline does, how to install it, what each stage reads and writes, and the deliberate deviations from stock upstream (vendored make_stack.py, per-line deterministic seeds, CRDS hydration). Common to every campaign.\nFull run — the first real campaign on configs/full.yaml, 324 sims across 6 visits of the (RA=10°, Dec=0°) field.\n\nDesign — pointings, parameters, measured zodi.\nResults — per-skycell completeness, flux residual, astrometric residual, depth distribution.\nDiscussion — observations and caveats.",
     "crumbs": [
       "Overview"
     ]
   },
   {
-    "objectID": "index.html#headline-numbers-from-the-full-run",
-    "href": "index.html#headline-numbers-from-the-full-run",
+    "objectID": "index.html#useful-references",
+    "href": "index.html#useful-references",
     "title": "roman_l2_job",
-    "section": "Headline numbers from the full run",
-    "text": "Headline numbers from the full run\n\n\n\n\n\n\nNote\n\n\n\n6 visits × 3 dithers × 18 SCAs = 324 F158 sims, 320 skycell coadds + catalogs, ~15 h end-to-end on m5a.2xlarge at 4-way.\n\nMedian 50%-completeness (AB): 23.95 over all skycells, 24.05 in the deep-pixel subset, peaks at 24.50 in the deepest skycells.\nKron flux residual: +0.17 mag (recovered − input), flat across depth — it’s a Kron-photometry property on extended sources, not a pipeline calibration issue.\nAstrometric residual: ~0.017″, sub-coadd-pixel across every skycell.\nDepth structure: only even integers appear in per-pixel depth (2, 4, 6, 8); pass 15 and pass 16 re-observe identical pointings, so sum is always 2× an integer.\nField geometry: only ~25% of skycells within 0.5° of the field center hit the intended design depth; the 18 pointings form three visit-cluster patches with shallow gaps between.\nZodiacal background: 1.28 e⁻/pix/s (sigma-clipped), ~3.4× the polar-minimum reference — expected for a field essentially on the ecliptic observed at high (~128°) elongation.",
+    "section": "Useful references",
+    "text": "Useful references\n\nRoman WFI technical page — authoritative source for WFI per-bandpass zodi, detector specs, and other pre-launch numbers we compare against.",
     "crumbs": [
       "Overview"
     ]
@@ -64,20 +64,20 @@
   {
     "objectID": "full/results.html",
     "href": "full/results.html",
-    "title": "Results",
+    "title": "Full run — results",
     "section": "",
-    "text": "Note\n\n\n\nNumbers on this page are computed at render time from output/full/compare/summary.csv and the coadd .asdf files. Re-rendering the report picks up any re-run results.",
+    "text": "Note\n\n\n\nNumbers on this page are computed at render time from output/full/compare/summary.csv and the coadd .asdf files, so a re-rendered report picks up any re-run results.",
     "crumbs": [
       "Full run",
       "Results"
     ]
   },
   {
-    "objectID": "full/results.html#full-run-configuration",
-    "href": "full/results.html#full-run-configuration",
-    "title": "Results",
-    "section": "Full-run configuration",
-    "text": "Full-run configuration\n324 sims over 6 visits (2 passes × 3 dithers × segments 490+521), 320 skycells after skycell_asn --product-type full.",
+    "objectID": "full/results.html#configuration",
+    "href": "full/results.html#configuration",
+    "title": "Full run — results",
+    "section": "Configuration",
+    "text": "Configuration\n324 sims over 6 visits (2 passes × 3 dithers × segments 490 + 521), 320 skycells after skycell_asn --product-type full.",
     "crumbs": [
       "Full run",
       "Results"
@@ -86,31 +86,42 @@
   {
     "objectID": "full/results.html#depth-distribution",
     "href": "full/results.html#depth-distribution",
-    "title": "Results",
+    "title": "Full run — results",
     "section": "Depth distribution",
-    "text": "Depth distribution\n\n\n\n\n\nDistribution of per-skycell depth metrics (max_depth, median_depth) across the full run.",
+    "text": "Depth distribution\n\n\n\n\n\nDistribution of per-skycell depth metrics across the full run. Left: the maximum per-pixel depth reached in each skycell. Right: the median per-pixel depth (a proxy for how well the skycell is covered overall).",
     "crumbs": [
       "Full run",
       "Results"
     ]
   },
   {
-    "objectID": "full/results.html#completeness-and-flux-residual-headlines",
-    "href": "full/results.html#completeness-and-flux-residual-headlines",
-    "title": "Results",
-    "section": "Completeness and flux residual headlines",
-    "text": "Completeness and flux residual headlines\n\n\n\n\n\n\nHeadline recovery numbers, medians across all 320 skycells.\n\n\n\nmetric\nmedian\n\n\n\n\n0\n50%-completeness mag (all sources)\n23.95\n\n\n1\n50%-completeness mag (deep subset)\n24.05\n\n\n2\noverall completeness (all sources)\n0.356\n\n\n3\noverall completeness (deep subset)\n0.384\n\n\n4\nKron flux residual (median, matched)\n+0.166 mag\n\n\n5\nastrometric residual (median, matched)\n0.017″",
+    "objectID": "full/results.html#headline-numbers",
+    "href": "full/results.html#headline-numbers",
+    "title": "Full run — results",
+    "section": "Headline numbers",
+    "text": "Headline numbers\n\n\n\n\n\n\nHeadline recovery numbers, medians across all 320 skycells.\n\n\n\nmetric\nmedian\n\n\n\n\n0\n50%-completeness mag (all sources)\n23.95\n\n\n1\n50%-completeness mag (deep subset)\n24.05\n\n\n2\noverall completeness (all sources)\n0.356\n\n\n3\noverall completeness (deep subset)\n0.384\n\n\n4\nKron flux residual (median, matched)\n+0.166 mag\n\n\n5\nastrometric residual (median, matched)\n0.017″",
     "crumbs": [
       "Full run",
       "Results"
     ]
   },
   {
-    "objectID": "full/results.html#todo",
-    "href": "full/results.html#todo",
-    "title": "Results",
-    "section": "TODO",
-    "text": "TODO\n\nCompleteness-vs-magnitude panel pulled from the per-skycell PNGs\nRecovered-vs-input flux scatter (aggregated)\nSky distribution colored by depth\nDistance-from-(10,0) analysis\nIndividual per-skycell figures linked (gallery page?)",
+    "objectID": "full/results.html#per-skycell-figure-gallery",
+    "href": "full/results.html#per-skycell-figure-gallery",
+    "title": "Full run — results",
+    "section": "Per-skycell figure gallery",
+    "text": "Per-skycell figure gallery\nShowing the 60 skycells with the largest mean_depth (deepest coverage), sorted deepest-first. Click any thumbnail to zoom.\n\n\n\n\n\n\nfull_p_full_010p00x50y42_f158 — mean_depth=7.00, mag50=24.38\n\n\n\n\n\n\n\nfull_p_full_010p00x49y42_f158 — mean_depth=6.33, mag50=24.25\n\n\n\n\n\n\n\nfull_p_full_010p00x49y44_f158 — mean_depth=6.29, mag50=24.35\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x47y46_f158 — mean_depth=6.28, mag50=24.27\n\n\n\n\n\n\n\nfull_p_full_010p00x49y43_f158 — mean_depth=5.92, mag50=24.22\n\n\n\n\n\n\n\nfull_p_full_010p00x49y54_f158 — mean_depth=5.63, mag50=24.21\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x47y45_f158 — mean_depth=5.62, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x46y52_f158 — mean_depth=5.60, mag50=24.18\n\n\n\n\n\n\n\nfull_p_full_010p00x45y50_f158 — mean_depth=5.58, mag50=24.25\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x50y43_f158 — mean_depth=5.56, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x47y53_f158 — mean_depth=5.45, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x50y49_f158 — mean_depth=5.36, mag50=24.14\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y53_f158 — mean_depth=5.34, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x53y50_f158 — mean_depth=5.32, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x51y51_f158 — mean_depth=5.30, mag50=24.19\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x49y50_f158 — mean_depth=5.30, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x47y41_f158 — mean_depth=5.29, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x54y50_f158 — mean_depth=5.27, mag50=24.20\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x52y53_f158 — mean_depth=5.26, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x49y48_f158 — mean_depth=5.26, mag50=24.18\n\n\n\n\n\n\n\nfull_p_full_010p00x48y44_f158 — mean_depth=5.26, mag50=24.20\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x53y52_f158 — mean_depth=5.25, mag50=24.11\n\n\n\n\n\n\n\nfull_p_full_010p00x47y47_f158 — mean_depth=5.23, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x50y51_f158 — mean_depth=5.22, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y47_f158 — mean_depth=5.22, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x50y54_f158 — mean_depth=5.20, mag50=24.09\n\n\n\n\n\n\n\nfull_p_full_010p00x51y42_f158 — mean_depth=5.20, mag50=24.12\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x54y52_f158 — mean_depth=5.20, mag50=24.21\n\n\n\n\n\n\n\nfull_p_full_010p00x53y51_f158 — mean_depth=5.18, mag50=24.07\n\n\n\n\n\n\n\nfull_p_full_010p00x47y49_f158 — mean_depth=5.18, mag50=24.16\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x55y50_f158 — mean_depth=5.16, mag50=24.20\n\n\n\n\n\n\n\nfull_p_full_010p00x47y50_f158 — mean_depth=5.16, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x52y50_f158 — mean_depth=5.15, mag50=24.15\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y49_f158 — mean_depth=5.14, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x48y45_f158 — mean_depth=5.14, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x52y42_f158 — mean_depth=5.12, mag50=24.21\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x45y39_f158 — mean_depth=5.09, mag50=24.16\n\n\n\n\n\n\n\nfull_p_full_010p00x48y49_f158 — mean_depth=5.09, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x52y52_f158 — mean_depth=5.08, mag50=24.09\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y54_f158 — mean_depth=5.06, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x48y48_f158 — mean_depth=5.05, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x51y50_f158 — mean_depth=5.02, mag50=24.13\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x52y55_f158 — mean_depth=5.01, mag50=24.14\n\n\n\n\n\n\n\nfull_p_full_010p00x49y52_f158 — mean_depth=4.99, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x51y55_f158 — mean_depth=4.98, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y51_f158 — mean_depth=4.98, mag50=24.12\n\n\n\n\n\n\n\nfull_p_full_010p00x46y40_f158 — mean_depth=4.96, mag50=24.08\n\n\n\n\n\n\n\nfull_p_full_010p00x46y49_f158 — mean_depth=4.94, mag50=24.14\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x46y51_f158 — mean_depth=4.92, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x50y52_f158 — mean_depth=4.92, mag50=24.15\n\n\n\n\n\n\n\nfull_p_full_010p00x47y52_f158 — mean_depth=4.90, mag50=24.09\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x46y48_f158 — mean_depth=4.89, mag50=24.10\n\n\n\n\n\n\n\nfull_p_full_010p00x44y38_f158 — mean_depth=4.88, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x45y51_f158 — mean_depth=4.87, mag50=24.11\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x48y41_f158 — mean_depth=4.87, mag50=24.07\n\n\n\n\n\n\n\nfull_p_full_010p00x48y54_f158 — mean_depth=4.87, mag50=24.10\n\n\n\n\n\n\n\nfull_p_full_010p00x50y53_f158 — mean_depth=4.86, mag50=24.16\n\n\n\n\n\n\n\n\n\nfull_p_full_010p00x51y53_f158 — mean_depth=4.85, mag50=24.09\n\n\n\n\n\n\n\nfull_p_full_010p00x53y54_f158 — mean_depth=4.84, mag50=24.13\n\n\n\n\n\n\n\nfull_p_full_010p00x52y54_f158 — mean_depth=4.83, mag50=24.13\n\n\n\n\n\nEach figure has five panels (completeness vs input mag, flux residual vs input mag with the deep subset highlighted, PSF-vs-aperture magnitude, FP fraction vs recovered mag, astrometric residual vs input mag) plus a text summary panel with headline numbers for that skycell.",
+    "crumbs": [
+      "Full run",
+      "Results"
+    ]
+  },
+  {
+    "objectID": "full/results.html#aggregated-depth-histogram",
+    "href": "full/results.html#aggregated-depth-histogram",
+    "title": "Full run — results",
+    "section": "Aggregated depth histogram",
+    "text": "Aggregated depth histogram",
     "crumbs": [
       "Full run",
       "Results"
@@ -143,18 +154,40 @@
     "href": "full/design.html#footprint-filter",
     "title": "Full run — design",
     "section": "Footprint filter",
-    "text": "Footprint filter\nThe pointings file (pointings_full.ecsv) is a subset of catalogs/HLWAS.sim.ecsv (the full HLWAS-survey simulated pointings) produced by scripts/filter_pointings.py:\n\n\nregion.type      = cone\nregion.ra        = 10.0°\nregion.dec       = 0.0°\nregion.radius    = 0.5°\nbandpass         = F158\nonly_pass        = None\nonly_segment     = None\nonly_visit       = None\n\n\nA visit survives the filter if any of its dithers lands inside the cone — matching visits contribute all their dithers (no partial inclusion). The only_pass/segment/visit nulls here mean no further restriction after the region test; the smoke config sets these to a single-visit subset.\nThe selection yields 6 visits × 3 dithers = 18 exposures across passes 15 and 16, segments 490 and 521:\n\n\n\n\n\n\nThe 18 pointings selected by the full-run filter.\n\n\n\nPASS\nSEGMENT\nVISIT\nEXPOSURE\nRA\nDEC\nPA\nBANDPASS\nMA_TABLE_NUMBER\nEXPOSURE_TIME\n\n\n\n\n0\n15\n490\n13\n1\n9.528996\n-0.044368\n0.0\nF158\n1007\n107.52399\n\n\n1\n15\n490\n13\n2\n9.609599\n-0.123239\n0.0\nF158\n1007\n107.52399\n\n\n2\n15\n490\n13\n3\n9.752089\n-0.262651\n0.0\nF158\n1007\n107.52399\n\n\n3\n15\n521\n5\n1\n10.453631\n0.003358\n0.0\nF158\n1007\n107.52399\n\n\n4\n15\n521\n5\n2\n10.534262\n-0.075513\n0.0\nF158\n1007\n107.52399\n\n\n5\n15\n521\n5\n3\n10.676812\n-0.214957\n0.0\nF158\n1007\n107.52399\n\n\n6\n15\n521\n6\n1\n10.111833\n0.200645\n0.0\nF158\n1007\n107.52399\n\n\n7\n15\n521\n6\n2\n10.192456\n0.121800\n0.0\nF158\n1007\n107.52399\n\n\n8\n15\n521\n6\n3\n10.334991\n-0.017608\n0.0\nF158\n1007\n107.52399\n\n\n9\n16\n490\n13\n1\n9.528996\n-0.044368\n0.0\nF158\n1007\n107.52399\n\n\n10\n16\n490\n13\n2\n9.609599\n-0.123239\n0.0\nF158\n1007\n107.52399\n\n\n11\n16\n490\n13\n3\n9.752089\n-0.262651\n0.0\nF158\n1007\n107.52399\n\n\n12\n16\n521\n5\n1\n10.453631\n0.003358\n0.0\nF158\n1007\n107.52399\n\n\n13\n16\n521\n5\n2\n10.534262\n-0.075513\n0.0\nF158\n1007\n107.52399\n\n\n14\n16\n521\n5\n3\n10.676812\n-0.214957\n0.0\nF158\n1007\n107.52399\n\n\n15\n16\n521\n6\n1\n10.111833\n0.200645\n0.0\nF158\n1007\n107.52399\n\n\n16\n16\n521\n6\n2\n10.192456\n0.121800\n0.0\nF158\n1007\n107.52399\n\n\n17\n16\n521\n6\n3\n10.334991\n-0.017608\n0.0\nF158\n1007\n107.52399\n\n\n\n\n\n\n\nPasses 15 and 16 share the same (RA, Dec, PA) for every exposure — they are re-observations, not distinct pointings. That’s relevant when interpreting per-pixel depth later: the two passes stack at identical dither patterns, so depth contributions from them are always paired.",
+    "text": "Footprint filter\nThe pointings file (pointings_full.ecsv) is a subset of catalogs/HLWAS.sim.ecsv (the full HLWAS-survey simulated pointings) produced by scripts/filter_pointings.py:\n\n\nregion.type      = cone\nregion.ra        = 10.0°\nregion.dec       = 0.0°\nregion.radius    = 0.5°\nbandpass         = F158\nonly_pass        = None\nonly_segment     = None\nonly_visit       = None\n\n\nA visit survives the filter if any of its dithers lands inside the cone — matching visits contribute all their dithers (no partial inclusion). The only_pass/segment/visit nulls here mean no further restriction after the region test; the smoke config sets these to a single-visit subset.\nThe selection yields 6 visits × 3 dithers = 18 exposures across passes 15 and 16, segments 490 and 521:\n\n\n\n\n\n\nThe 18 pointings selected by the full-run filter.\n\n\n\nPASS\nSEGMENT\nVISIT\nEXPOSURE\nRA\nDEC\nPA\nBANDPASS\nMA_TABLE_NUMBER\nEXPOSURE_TIME\n\n\n\n\n0\n15\n490\n13\n1\n9.528996\n-0.044368\n0.0\nF158\n1007\n107.52399\n\n\n1\n15\n490\n13\n2\n9.609599\n-0.123239\n0.0\nF158\n1007\n107.52399\n\n\n2\n15\n490\n13\n3\n9.752089\n-0.262651\n0.0\nF158\n1007\n107.52399\n\n\n3\n15\n521\n5\n1\n10.453631\n0.003358\n0.0\nF158\n1007\n107.52399\n\n\n4\n15\n521\n5\n2\n10.534262\n-0.075513\n0.0\nF158\n1007\n107.52399\n\n\n5\n15\n521\n5\n3\n10.676812\n-0.214957\n0.0\nF158\n1007\n107.52399\n\n\n6\n15\n521\n6\n1\n10.111833\n0.200645\n0.0\nF158\n1007\n107.52399\n\n\n7\n15\n521\n6\n2\n10.192456\n0.121800\n0.0\nF158\n1007\n107.52399\n\n\n8\n15\n521\n6\n3\n10.334991\n-0.017608\n0.0\nF158\n1007\n107.52399\n\n\n9\n16\n490\n13\n1\n9.528996\n-0.044368\n0.0\nF158\n1007\n107.52399\n\n\n10\n16\n490\n13\n2\n9.609599\n-0.123239\n0.0\nF158\n1007\n107.52399\n\n\n11\n16\n490\n13\n3\n9.752089\n-0.262651\n0.0\nF158\n1007\n107.52399\n\n\n12\n16\n521\n5\n1\n10.453631\n0.003358\n0.0\nF158\n1007\n107.52399\n\n\n13\n16\n521\n5\n2\n10.534262\n-0.075513\n0.0\nF158\n1007\n107.52399\n\n\n14\n16\n521\n5\n3\n10.676812\n-0.214957\n0.0\nF158\n1007\n107.52399\n\n\n15\n16\n521\n6\n1\n10.111833\n0.200645\n0.0\nF158\n1007\n107.52399\n\n\n16\n16\n521\n6\n2\n10.192456\n0.121800\n0.0\nF158\n1007\n107.52399\n\n\n17\n16\n521\n6\n3\n10.334991\n-0.017608\n0.0\nF158\n1007\n107.52399\n\n\n\n\n\n\n\nPasses 15 and 16 share the same (RA, Dec, PA) for every exposure — they are re-observations, not distinct pointings. That matters for interpreting per-pixel depth: the two passes stack at identical dither patterns, so depth contributions from them are always paired.",
     "crumbs": [
       "Full run",
       "Design"
     ]
   },
   {
-    "objectID": "full/design.html#pointings-map",
-    "href": "full/design.html#pointings-map",
+    "objectID": "full/design.html#pointings-map-wide-view",
+    "href": "full/design.html#pointings-map-wide-view",
     "title": "Full run — design",
-    "section": "Pointings map",
-    "text": "Pointings map\n\n\n\n\n\nPointings selected for the full run (red +), set against the HLWAS pointings the filter drew from (grey dots). The 0.5° cone used in the filter is drawn. The grism target (10°, 0°) is marked with a star.\n\n\n\n\nThe 18 selected pointings form three visit-clusters: one near (9.6°, −0.1°) from segment 490, one near (10.5°, 0°) from segment 521 / visit 5, and one near (10.1°, +0.2°) from segment 521 / visit 6. Each cluster deeply covers its own ~1 WFI footprint; the gaps between clusters are covered shallowly, a structural feature of the design we re-encounter in the per-skycell depth distribution.",
+    "section": "Pointings map (wide view)",
+    "text": "Pointings map (wide view)\n\n\n\n\n\nHLWAS F158 pointings near our field. Grey dots are the full HLWAS F158 catalog in a 5° window around our target; red + are the 18 selected for the full run; the 0.5° filter cone is drawn as a dashed circle; the grism target (10°, 0°) is the red star.\n\n\n\n\nThe HLWAS F158 footprint has a hard upper edge around Dec ≈ +1° (the simulated survey ends there). Our target at Dec = 0° sits ~1° from that edge, which is why there are visibly fewer F158 pointings on the northward side — it’s a real footprint feature of the HLWAS simulation, not an artifact of filtering.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#pointings-map-close-up",
+    "href": "full/design.html#pointings-map-close-up",
+    "title": "Full run — design",
+    "section": "Pointings map (close-up)",
+    "text": "Pointings map (close-up)\n\n\n\n\n\nClose-up around the 0.5° filter cone. The 18 selected pointings form three visit-clusters — one from segment 490 near (9.6°, −0.1°), and two from segment 521 near (10.5°, 0°) and (10.1°, +0.2°).\n\n\n\n\nEach of the three visit-clusters covers its own ~1 WFI footprint; the gaps between clusters are covered shallowly, which has consequences for per-skycell coverage.",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
+    "objectID": "full/design.html#skycell-coverage-map",
+    "href": "full/design.html#skycell-coverage-map",
+    "title": "Full run — design",
+    "section": "Skycell coverage map",
+    "text": "Skycell coverage map\n\n\n\n\n\nSkycell centres from the full run, coloured by per-skycell median per-pixel depth (coverage count). Depth 6 is the design-intent for pixels seeing all 3 dithers of both passes; it is reached in only ~16% of skycells, concentrated where visit-cluster overlaps fall. The edge-heavy skycells at the periphery sit at depth 2 (single-dither coverage or between-cluster gaps).",
     "crumbs": [
       "Full run",
       "Design"
@@ -176,7 +209,7 @@
     "href": "full/design.html#measured-zodiacal-background",
     "title": "Full run — design",
     "section": "Measured zodiacal background",
-    "text": "Measured zodiacal background\n\n\n\n\n\nSigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN).\n\n\n \nSCA\nsky_DN_per_s\nsky_e_per_pix_per_s\n\n\n\n\n0\n1\n0.6504\n1.216\n\n\n1\n2\n0.6782\n1.268\n\n\n2\n3\n0.6674\n1.248\n\n\n3\n4\n0.7076\n1.323\n\n\n4\n5\n0.6704\n1.254\n\n\n5\n6\n0.7187\n1.344\n\n\n6\n7\n0.6316\n1.181\n\n\n7\n8\n0.7126\n1.333\n\n\n8\n9\n0.6656\n1.245\n\n\n9\n10\n0.6664\n1.246\n\n\n10\n11\n0.6528\n1.221\n\n\n11\n12\n0.6849\n1.281\n\n\n12\n13\n0.6740\n1.260\n\n\n13\n14\n0.6734\n1.259\n\n\n14\n15\n0.6484\n1.213\n\n\n15\n16\n0.6900\n1.290\n\n\n16\n17\n0.7758\n1.451\n\n\n17\n18\n0.7477\n1.398\n\n\n\n\n\n\n\nMean across 18 SCAs: 1.279 e⁻/pix/s  (range 1.181 – 1.451)\nField at (RA=10, Dec=0): ecliptic latitude -3.96°\nSolar elongation on sim date: 128.2°\n\nReference (zodi pole-min × 1.5): 0.375 e⁻/pix/s\nObserved / reference: 3.41×\n\n\nThe measured sky rate is consistent with expectations for a Dec ≈ 0 field observed at high elongation (~128°): basically on the ecliptic (latitude −4°), which is a structurally bright part of the sky. You cannot reach the polar-minimum zodi reference from this target. Within the Roman observing window (elongation ~54–126°), you want high elongation to minimize zodi, and this sim is already near the upper end — moving the sim date would make the background worse, not better.\nWe re-visit the implications of this for grism SNR in the Discussion page.",
+    "text": "Measured zodiacal background\nPer-bandpass expected zodi rates for Roman WFI are documented on the Roman WFI technical page; our measurement below compares against that reference.\n\n\n\n\n\nSigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN).\n\n\n \nSCA\nsky_DN_per_s\nsky_e_per_pix_per_s\n\n\n\n\n0\n1\n0.6504\n1.216\n\n\n1\n2\n0.6782\n1.268\n\n\n2\n3\n0.6674\n1.248\n\n\n3\n4\n0.7076\n1.323\n\n\n4\n5\n0.6704\n1.254\n\n\n5\n6\n0.7187\n1.344\n\n\n6\n7\n0.6316\n1.181\n\n\n7\n8\n0.7126\n1.333\n\n\n8\n9\n0.6656\n1.245\n\n\n9\n10\n0.6664\n1.246\n\n\n10\n11\n0.6528\n1.221\n\n\n11\n12\n0.6849\n1.281\n\n\n12\n13\n0.6740\n1.260\n\n\n13\n14\n0.6734\n1.259\n\n\n14\n15\n0.6484\n1.213\n\n\n15\n16\n0.6900\n1.290\n\n\n16\n17\n0.7758\n1.451\n\n\n17\n18\n0.7477\n1.398\n\n\n\n\n\n\n\nMean across 18 SCAs: 1.279 e⁻/pix/s  (range 1.181 – 1.451)\nField at (RA=10, Dec=0): ecliptic latitude -3.96°\nSolar elongation on sim date: 128.2°\n\n\nThe measured sky rate reflects the zodiacal background that the romanisim sim computed for this field and date: on-ecliptic (latitude −4°) and at a large solar elongation (~128°), which is a structurally bright but well-observed part of the sky for a Dec ≈ 0 target. Within the Roman observing constraint (elongation roughly 54°–126°), higher elongation minimises zodi for an ecliptic target; the sim date is already near the upper end of that window, so shifting dates cannot meaningfully lower the background from this pointing.",
     "crumbs": [
       "Full run",
       "Design"

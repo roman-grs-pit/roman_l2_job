@@ -207,7 +207,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul>
   <li><a href="#what-this-is" id="toc-what-this-is" class="nav-link active" data-scroll-target="#what-this-is">What this is</a></li>
   <li><a href="#how-this-report-is-organized" id="toc-how-this-report-is-organized" class="nav-link" data-scroll-target="#how-this-report-is-organized">How this report is organized</a></li>
-  <li><a href="#headline-numbers-from-the-full-run" id="toc-headline-numbers-from-the-full-run" class="nav-link" data-scroll-target="#headline-numbers-from-the-full-run">Headline numbers from the full run</a></li>
+  <li><a href="#useful-references" id="toc-useful-references" class="nav-link" data-scroll-target="#useful-references">Useful references</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/roman-grs-pit/roman_l2_job/edit/main/index.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/roman-grs-pit/roman_l2_job/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -249,7 +249,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="what-this-is" class="level2">
 <h2 class="anchored" data-anchor-id="what-this-is">What this is</h2>
 <p><code>roman_l2_job</code> is a self-contained pipeline that simulates Roman WFI Level-2 calibrated images over a chosen footprint, builds Level-3 skycell coadds and source catalogs from them, and measures how faithfully the recovered catalog reproduces the input catalog — a <strong>photometry recovery test</strong>. It was built to support simulated grism observations of a Wide-Field2 sub-region near (RA=10°, Dec=0°), but generalizes to any footprint and any input source catalog.</p>
-<p>Code, configs, and this report all live in the <a href="https://github.com/roman-grs-pit/roman_l2_job">roman_l2_job</a> GitHub repo.</p>
+<p>Code, configs, and this report live in the <a href="https://github.com/roman-grs-pit/roman_l2_job">roman_l2_job</a> GitHub repo.</p>
 </section>
 <section id="how-this-report-is-organized" class="level2">
 <h2 class="anchored" data-anchor-id="how-this-report-is-organized">How this report is organized</h2>
@@ -259,34 +259,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <ul>
 <li><a href="./full/design.html">Design</a> — pointings, parameters, measured zodi.</li>
 <li><a href="./full/results.html">Results</a> — per-skycell completeness, flux residual, astrometric residual, depth distribution.</li>
-<li><a href="./full/discussion.html">Discussion</a> — what the numbers mean for grism support, caveats on Kron bias, footprint non-uniformity.</li>
+<li><a href="./full/discussion.html">Discussion</a> — observations and caveats.</li>
 </ul></li>
 </ul>
-<p>Future campaigns (e.g.&nbsp;a lower-zodi comparison run) will sit as siblings of “Full run” in the sidebar.</p>
 </section>
-<section id="headline-numbers-from-the-full-run" class="level2">
-<h2 class="anchored" data-anchor-id="headline-numbers-from-the-full-run">Headline numbers from the full run</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>6 visits × 3 dithers × 18 SCAs = <strong>324 F158 sims</strong>, <strong>320 skycell coadds + catalogs</strong>, ~15 h end-to-end on m5a.2xlarge at 4-way.</p>
+<section id="useful-references" class="level2">
+<h2 class="anchored" data-anchor-id="useful-references">Useful references</h2>
 <ul>
-<li><strong>Median 50%-completeness (AB):</strong> 23.95 over all skycells, 24.05 in the deep-pixel subset, peaks at <strong>24.50</strong> in the deepest skycells.</li>
-<li><strong>Kron flux residual:</strong> <strong>+0.17 mag</strong> (recovered − input), flat across depth — it’s a Kron-photometry property on extended sources, not a pipeline calibration issue.</li>
-<li><strong>Astrometric residual:</strong> <strong>~0.017″</strong>, sub-coadd-pixel across every skycell.</li>
-<li><strong>Depth structure:</strong> only even integers appear in per-pixel depth (2, 4, 6, 8); pass 15 and pass 16 re-observe identical pointings, so sum is always 2× an integer.</li>
-<li><strong>Field geometry:</strong> only ~25% of skycells within 0.5° of the field center hit the intended design depth; the 18 pointings form three visit-cluster patches with shallow gaps between.</li>
-<li><strong>Zodiacal background:</strong> <strong>1.28 e⁻/pix/s</strong> (sigma-clipped), ~3.4× the polar-minimum reference — expected for a field essentially on the ecliptic observed at high (~128°) elongation.</li>
+<li><a href="https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/">Roman WFI technical page</a> — authoritative source for WFI per-bandpass zodi, detector specs, and other pre-launch numbers we compare against.</li>
 </ul>
-</div>
-</div>
 
 
 <!-- -->
@@ -762,7 +743,7 @@ Note
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>(RA=10°, Dec=0°), but generalizes to any footprint and any input source</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>catalog.</span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>Code, configs, and this report all live in the</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>Code, configs, and this report live in the</span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">roman_l2_job</span><span class="co">](https://github.com/roman-grs-pit/roman_l2_job)</span> GitHub repo.</span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## How this report is organized</span></span>
@@ -776,35 +757,13 @@ Note
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="co">[</span><span class="ot">Design</span><span class="co">](full/design.qmd)</span> — pointings, parameters, measured zodi.</span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="co">[</span><span class="ot">Results</span><span class="co">](full/results.qmd)</span> — per-skycell completeness, flux residual,</span>
 <span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>      astrometric residual, depth distribution.</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="co">[</span><span class="ot">Discussion</span><span class="co">](full/discussion.qmd)</span> — what the numbers mean for grism</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>      support, caveats on Kron bias, footprint non-uniformity.</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>Future campaigns (e.g. a lower-zodi comparison run) will sit as siblings of</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>"Full run" in the sidebar.</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## Headline numbers from the full run</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>6 visits × 3 dithers × 18 SCAs = **324 F158 sims**,</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>**320 skycell coadds + catalogs**, ~15 h end-to-end on m5a.2xlarge at 4-way.</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Median 50%-completeness (AB):** 23.95 over all skycells, 24.05 in the</span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>  deep-pixel subset, peaks at **24.50** in the deepest skycells.</span>
-<span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Kron flux residual:** **+0.17 mag** (recovered − input), flat across</span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a>  depth — it's a Kron-photometry property on extended sources, not a</span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a>  pipeline calibration issue.</span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Astrometric residual:** **~0.017″**, sub-coadd-pixel across every</span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>  skycell.</span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Depth structure:** only even integers appear in per-pixel depth</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>  (2, 4, 6, 8); pass 15 and pass 16 re-observe identical pointings, so sum</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>  is always 2× an integer.</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Field geometry:** only ~25% of skycells within 0.5° of the field</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>  center hit the intended design depth; the 18 pointings form three</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>  visit-cluster patches with shallow gaps between.</span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Zodiacal background:** **1.28 e⁻/pix/s** (sigma-clipped), ~3.4× the</span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a>  polar-minimum reference — expected for a field essentially on the</span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a>  ecliptic observed at high (~128°) elongation.</span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a>:::</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="co">[</span><span class="ot">Discussion</span><span class="co">](full/discussion.qmd)</span> — observations and caveats.</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a><span class="fu">## Useful references</span></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Roman WFI technical page</span><span class="co">](https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/)</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>  — authoritative source for WFI per-bandpass zodi, detector specs, and other</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>  pre-launch numbers we compare against.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
