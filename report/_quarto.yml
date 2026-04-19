@@ -8,7 +8,12 @@ website:
   repo-url: https://github.com/roman-grs-pit/roman_l2_job
   repo-actions: [edit, issue]
   navbar:
-    left:
+    right:
+      - icon: github
+        href: https://github.com/roman-grs-pit/roman_l2_job
+  sidebar:
+    style: docked
+    contents:
       - href: index.qmd
         text: Overview
       - href: pipeline.qmd
@@ -17,15 +22,12 @@ website:
         text: Results
       - href: discussion.qmd
         text: Discussion
-    right:
-      - icon: github
-        href: https://github.com/roman-grs-pit/roman_l2_job
 
 format:
   html:
     theme: [cosmo, custom.scss]
     toc: true
-    toc-location: left
+    toc-location: right
     toc-depth: 3
     code-fold: show
     code-tools: true
