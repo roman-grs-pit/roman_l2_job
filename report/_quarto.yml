@@ -1,6 +1,7 @@
 project:
   type: website
   output-dir: _site
+  pre-render: ./prepare_assets.sh
 
 website:
   title: "roman_l2_job"
