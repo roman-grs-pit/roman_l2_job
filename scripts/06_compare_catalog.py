@@ -401,7 +401,9 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
     ax_ap.set_xlabel("aper08 mag (AB)")
     ax_ap.set_ylabel("psf − aper08 (mag)")
     ax_ap.set_title(f"PSF vs aper08 (psf_flags=0, n={int(psf_trust.sum())})")
-    ax_ap.set_ylim(-2, 2)
+    # Wide enough to show the input-PSF cloud near Δ ~ +0.6 and the input-SER
+    # cloud out near Δ ~ +2.5.
+    ax_ap.set_ylim(-1, 4)
     ax_ap.legend(fontsize=8, loc="upper left")
     ax_ap.grid(True, alpha=0.3)
 
@@ -500,11 +502,12 @@ def analyze_skycell(base: str, n_asn_members: int, cfg, match_arcsec: float,
 def write_depth_distribution(hists: list[np.ndarray],
                              results: list[SkycellAnalysis],
                              out_path: Path):
-    """Aggregate per-skycell depth histograms and emit two panels:
-    (1) per-pixel depth aggregated across every valid pixel in every skycell
-        (pixel-weighted — most common depth);
-    (2) per-skycell median-depth histogram (skycell-weighted — how coverage
-        is distributed across the skycells themselves)."""
+    """Aggregate per-skycell per-pixel depth histograms into a single
+    run-level depth distribution. The plot overlays two readouts:
+      - bars: pixel count at each depth
+      - line (right-axis): cumulative fraction of pixels with depth >= X
+        — useful to read "what fraction of coverage meets a given
+        design-depth threshold" directly off the figure."""
     if not hists:
         return
     max_len = max(len(h) for h in hists)
@@ -516,27 +519,31 @@ def write_depth_distribution(hists: list[np.ndarray],
     if total == 0:
         return
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-    ax_pix, ax_sky = axes
+    # CDF from the right: fraction of pixels with depth >= depth[i]
+    frac_ge = np.cumsum(agg[::-1])[::-1] / total
 
-    ax_pix.bar(depths, agg, color="C0", edgecolor="k", lw=0.5)
-    ax_pix.set_xlabel("per-pixel depth (# cal files)")
-    ax_pix.set_ylabel("# pixels (aggregated over all skycells)")
-    ax_pix.set_title(f"Per-pixel depth — pixel-weighted "
-                     f"({total:,} pixels, {len(hists)} skycells)")
-    ax_pix.grid(True, axis="y", alpha=0.3)
-    ax_pix.set_xticks(depths)
+    fig, ax = plt.subplots(figsize=(7, 4.2))
+    ax.bar(depths, agg, color="C0", edgecolor="k", lw=0.5,
+           label="# pixels")
+    ax.set_xlabel("per-pixel depth (# cal files)")
+    ax.set_ylabel("# pixels (aggregated over all skycells)")
+    ax.set_title(f"Per-pixel depth distribution "
+                 f"({total:,} pixels, {len(hists)} skycells)")
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.set_xticks(depths)
 
-    # Per-skycell median_depth histogram
-    medians = np.array([r.median_depth for r in results])
-    # Integer bin centres: 1,2,3,... up to max observed.
-    med_bins = np.arange(0, int(np.max(medians)) + 2) - 0.5
-    ax_sky.hist(medians, bins=med_bins, color="C1", edgecolor="k", lw=0.5)
-    ax_sky.set_xlabel("per-skycell median depth")
-    ax_sky.set_ylabel("# skycells")
-    ax_sky.set_title("Skycell median depth — skycell-weighted")
-    ax_sky.set_xticks(np.arange(0, int(np.max(medians)) + 1))
-    ax_sky.grid(True, axis="y", alpha=0.3)
+    ax_r = ax.twinx()
+    ax_r.plot(depths, frac_ge, marker="o", color="C3",
+              label="fraction ≥ depth")
+    ax_r.set_ylim(0, 1.05)
+    ax_r.set_ylabel("fraction of pixels with depth ≥ X", color="C3")
+    ax_r.tick_params(axis="y", labelcolor="C3")
+
+    # Single combined legend
+    lines, labels = ax.get_legend_handles_labels()
+    lines_r, labels_r = ax_r.get_legend_handles_labels()
+    ax.legend(lines + lines_r, labels + labels_r, loc="upper right",
+              fontsize=9)
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=110)

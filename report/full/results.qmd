@@ -89,8 +89,15 @@ Each per-skycell PNG has six panels. In brief:
   type: blue = input PSF, orange = input SER. Input PSFs should
   concentrate near Δ = 0 (PSF fit and aperture agree on point sources);
   input SERs should sit above Δ = 0 (PSF-fit underestimates extended
-  flux). It's a consistency check on the PSF model more than a primary
-  science number.
+  flux). **Caveat: in these catalogs we see both clouds shifted up by
+  ~+0.68 mag** — the PSF cloud sits near Δ ≈ +0.66 instead of 0, and
+  the SER cloud near Δ ≈ +2.6 instead of ~+2. That shift matches the
+  median CRDS gain (1.869 e⁻/DN → 2.5·log₁₀(1.869) = +0.68 mag), which
+  strongly suggests `psf_flux` is emitted in DN/s-like units while
+  `aper08_flux` and `kron_flux` are in nJy. We leave the panel uncorrected
+  so the offset is visible; use `kron_flux` (which round-trips with
+  `kron_abmag`) for any direct quantitative comparison rather than
+  `psf_flux` until this is clarified upstream.
 - **False-positive rate** (bottom-left). Fraction of recovered sources
   per recovered-mag bin that have no matching input within the match
   radius. Spurious detections / blends; usually well below 10% except at
@@ -122,13 +129,11 @@ for _, row in top.iterrows():
 print(":::")
 ```
 
-## Aggregated depth histograms
+## Aggregated depth distribution
 
-Two views of the same data. The left panel is **pixel-weighted** (which
-depths the actual valid pixels sit at); the right panel is
-**skycell-weighted** (how many skycells have each median-depth value).
-The pixel view tells you the typical sensitivity regime; the skycell
-view tells you the distribution of "how well-covered" whole skycells
-are.
+Pixel count per depth across every valid pixel of every skycell, with
+the cumulative fraction at depth ≥ X overlaid. Read directly off the red
+curve: the **fraction of pixels meeting a given depth** — e.g., at the
+design-depth threshold of 6 for this run, ~21% of pixels qualify.
 
-![](_depth_distribution.png){fig-alt="Per-pixel depth histogram + per-skycell median depth histogram"}
+![](_depth_distribution.png){fig-alt="Per-pixel depth histogram with cumulative fraction overlay"}
