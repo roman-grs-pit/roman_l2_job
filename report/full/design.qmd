@@ -268,3 +268,67 @@ observing constraint (elongation roughly 54°–126°), higher elongation
 minimises zodi for an ecliptic target; the sim date is already near the
 upper end of that window, so shifting dates cannot meaningfully lower the
 background from this pointing.
+
+## Data volume and wall time
+
+Disk and wall-time cost of the full run. The pipeline is configured to
+use `output/cal/` as a shared store (same filenames per visit/exposure/SCA),
+so cal files carry over between smoke and full — only the novel L2s were
+newly simulated for this run.
+
+```{python}
+#| echo: false
+#| tbl-cap: "Stage outputs and storage. Counts and sizes from the live output tree."
+import os
+def du_mb(pat):
+    total = 0
+    for root, _, files in os.walk(REPO / pat):
+        for f in files:
+            total += os.path.getsize(os.path.join(root, f))
+    return total / 1e9
+def count(pat):
+    return sum(1 for _ in (REPO / os.path.dirname(pat)).glob(os.path.basename(pat)))
+rows = [
+    ("L2 cal files (output/cal/*_cal.asdf)",         count("output/cal/*_cal.asdf"), f"{du_mb('output/cal'):.1f} GB"),
+    ("L3 mosaics (output/full/mosaic/*_coadd.asdf)", count("output/full/mosaic/*_coadd.asdf"), f"{du_mb('output/full/mosaic'):.1f} GB"),
+    ("  — of which coadd.asdf only",                  "", f"{sum(p.stat().st_size for p in (REPO/'output/full/mosaic').glob('*_coadd.asdf'))/1e9:.1f} GB"),
+    ("L3 catalogs (output/full/catalog/)",            count("output/full/catalog/*_cat.parquet"), f"{du_mb('output/full/catalog'):.1f} GB"),
+    ("  — of which cat.parquet only",                 "", f"{sum(p.stat().st_size for p in (REPO/'output/full/catalog').glob('*_cat.parquet'))/1e6:.0f} MB"),
+    ("compare outputs (summary + 320 PNGs)",          "", f"{du_mb('output/full/compare'):.2f} GB"),
+    ("per-sim + per-stage logs",                      "", f"{du_mb('output/logs')*1000:.0f} MB"),
+    ("",                                              "", ""),
+    ("CRDS cache (14 reftypes × 18 SCAs F158)",       "", f"{du_mb('crds_cache'):.1f} GB"),
+    ("STPSF data",                                    "", f"{du_mb('stpsf-data')*1000:.0f} MB"),
+    ("pixi env (default + report)",                   "", f"{du_mb('.pixi'):.1f} GB"),
+]
+pd.DataFrame(rows, columns=["artefact", "N", "size"])
+```
+
+Two small inefficiencies worth knowing about:
+
+- `output/full/mosaic/` contains **duplicates** of the catalog outputs
+  (`_cat.parquet`, `_segm.asdf`) that `MosaicPipeline` writes as a
+  side-effect of its internal source-catalog substep; stage 05 then
+  regenerates them into `output/full/catalog/`. The side-effect copies
+  account for ~24 GB of the mosaic-dir total.
+- Most of the L3-catalog volume is `_segm.asdf`; the actual source
+  catalogs (`_cat.parquet`) are tiny (~74 MB for all 320).
+
+```{python}
+#| echo: false
+#| tbl-cap: "Wall-time per stage, 4-way parallelism on an m5a.2xlarge (8 vCPU → 4 physical cores, 32 GB RAM)."
+wall = [
+    ("Stage 02 — sims (romanisim)",      "~10 h",       "324 sims, 4-way xargs"),
+    ("Stage 03 — asn (skycell_asn)",     "~1–2 min",    "320 asn JSONs"),
+    ("Stage 04 — mosaic (MosaicPipeline)","4 h 5 min",   "320 coadds, 4-way xargs"),
+    ("Stage 05 — catalog (SourceCatalog)","51 min",      "320 catalogs, 4-way"),
+    ("Stage 06 — compare (per-skycell)", "12 min 30 s", "320 skycells, serial"),
+    ("Total end-to-end (stages 02–06)",  "~15.5 h",     "≈ $5–6 at m5a.2xlarge on-demand"),
+]
+pd.DataFrame(wall, columns=["stage", "wall time", "notes"])
+```
+
+The EBS volume grew from 259 GB (initial) to 415 GB mid-run when the
+mosaic step outgrew the original allocation. Current usage after the
+full run is ~300 GB / 415 GB (~73%).
+
