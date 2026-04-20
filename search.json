@@ -42,20 +42,64 @@
   {
     "objectID": "full/discussion.html",
     "href": "full/discussion.html",
-    "title": "Discussion",
+    "title": "Full run — discussion",
     "section": "",
-    "text": "Depth quantization. Why per-pixel depths only land on even integers (passes 15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).\nField coverage non-uniformity. Only ~25% of skycells within 0.5° of (10, 0) reach the design depth. The 0.5° cone is not the right way to think about the footprint — it’s a union of three visit-cluster patches plus the gaps.\nKron flux bias. The +0.17 mag under-measurement is a Kron-photometry property on extended sources; unbiased recovered flux for galaxies would use larger aperture (e.g. aper16_flux) or segment flux. Relevant for downstream science.\nZodiacal background. Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum reference. Expected for a field at ecliptic latitude −4° observed at elongation 128°. Already near the best achievable for this target — the field is structurally on the ecliptic, and the sim date is near the best observable elongation.\nGrism implications. Discussion of what the recovered per-skycell depth and completeness mean for the grism observations the campaign is intended to support.",
+    "text": "A handful of findings from this run are worth flagging for whoever uses the pipeline next — whether to follow up, to adjust the design of the next campaign, or to keep in mind when consuming the catalogs.",
     "crumbs": [
       "Full run",
       "Discussion"
     ]
   },
   {
-    "objectID": "full/discussion.html#todo",
-    "href": "full/discussion.html#todo",
-    "title": "Discussion",
-    "section": "",
-    "text": "Depth quantization. Why per-pixel depths only land on even integers (passes 15 and 16 re-observe identical pointings + dithers, so the sum is always 2×k).\nField coverage non-uniformity. Only ~25% of skycells within 0.5° of (10, 0) reach the design depth. The 0.5° cone is not the right way to think about the footprint — it’s a union of three visit-cluster patches plus the gaps.\nKron flux bias. The +0.17 mag under-measurement is a Kron-photometry property on extended sources; unbiased recovered flux for galaxies would use larger aperture (e.g. aper16_flux) or segment flux. Relevant for downstream science.\nZodiacal background. Measured 1.28 e⁻/pix/s, ~3.4× the polar-minimum reference. Expected for a field at ecliptic latitude −4° observed at elongation 128°. Already near the best achievable for this target — the field is structurally on the ecliptic, and the sim date is near the best observable elongation.\nGrism implications. Discussion of what the recovered per-skycell depth and completeness mean for the grism observations the campaign is intended to support.",
+    "objectID": "full/discussion.html#footprint-non-uniformity-around-10-0",
+    "href": "full/discussion.html#footprint-non-uniformity-around-10-0",
+    "title": "Full run — discussion",
+    "section": "Footprint non-uniformity around (10°, 0°)",
+    "text": "Footprint non-uniformity around (10°, 0°)\nOur target is a grism reference point near (RA = 10°, Dec = 0°), which sits at the northern survey boundary of the HLWAS simulation used to build the pointings. The default APT-planned tiling (at least in the version of the HLWAS .ecsv we filtered) does not uniformly cover this region — the filter_pointings.py cone pulls out three separated visit-clusters (segments 490 and 521) with shallow between-cluster gaps:\n\nOnly ~25% of skycells within 0.5° of the target reach the design depth of 6.\nOnly ~52 of 320 skycells have median_depth == 6; the bulk sit at median depth 2.\n\nOptions if we want better coverage of this field:\n\nMove the default. If the grism target doesn’t have to be exactly (10°, 0°), picking a point ~0.5°–1° south would put it inside the survey interior where tiling is uniform. Downside: we’d lose any continuity with prior analyses tied to the current coordinates.\nAdd pointings. Two visits with the default dither pattern around (10°, 0°) would roughly double the existing coverage (+108 sims on top of the current 324) and fill the immediate neighbourhood without moving the target.\nGo to a 3×3 grid. Nine pointings centered on the target is a clean geometry; budget is 9 × 3 × 18 = 486 new sims (~16 hr of stage 02 at current pace). To limit L3 work after that, we could run stages 04 and 05 only on skycells with sufficient asn-member count — e.g. len(asn.members) &gt;= 14 correlates well with per-pixel depth ≥ 6 in the current data. That filter alone would drop stage-04 load by ~80% on the 3×3 footprint.\n\nWhichever route we pick, the pipeline side of that work is straightforward: edit the config (new pointings.region centre, wider radius_deg for a grid) and re-run from stage 01. The skip-if-exists guards mean cal files from the current run will be reused for any overlapping pointings.",
+    "crumbs": [
+      "Full run",
+      "Discussion"
+    ]
+  },
+  {
+    "objectID": "full/discussion.html#zodiacal-background-is-3-the-minimum-reference",
+    "href": "full/discussion.html#zodiacal-background-is-3-the-minimum-reference",
+    "title": "Full run — discussion",
+    "section": "Zodiacal background is ~3× the minimum reference",
+    "text": "Zodiacal background is ~3× the minimum reference\nThe measured sigma-clipped sky rate across 18 SCAs of one F158 exposure is ~1.28 e⁻/pix/s, versus the polar-minimum zodi reference of ~0.375 e⁻/pix/s — a factor of ~3.4× higher background. That’s expected for a Dec = 0 target observed at 128° solar elongation (see the Design page for the geometry calculation); the field is structurally on the ecliptic and cannot get much better than this.\nWhat this means for recovery depth: sky-limited point-source noise scales as √background, so 3.4× the sky is √3.4 ≈ 1.84× the noise, which costs 2.5 × log₁₀(1.84) ≈ 0.67 mag of 5σ point-source depth relative to a nominal polar field.\nCross-checking that against our measurements: the median 50%-completeness magnitude across all 320 skycells is 23.95 AB; at the design depth it reaches 24.05 AB. If the HLWAS nominal design target for F158 is around mag 24.5–25 (worth confirming against the Roman WFI technical page), a 0.5–1 mag shortfall is consistent with the elevated zodi we measured. In other words, the result we see is photometrically reasonable — we’re just observing a bright sky patch.\nCaveats:\n\nThe “×3” comparison is against a polar minimum — the right baseline for “did we lose depth?” might be a typical HLWAS survey pointing rather than the absolute minimum. Worth revisiting with the actual Roman WFI spec numbers.\n50%-completeness magnitude and 5σ point-source magnitude are related but not identical; the 0.67 mag prediction is an order-of-magnitude estimate, not a tight fit.",
+    "crumbs": [
+      "Full run",
+      "Discussion"
+    ]
+  },
+  {
+    "objectID": "full/discussion.html#psf_flux-appears-to-be-in-different-units-than-aper08_flux-kron_flux",
+    "href": "full/discussion.html#psf_flux-appears-to-be-in-different-units-than-aper08_flux-kron_flux",
+    "title": "Full run — discussion",
+    "section": "psf_flux appears to be in different units than aper08_flux / kron_flux",
+    "text": "psf_flux appears to be in different units than aper08_flux / kron_flux\nFor input PSF sources, we expect psf_flux ≈ aper08_flux (both capture total flux for point sources). Measured offset: psf_mag − aper08_mag = +0.656 mag (input-PSF sources, psf_flags = 0). The matching kron − aper08 is +0.07 for the same sources, so kron and aper08 agree well.\nGrepping romancal.source_catalog.psf, psf_flux comes straight from a photutils.psf.PSFPhotometry fit on image_model.data with the flux_fit column renamed — no unit conversion is applied on the way out. aper*_flux and kron_flux in the same catalog output, in contrast, are in nJy (we confirmed kron_flux round-trips with kron_abmag via the standard AB formula to 1 part in 10⁴).\nThe systematic offset matches the median CRDS-gain across the 18 WFI SCAs (1.869 e⁻/DN → 2.5 × log₁₀ = +0.679 mag) to ~2%. Our working hypothesis is that psf_flux is in DN/s-like units while aper_flux and kron_flux have been converted to nJy. The 2% residual may come from (a) per-SCA gain variation, since L3 coadds are weighted combinations of contributing L2s, or (b) PSF-wing truncation in the 8-pixel aperture, which would push the sign the other way, so probably (a) dominates.\nConsequences for downstream science:\n\nDo not use psf_flux as a standalone total flux estimator until the unit chain is verified. Use kron_flux, which is internally self-consistent in this catalog, for flux comparisons.\nWorth filing upstream against romancal to either (a) apply the gain correction to psf_flux in the same pipeline stage that converts aperture/Kron fluxes, or (b) document the difference in unit explicitly.",
+    "crumbs": [
+      "Full run",
+      "Discussion"
+    ]
+  },
+  {
+    "objectID": "full/discussion.html#depth-quantization-to-even-integers",
+    "href": "full/discussion.html#depth-quantization-to-even-integers",
+    "title": "Full run — discussion",
+    "section": "Depth quantization to even integers",
+    "text": "Depth quantization to even integers\nFor context on the Results depth-distribution plot — per-pixel depths in this run occur only at even integers (2, 4, 6, 8). That is not a coverage artifact: passes 15 and 16 of the HLWAS design re-observe each visit with identical (RA, Dec, PA) and dither offsets, so a pixel sees depth k in pass 15 and depth k in pass 16 — the sum is always 2k. The smoke config (1 visit × 3 dithers, no second pass) did see odd depths 1/2/3; the full config shouldn’t.",
+    "crumbs": [
+      "Full run",
+      "Discussion"
+    ]
+  },
+  {
+    "objectID": "full/discussion.html#kron-flux-bias-0.17-mag",
+    "href": "full/discussion.html#kron-flux-bias-0.17-mag",
+    "title": "Full run — discussion",
+    "section": "Kron flux bias (+0.17 mag)",
+    "text": "Kron flux bias (+0.17 mag)\nThe median recovered Kron − input mag of +0.17 mag is stable across depth, skycell, and the smoke-vs-full comparison. It’s a well-known Kron property on extended sources — Kron radius is self-sizing and catches ~90% of a Sérsic profile’s light, not 100%. For input PSF sources the Kron residual is much smaller (median +0.07 mag on a deep skycell check). This is a photometry property, not a pipeline calibration issue.\nIf you want an unbiased recovered flux for galaxies specifically, segment_flux or a larger aperture (e.g. aper16_flux) would be the better choice.",
     "crumbs": [
       "Full run",
       "Discussion"
