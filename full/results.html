@@ -214,7 +214,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#headline-numbers" id="toc-headline-numbers" class="nav-link" data-scroll-target="#headline-numbers">Headline numbers</a></li>
   <li><a href="#how-to-read-a-per-skycell-figure" id="toc-how-to-read-a-per-skycell-figure" class="nav-link" data-scroll-target="#how-to-read-a-per-skycell-figure">How to read a per-skycell figure</a></li>
   <li><a href="#per-skycell-figure-gallery" id="toc-per-skycell-figure-gallery" class="nav-link" data-scroll-target="#per-skycell-figure-gallery">Per-skycell figure gallery</a></li>
-  <li><a href="#aggregated-depth-histograms" id="toc-aggregated-depth-histograms" class="nav-link" data-scroll-target="#aggregated-depth-histograms">Aggregated depth histograms</a></li>
+  <li><a href="#aggregated-depth-distribution" id="toc-aggregated-depth-distribution" class="nav-link" data-scroll-target="#aggregated-depth-distribution">Aggregated depth distribution</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/roman-grs-pit/roman_l2_job/edit/main/full/results.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/roman-grs-pit/roman_l2_job/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -259,7 +259,7 @@ Note
 </section>
 <section id="depth-distribution" class="level2">
 <h2 class="anchored" data-anchor-id="depth-distribution">Depth distribution</h2>
-<div id="4ad891e3" class="cell" data-execution_count="2">
+<div id="198f8210" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -330,7 +330,7 @@ Note
 <ul>
 <li><strong>Detection completeness</strong> (top-left). Binned completeness vs input magnitude. The black curve is all in-footprint sources; the dashed red curve is the “design subset” (sources on pixels with depth ≥ 6). PSF and SER inputs are shown faintly for context. Dotted verticals mark the interpolated 50%-completeness magnitudes.</li>
 <li><strong>Flux residual</strong> (top-middle). <code>recovered kron mag − input mag</code> vs input mag, matched sources only. Grey = sources below design depth, red = design-depth sources. The red dashed line is the design-subset median bias (typically +0.15–0.20 mag, a Kron-photometry property on extended sources).</li>
-<li><strong>PSF vs aper08</strong> (top-right). <code>psf_mag − aper08_mag</code> vs <code>aper08_mag</code>, for recovered sources with <code>psf_flags = 0</code>, coloured by the <em>input</em> type: blue = input PSF, orange = input SER. Input PSFs should concentrate near Δ = 0 (PSF fit and aperture agree on point sources); input SERs should sit above Δ = 0 (PSF-fit underestimates extended flux). It’s a consistency check on the PSF model more than a primary science number.</li>
+<li><strong>PSF vs aper08</strong> (top-right). <code>psf_mag − aper08_mag</code> vs <code>aper08_mag</code>, for recovered sources with <code>psf_flags = 0</code>, coloured by the <em>input</em> type: blue = input PSF, orange = input SER. Input PSFs should concentrate near Δ = 0 (PSF fit and aperture agree on point sources); input SERs should sit above Δ = 0 (PSF-fit underestimates extended flux). <strong>Caveat: in these catalogs we see both clouds shifted up by ~+0.68 mag</strong> — the PSF cloud sits near Δ ≈ +0.66 instead of 0, and the SER cloud near Δ ≈ +2.6 instead of ~+2. That shift matches the median CRDS gain (1.869 e⁻/DN → 2.5·log₁₀(1.869) = +0.68 mag), which strongly suggests <code>psf_flux</code> is emitted in DN/s-like units while <code>aper08_flux</code> and <code>kron_flux</code> are in nJy. We leave the panel uncorrected so the offset is visible; use <code>kron_flux</code> (which round-trips with <code>kron_abmag</code>) for any direct quantitative comparison rather than <code>psf_flux</code> until this is clarified upstream.</li>
 <li><strong>False-positive rate</strong> (bottom-left). Fraction of recovered sources per recovered-mag bin that have no matching input within the match radius. Spurious detections / blends; usually well below 10% except at the faint end.</li>
 <li><strong>Astrometric residual</strong> (bottom-middle). <code>|Δpos|</code> between matched recovered and input positions. Roman WFI is astrometrically very tight — typically ~0.015–0.020″, sub-coadd-pixel, across the full input-mag range.</li>
 <li><strong>Metadata panel</strong> (bottom-right). Skycell identifiers, coadd shape, depth statistics, and headline numbers for both the “all” and “design” sub-populations.</li>
@@ -862,10 +862,10 @@ Note
 </div>
 </div>
 </section>
-<section id="aggregated-depth-histograms" class="level2">
-<h2 class="anchored" data-anchor-id="aggregated-depth-histograms">Aggregated depth histograms</h2>
-<p>Two views of the same data. The left panel is <strong>pixel-weighted</strong> (which depths the actual valid pixels sit at); the right panel is <strong>skycell-weighted</strong> (how many skycells have each median-depth value). The pixel view tells you the typical sensitivity regime; the skycell view tells you the distribution of “how well-covered” whole skycells are.</p>
-<p><a href="_depth_distribution.png" class="lightbox" data-gallery="quarto-lightbox-gallery-62"><img src="_depth_distribution.png" class="img-fluid" alt="Per-pixel depth histogram + per-skycell median depth histogram"></a></p>
+<section id="aggregated-depth-distribution" class="level2">
+<h2 class="anchored" data-anchor-id="aggregated-depth-distribution">Aggregated depth distribution</h2>
+<p>Pixel count per depth across every valid pixel of every skycell, with the cumulative fraction at depth ≥ X overlaid. Read directly off the red curve: the <strong>fraction of pixels meeting a given depth</strong> — e.g., at the design-depth threshold of 6 for this run, ~21% of pixels qualify.</p>
+<p><a href="_depth_distribution.png" class="lightbox" data-gallery="quarto-lightbox-gallery-62"><img src="_depth_distribution.png" class="img-fluid" alt="Per-pixel depth histogram with cumulative fraction overlay"></a></p>
 
 
 <!-- -->
@@ -1415,49 +1415,54 @@ Note
 <span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>  type: blue = input PSF, orange = input SER. Input PSFs should</span>
 <span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>  concentrate near Δ = 0 (PSF fit and aperture agree on point sources);</span>
 <span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>  input SERs should sit above Δ = 0 (PSF-fit underestimates extended</span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>  flux). It's a consistency check on the PSF model more than a primary</span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>  science number.</span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**False-positive rate** (bottom-left). Fraction of recovered sources</span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>  per recovered-mag bin that have no matching input within the match</span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>  radius. Spurious detections / blends; usually well below 10% except at</span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>  the faint end.</span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Astrometric residual** (bottom-middle). <span class="in">`|Δpos|`</span> between matched</span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>  recovered and input positions. Roman WFI is astrometrically very tight</span>
-<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>  — typically ~0.015–0.020″, sub-coadd-pixel, across the full input-mag</span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>  range.</span>
-<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Metadata panel** (bottom-right). Skycell identifiers, coadd shape,</span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>  depth statistics, and headline numbers for both the "all" and</span>
-<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a>  "design" sub-populations.</span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a><span class="fu">## Per-skycell figure gallery</span></span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>Top 60 skycells by <span class="in">`mean_depth`</span> (deepest first). Click any thumbnail to</span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a>zoom.</span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
-<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>top <span class="op">=</span> df.sort_values(<span class="st">"mean_depth"</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">60</span>)</span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"::: {layout-ncol=3}</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, row <span class="kw">in</span> top.iterrows():</span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>    name <span class="op">=</span> row[<span class="st">"skycell"</span>]</span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>    cap <span class="op">=</span> (<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss"> — "</span></span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>           <span class="ss">f"mean_depth=</span><span class="sc">{</span>row[<span class="st">'mean_depth'</span>]<span class="sc">:.2f}</span><span class="ss">, "</span></span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>           <span class="ss">f"mag50=</span><span class="sc">{</span>row[<span class="st">'mag_50pct_all'</span>]<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"![</span><span class="sc">{</span>cap<span class="sc">}</span><span class="ss">](_plots/</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">.png)</span><span class="ch">\n\n</span><span class="ss">"</span>)</span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">":::"</span>)</span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a><span class="fu">## Aggregated depth histograms</span></span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>Two views of the same data. The left panel is **pixel-weighted** (which</span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>depths the actual valid pixels sit at); the right panel is</span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>**skycell-weighted** (how many skycells have each median-depth value).</span>
-<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>The pixel view tells you the typical sensitivity regime; the skycell</span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>view tells you the distribution of "how well-covered" whole skycells</span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>are.</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>  flux). **Caveat: in these catalogs we see both clouds shifted up by</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>  ~+0.68 mag** — the PSF cloud sits near Δ ≈ +0.66 instead of 0, and</span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a>  the SER cloud near Δ ≈ +2.6 instead of ~+2. That shift matches the</span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a>  median CRDS gain (1.869 e⁻/DN → 2.5·log₁₀(1.869) = +0.68 mag), which</span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>  strongly suggests <span class="in">`psf_flux`</span> is emitted in DN/s-like units while</span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>  <span class="in">`aper08_flux`</span> and <span class="in">`kron_flux`</span> are in nJy. We leave the panel uncorrected</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>  so the offset is visible; use <span class="in">`kron_flux`</span> (which round-trips with</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>  <span class="in">`kron_abmag`</span>) for any direct quantitative comparison rather than</span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>  <span class="in">`psf_flux`</span> until this is clarified upstream.</span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**False-positive rate** (bottom-left). Fraction of recovered sources</span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a>  per recovered-mag bin that have no matching input within the match</span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>  radius. Spurious detections / blends; usually well below 10% except at</span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a>  the faint end.</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Astrometric residual** (bottom-middle). <span class="in">`|Δpos|`</span> between matched</span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>  recovered and input positions. Roman WFI is astrometrically very tight</span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>  — typically ~0.015–0.020″, sub-coadd-pixel, across the full input-mag</span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>  range.</span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Metadata panel** (bottom-right). Skycell identifiers, coadd shape,</span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>  depth statistics, and headline numbers for both the "all" and</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a>  "design" sub-populations.</span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a><span class="fu">## Per-skycell figure gallery</span></span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>Top 60 skycells by <span class="in">`mean_depth`</span> (deepest first). Click any thumbnail to</span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>zoom.</span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a><span class="co">#| output: asis</span></span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>top <span class="op">=</span> df.sort_values(<span class="st">"mean_depth"</span>, ascending<span class="op">=</span><span class="va">False</span>).head(<span class="dv">60</span>)</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"::: {layout-ncol=3}</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, row <span class="kw">in</span> top.iterrows():</span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>    name <span class="op">=</span> row[<span class="st">"skycell"</span>]</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>    cap <span class="op">=</span> (<span class="ss">f"</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss"> — "</span></span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a>           <span class="ss">f"mean_depth=</span><span class="sc">{</span>row[<span class="st">'mean_depth'</span>]<span class="sc">:.2f}</span><span class="ss">, "</span></span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a>           <span class="ss">f"mag50=</span><span class="sc">{</span>row[<span class="st">'mag_50pct_all'</span>]<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"![</span><span class="sc">{</span>cap<span class="sc">}</span><span class="ss">](_plots/</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">.png)</span><span class="ch">\n\n</span><span class="ss">"</span>)</span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">":::"</span>)</span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a><span class="fu">## Aggregated depth distribution</span></span>
 <span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a><span class="al">![](_depth_distribution.png)</span>{fig-alt="Per-pixel depth histogram + per-skycell median depth histogram"}</span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>Pixel count per depth across every valid pixel of every skycell, with</span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a>the cumulative fraction at depth ≥ X overlaid. Read directly off the red</span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>curve: the **fraction of pixels meeting a given depth** — e.g., at the</span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a>design-depth threshold of 6 for this run, ~21% of pixels qualify.</span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a><span class="al">![](_depth_distribution.png)</span>{fig-alt="Per-pixel depth histogram with cumulative fraction overlay"}</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
