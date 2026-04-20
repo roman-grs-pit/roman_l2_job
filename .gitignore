@@ -12,6 +12,8 @@ output/smoke/compare/*
 output/full/compare/*
 output/*/sims.script
 output/*/sims_raw.script
+# tarballs built by archive_to_s3.sh before upload
+output/*/asn.tar.gz
 
 # Input catalog (scp'd separately, never committed)
 data/*
