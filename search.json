@@ -282,6 +282,17 @@
     ]
   },
   {
+    "objectID": "full/design.html#data-volume-and-wall-time",
+    "href": "full/design.html#data-volume-and-wall-time",
+    "title": "Full run — design",
+    "section": "Data volume and wall time",
+    "text": "Data volume and wall time\nDisk and wall-time cost of the full run. The pipeline is configured to use output/cal/ as a shared store (same filenames per visit/exposure/SCA), so cal files carry over between smoke and full — only the novel L2s were newly simulated for this run.\n\n\n\n\n\n\nStage outputs and storage. Counts and sizes from the live output tree.\n\n\n\nartefact\nN\nsize\n\n\n\n\n0\nL2 cal files (output/cal/*_cal.asdf)\n324\n67.9 GB\n\n\n1\nL3 mosaics (output/full/mosaic/*_coadd.asdf)\n320\n152.8 GB\n\n\n2\n— of which coadd.asdf only\n\n127.1 GB\n\n\n3\nL3 catalogs (output/full/catalog/)\n320\n25.6 GB\n\n\n4\n— of which cat.parquet only\n\n76 MB\n\n\n5\ncompare outputs (summary + 320 PNGs)\n\n0.06 GB\n\n\n6\nper-sim + per-stage logs\n\n12 MB\n\n\n7\n\n\n\n\n\n8\nCRDS cache (14 reftypes × 18 SCAs F158)\n\n30.2 GB\n\n\n9\nSTPSF data\n\n133 MB\n\n\n10\npixi env (default + report)\n\n7.5 GB\n\n\n\n\n\n\n\nTwo small inefficiencies worth knowing about:\n\noutput/full/mosaic/ contains duplicates of the catalog outputs (_cat.parquet, _segm.asdf) that MosaicPipeline writes as a side-effect of its internal source-catalog substep; stage 05 then regenerates them into output/full/catalog/. The side-effect copies account for ~24 GB of the mosaic-dir total.\nMost of the L3-catalog volume is _segm.asdf; the actual source catalogs (_cat.parquet) are tiny (~74 MB for all 320).\n\n\n\n\n\n\n\nWall-time per stage, 4-way parallelism on an m5a.2xlarge (8 vCPU → 4 physical cores, 32 GB RAM).\n\n\n\nstage\nwall time\nnotes\n\n\n\n\n0\nStage 02 — sims (romanisim)\n~10 h\n324 sims, 4-way xargs\n\n\n1\nStage 03 — asn (skycell_asn)\n~1–2 min\n320 asn JSONs\n\n\n2\nStage 04 — mosaic (MosaicPipeline)\n4 h 5 min\n320 coadds, 4-way xargs\n\n\n3\nStage 05 — catalog (SourceCatalog)\n51 min\n320 catalogs, 4-way\n\n\n4\nStage 06 — compare (per-skycell)\n12 min 30 s\n320 skycells, serial\n\n\n5\nTotal end-to-end (stages 02–06)\n~15.5 h\n≈ $5–6 at m5a.2xlarge on-demand\n\n\n\n\n\n\n\nThe EBS volume grew from 259 GB (initial) to 415 GB mid-run when the mosaic step outgrew the original allocation. Current usage after the full run is ~300 GB / 415 GB (~73%).",
+    "crumbs": [
+      "Full run",
+      "Design"
+    ]
+  },
+  {
     "objectID": "pipeline.html",
     "href": "pipeline.html",
     "title": "Pipeline",

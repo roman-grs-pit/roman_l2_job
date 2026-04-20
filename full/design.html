@@ -217,6 +217,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#skycell-coverage-map" id="toc-skycell-coverage-map" class="nav-link" data-scroll-target="#skycell-coverage-map">Skycell coverage map</a></li>
   <li><a href="#run-parameters" id="toc-run-parameters" class="nav-link" data-scroll-target="#run-parameters">Run parameters</a></li>
   <li><a href="#measured-zodiacal-background" id="toc-measured-zodiacal-background" class="nav-link" data-scroll-target="#measured-zodiacal-background">Measured zodiacal background</a></li>
+  <li><a href="#data-volume-and-wall-time" id="toc-data-volume-and-wall-time" class="nav-link" data-scroll-target="#data-volume-and-wall-time">Data volume and wall time</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/roman-grs-pit/roman_l2_job/edit/main/full/design.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/roman-grs-pit/roman_l2_job/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -250,7 +251,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="footprint-filter" class="level2">
 <h2 class="anchored" data-anchor-id="footprint-filter">Footprint filter</h2>
 <p>The pointings file (<code>pointings_full.ecsv</code>) is a subset of <code>catalogs/HLWAS.sim.ecsv</code> (the full HLWAS-survey simulated pointings) produced by <code>scripts/filter_pointings.py</code>:</p>
-<div id="b438ad39" class="cell" data-execution_count="2">
+<div id="e144c256" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-stdout">
 <pre><code>region.type      = cone
 region.ra        = 10.0°
@@ -531,7 +532,7 @@ only_visit       = None</code></pre>
 </section>
 <section id="pointings-map-full-hlwas-footprint" class="level2">
 <h2 class="anchored" data-anchor-id="pointings-map-full-hlwas-footprint">Pointings map (full HLWAS footprint)</h2>
-<div id="2a70d2ae" class="cell" data-execution_count="4">
+<div id="d81b8a7b" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -545,7 +546,7 @@ only_visit       = None</code></pre>
 </section>
 <section id="pointings-map-wide-view" class="level2">
 <h2 class="anchored" data-anchor-id="pointings-map-wide-view">Pointings map (wide view)</h2>
-<div id="b567be6e" class="cell" data-execution_count="5">
+<div id="492ad290" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -559,7 +560,7 @@ only_visit       = None</code></pre>
 </section>
 <section id="pointings-map-close-up" class="level2">
 <h2 class="anchored" data-anchor-id="pointings-map-close-up">Pointings map (close-up)</h2>
-<div id="516a4b7e" class="cell" data-execution_count="6">
+<div id="7dfc17b1" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -573,7 +574,7 @@ only_visit       = None</code></pre>
 </section>
 <section id="skycell-coverage-map" class="level2">
 <h2 class="anchored" data-anchor-id="skycell-coverage-map">Skycell coverage map</h2>
-<div id="494bfc53" class="cell" data-execution_count="7">
+<div id="b15f1800" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -586,7 +587,7 @@ only_visit       = None</code></pre>
 </section>
 <section id="run-parameters" class="level2">
 <h2 class="anchored" data-anchor-id="run-parameters">Run parameters</h2>
-<div id="1d6a397e" class="cell" data-execution_count="8">
+<div id="760c7005" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display" data-execution_count="8">
 <div>
 
@@ -690,130 +691,130 @@ only_visit       = None</code></pre>
 <style type="text/css">
 </style>
 
-<table id="T_878d3" class="caption-top table table-sm table-striped small">
+<table id="T_f89ac" class="caption-top table table-sm table-striped small">
 <caption>Sigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN).</caption>
 <thead>
 <tr class="header">
 <th class="blank level0" data-quarto-table-cell-role="th">&nbsp;</th>
-<th id="T_878d3_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">SCA</th>
-<th id="T_878d3_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">sky_DN_per_s</th>
-<th id="T_878d3_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">sky_e_per_pix_per_s</th>
+<th id="T_f89ac_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">SCA</th>
+<th id="T_f89ac_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">sky_DN_per_s</th>
+<th id="T_f89ac_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">sky_e_per_pix_per_s</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<th id="T_878d3_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">0</th>
-<td id="T_878d3_row0_col0" class="data row0 col0">1</td>
-<td id="T_878d3_row0_col1" class="data row0 col1">0.6504</td>
-<td id="T_878d3_row0_col2" class="data row0 col2">1.216</td>
+<th id="T_f89ac_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">0</th>
+<td id="T_f89ac_row0_col0" class="data row0 col0">1</td>
+<td id="T_f89ac_row0_col1" class="data row0 col1">0.6504</td>
+<td id="T_f89ac_row0_col2" class="data row0 col2">1.216</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">1</th>
-<td id="T_878d3_row1_col0" class="data row1 col0">2</td>
-<td id="T_878d3_row1_col1" class="data row1 col1">0.6782</td>
-<td id="T_878d3_row1_col2" class="data row1 col2">1.268</td>
+<th id="T_f89ac_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">1</th>
+<td id="T_f89ac_row1_col0" class="data row1 col0">2</td>
+<td id="T_f89ac_row1_col1" class="data row1 col1">0.6782</td>
+<td id="T_f89ac_row1_col2" class="data row1 col2">1.268</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">2</th>
-<td id="T_878d3_row2_col0" class="data row2 col0">3</td>
-<td id="T_878d3_row2_col1" class="data row2 col1">0.6674</td>
-<td id="T_878d3_row2_col2" class="data row2 col2">1.248</td>
+<th id="T_f89ac_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">2</th>
+<td id="T_f89ac_row2_col0" class="data row2 col0">3</td>
+<td id="T_f89ac_row2_col1" class="data row2 col1">0.6674</td>
+<td id="T_f89ac_row2_col2" class="data row2 col2">1.248</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row3" class="row_heading level0 row3" data-quarto-table-cell-role="th">3</th>
-<td id="T_878d3_row3_col0" class="data row3 col0">4</td>
-<td id="T_878d3_row3_col1" class="data row3 col1">0.7076</td>
-<td id="T_878d3_row3_col2" class="data row3 col2">1.323</td>
+<th id="T_f89ac_level0_row3" class="row_heading level0 row3" data-quarto-table-cell-role="th">3</th>
+<td id="T_f89ac_row3_col0" class="data row3 col0">4</td>
+<td id="T_f89ac_row3_col1" class="data row3 col1">0.7076</td>
+<td id="T_f89ac_row3_col2" class="data row3 col2">1.323</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row4" class="row_heading level0 row4" data-quarto-table-cell-role="th">4</th>
-<td id="T_878d3_row4_col0" class="data row4 col0">5</td>
-<td id="T_878d3_row4_col1" class="data row4 col1">0.6704</td>
-<td id="T_878d3_row4_col2" class="data row4 col2">1.254</td>
+<th id="T_f89ac_level0_row4" class="row_heading level0 row4" data-quarto-table-cell-role="th">4</th>
+<td id="T_f89ac_row4_col0" class="data row4 col0">5</td>
+<td id="T_f89ac_row4_col1" class="data row4 col1">0.6704</td>
+<td id="T_f89ac_row4_col2" class="data row4 col2">1.254</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row5" class="row_heading level0 row5" data-quarto-table-cell-role="th">5</th>
-<td id="T_878d3_row5_col0" class="data row5 col0">6</td>
-<td id="T_878d3_row5_col1" class="data row5 col1">0.7187</td>
-<td id="T_878d3_row5_col2" class="data row5 col2">1.344</td>
+<th id="T_f89ac_level0_row5" class="row_heading level0 row5" data-quarto-table-cell-role="th">5</th>
+<td id="T_f89ac_row5_col0" class="data row5 col0">6</td>
+<td id="T_f89ac_row5_col1" class="data row5 col1">0.7187</td>
+<td id="T_f89ac_row5_col2" class="data row5 col2">1.344</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row6" class="row_heading level0 row6" data-quarto-table-cell-role="th">6</th>
-<td id="T_878d3_row6_col0" class="data row6 col0">7</td>
-<td id="T_878d3_row6_col1" class="data row6 col1">0.6316</td>
-<td id="T_878d3_row6_col2" class="data row6 col2">1.181</td>
+<th id="T_f89ac_level0_row6" class="row_heading level0 row6" data-quarto-table-cell-role="th">6</th>
+<td id="T_f89ac_row6_col0" class="data row6 col0">7</td>
+<td id="T_f89ac_row6_col1" class="data row6 col1">0.6316</td>
+<td id="T_f89ac_row6_col2" class="data row6 col2">1.181</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row7" class="row_heading level0 row7" data-quarto-table-cell-role="th">7</th>
-<td id="T_878d3_row7_col0" class="data row7 col0">8</td>
-<td id="T_878d3_row7_col1" class="data row7 col1">0.7126</td>
-<td id="T_878d3_row7_col2" class="data row7 col2">1.333</td>
+<th id="T_f89ac_level0_row7" class="row_heading level0 row7" data-quarto-table-cell-role="th">7</th>
+<td id="T_f89ac_row7_col0" class="data row7 col0">8</td>
+<td id="T_f89ac_row7_col1" class="data row7 col1">0.7126</td>
+<td id="T_f89ac_row7_col2" class="data row7 col2">1.333</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row8" class="row_heading level0 row8" data-quarto-table-cell-role="th">8</th>
-<td id="T_878d3_row8_col0" class="data row8 col0">9</td>
-<td id="T_878d3_row8_col1" class="data row8 col1">0.6656</td>
-<td id="T_878d3_row8_col2" class="data row8 col2">1.245</td>
+<th id="T_f89ac_level0_row8" class="row_heading level0 row8" data-quarto-table-cell-role="th">8</th>
+<td id="T_f89ac_row8_col0" class="data row8 col0">9</td>
+<td id="T_f89ac_row8_col1" class="data row8 col1">0.6656</td>
+<td id="T_f89ac_row8_col2" class="data row8 col2">1.245</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row9" class="row_heading level0 row9" data-quarto-table-cell-role="th">9</th>
-<td id="T_878d3_row9_col0" class="data row9 col0">10</td>
-<td id="T_878d3_row9_col1" class="data row9 col1">0.6664</td>
-<td id="T_878d3_row9_col2" class="data row9 col2">1.246</td>
+<th id="T_f89ac_level0_row9" class="row_heading level0 row9" data-quarto-table-cell-role="th">9</th>
+<td id="T_f89ac_row9_col0" class="data row9 col0">10</td>
+<td id="T_f89ac_row9_col1" class="data row9 col1">0.6664</td>
+<td id="T_f89ac_row9_col2" class="data row9 col2">1.246</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row10" class="row_heading level0 row10" data-quarto-table-cell-role="th">10</th>
-<td id="T_878d3_row10_col0" class="data row10 col0">11</td>
-<td id="T_878d3_row10_col1" class="data row10 col1">0.6528</td>
-<td id="T_878d3_row10_col2" class="data row10 col2">1.221</td>
+<th id="T_f89ac_level0_row10" class="row_heading level0 row10" data-quarto-table-cell-role="th">10</th>
+<td id="T_f89ac_row10_col0" class="data row10 col0">11</td>
+<td id="T_f89ac_row10_col1" class="data row10 col1">0.6528</td>
+<td id="T_f89ac_row10_col2" class="data row10 col2">1.221</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row11" class="row_heading level0 row11" data-quarto-table-cell-role="th">11</th>
-<td id="T_878d3_row11_col0" class="data row11 col0">12</td>
-<td id="T_878d3_row11_col1" class="data row11 col1">0.6849</td>
-<td id="T_878d3_row11_col2" class="data row11 col2">1.281</td>
+<th id="T_f89ac_level0_row11" class="row_heading level0 row11" data-quarto-table-cell-role="th">11</th>
+<td id="T_f89ac_row11_col0" class="data row11 col0">12</td>
+<td id="T_f89ac_row11_col1" class="data row11 col1">0.6849</td>
+<td id="T_f89ac_row11_col2" class="data row11 col2">1.281</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row12" class="row_heading level0 row12" data-quarto-table-cell-role="th">12</th>
-<td id="T_878d3_row12_col0" class="data row12 col0">13</td>
-<td id="T_878d3_row12_col1" class="data row12 col1">0.6740</td>
-<td id="T_878d3_row12_col2" class="data row12 col2">1.260</td>
+<th id="T_f89ac_level0_row12" class="row_heading level0 row12" data-quarto-table-cell-role="th">12</th>
+<td id="T_f89ac_row12_col0" class="data row12 col0">13</td>
+<td id="T_f89ac_row12_col1" class="data row12 col1">0.6740</td>
+<td id="T_f89ac_row12_col2" class="data row12 col2">1.260</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row13" class="row_heading level0 row13" data-quarto-table-cell-role="th">13</th>
-<td id="T_878d3_row13_col0" class="data row13 col0">14</td>
-<td id="T_878d3_row13_col1" class="data row13 col1">0.6734</td>
-<td id="T_878d3_row13_col2" class="data row13 col2">1.259</td>
+<th id="T_f89ac_level0_row13" class="row_heading level0 row13" data-quarto-table-cell-role="th">13</th>
+<td id="T_f89ac_row13_col0" class="data row13 col0">14</td>
+<td id="T_f89ac_row13_col1" class="data row13 col1">0.6734</td>
+<td id="T_f89ac_row13_col2" class="data row13 col2">1.259</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row14" class="row_heading level0 row14" data-quarto-table-cell-role="th">14</th>
-<td id="T_878d3_row14_col0" class="data row14 col0">15</td>
-<td id="T_878d3_row14_col1" class="data row14 col1">0.6484</td>
-<td id="T_878d3_row14_col2" class="data row14 col2">1.213</td>
+<th id="T_f89ac_level0_row14" class="row_heading level0 row14" data-quarto-table-cell-role="th">14</th>
+<td id="T_f89ac_row14_col0" class="data row14 col0">15</td>
+<td id="T_f89ac_row14_col1" class="data row14 col1">0.6484</td>
+<td id="T_f89ac_row14_col2" class="data row14 col2">1.213</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row15" class="row_heading level0 row15" data-quarto-table-cell-role="th">15</th>
-<td id="T_878d3_row15_col0" class="data row15 col0">16</td>
-<td id="T_878d3_row15_col1" class="data row15 col1">0.6900</td>
-<td id="T_878d3_row15_col2" class="data row15 col2">1.290</td>
+<th id="T_f89ac_level0_row15" class="row_heading level0 row15" data-quarto-table-cell-role="th">15</th>
+<td id="T_f89ac_row15_col0" class="data row15 col0">16</td>
+<td id="T_f89ac_row15_col1" class="data row15 col1">0.6900</td>
+<td id="T_f89ac_row15_col2" class="data row15 col2">1.290</td>
 </tr>
 <tr class="odd">
-<th id="T_878d3_level0_row16" class="row_heading level0 row16" data-quarto-table-cell-role="th">16</th>
-<td id="T_878d3_row16_col0" class="data row16 col0">17</td>
-<td id="T_878d3_row16_col1" class="data row16 col1">0.7758</td>
-<td id="T_878d3_row16_col2" class="data row16 col2">1.451</td>
+<th id="T_f89ac_level0_row16" class="row_heading level0 row16" data-quarto-table-cell-role="th">16</th>
+<td id="T_f89ac_row16_col0" class="data row16 col0">17</td>
+<td id="T_f89ac_row16_col1" class="data row16 col1">0.7758</td>
+<td id="T_f89ac_row16_col2" class="data row16 col2">1.451</td>
 </tr>
 <tr class="even">
-<th id="T_878d3_level0_row17" class="row_heading level0 row17" data-quarto-table-cell-role="th">17</th>
-<td id="T_878d3_row17_col0" class="data row17 col0">18</td>
-<td id="T_878d3_row17_col1" class="data row17 col1">0.7477</td>
-<td id="T_878d3_row17_col2" class="data row17 col2">1.398</td>
+<th id="T_f89ac_level0_row17" class="row_heading level0 row17" data-quarto-table-cell-role="th">17</th>
+<td id="T_f89ac_row17_col0" class="data row17 col0">18</td>
+<td id="T_f89ac_row17_col1" class="data row17 col1">0.7477</td>
+<td id="T_f89ac_row17_col2" class="data row17 col2">1.398</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<div id="5dd7aff9" class="cell" data-execution_count="10">
+<div id="2cfeaf2e" class="cell" data-execution_count="10">
 <div class="cell-output cell-output-stdout">
 <pre><code>Mean across 18 SCAs: 1.279 e⁻/pix/s  (range 1.181 – 1.451)
 Field at (RA=10, Dec=0): ecliptic latitude -3.96°
@@ -821,6 +822,162 @@ Solar elongation on sim date: 128.2°</code></pre>
 </div>
 </div>
 <p>The measured sky rate reflects the zodiacal background that the romanisim sim computed for this field and date: <strong>on-ecliptic</strong> (latitude −4°) and at a large solar elongation (~128°), which is a structurally bright but well-observed part of the sky for a Dec ≈ 0 target. Within the Roman observing constraint (elongation roughly 54°–126°), higher elongation minimises zodi for an ecliptic target; the sim date is already near the upper end of that window, so shifting dates cannot meaningfully lower the background from this pointing.</p>
+</section>
+<section id="data-volume-and-wall-time" class="level2">
+<h2 class="anchored" data-anchor-id="data-volume-and-wall-time">Data volume and wall time</h2>
+<p>Disk and wall-time cost of the full run. The pipeline is configured to use <code>output/cal/</code> as a shared store (same filenames per visit/exposure/SCA), so cal files carry over between smoke and full — only the novel L2s were newly simulated for this run.</p>
+<div class="cell" data-tbl-cap="Stage outputs and storage. Counts and sizes from the live output tree." data-execution_count="11">
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<caption>Stage outputs and storage. Counts and sizes from the live output tree.</caption>
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">artefact</th>
+<th data-quarto-table-cell-role="th">N</th>
+<th data-quarto-table-cell-role="th">size</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>L2 cal files (output/cal/*_cal.asdf)</td>
+<td>324</td>
+<td>67.9 GB</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>L3 mosaics (output/full/mosaic/*_coadd.asdf)</td>
+<td>320</td>
+<td>152.8 GB</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>— of which coadd.asdf only</td>
+<td></td>
+<td>127.1 GB</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>L3 catalogs (output/full/catalog/)</td>
+<td>320</td>
+<td>25.6 GB</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>— of which cat.parquet only</td>
+<td></td>
+<td>76 MB</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>compare outputs (summary + 320 PNGs)</td>
+<td></td>
+<td>0.06 GB</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>per-sim + per-stage logs</td>
+<td></td>
+<td>12 MB</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>CRDS cache (14 reftypes × 18 SCAs F158)</td>
+<td></td>
+<td>30.2 GB</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>STPSF data</td>
+<td></td>
+<td>133 MB</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>pixi env (default + report)</td>
+<td></td>
+<td>7.5 GB</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>Two small inefficiencies worth knowing about:</p>
+<ul>
+<li><code>output/full/mosaic/</code> contains <strong>duplicates</strong> of the catalog outputs (<code>_cat.parquet</code>, <code>_segm.asdf</code>) that <code>MosaicPipeline</code> writes as a side-effect of its internal source-catalog substep; stage 05 then regenerates them into <code>output/full/catalog/</code>. The side-effect copies account for ~24 GB of the mosaic-dir total.</li>
+<li>Most of the L3-catalog volume is <code>_segm.asdf</code>; the actual source catalogs (<code>_cat.parquet</code>) are tiny (~74 MB for all 320).</li>
+</ul>
+<div class="cell" data-tbl-cap="Wall-time per stage, 4-way parallelism on an m5a.2xlarge (8 vCPU → 4 physical cores, 32 GB RAM)." data-execution_count="12">
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<caption>Wall-time per stage, 4-way parallelism on an m5a.2xlarge (8 vCPU → 4 physical cores, 32 GB RAM).</caption>
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">stage</th>
+<th data-quarto-table-cell-role="th">wall time</th>
+<th data-quarto-table-cell-role="th">notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Stage 02 — sims (romanisim)</td>
+<td>~10 h</td>
+<td>324 sims, 4-way xargs</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Stage 03 — asn (skycell_asn)</td>
+<td>~1–2 min</td>
+<td>320 asn JSONs</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Stage 04 — mosaic (MosaicPipeline)</td>
+<td>4 h 5 min</td>
+<td>320 coadds, 4-way xargs</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Stage 05 — catalog (SourceCatalog)</td>
+<td>51 min</td>
+<td>320 catalogs, 4-way</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Stage 06 — compare (per-skycell)</td>
+<td>12 min 30 s</td>
+<td>320 skycells, serial</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>Total end-to-end (stages 02–06)</td>
+<td>~15.5 h</td>
+<td>≈ $5–6 at m5a.2xlarge on-demand</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The EBS volume grew from 259 GB (initial) to 415 GB mid-run when the mosaic step outgrew the original allocation. Current usage after the full run is ~300 GB / 415 GB (~73%).</p>
 
 
 <!-- -->
@@ -1549,6 +1706,69 @@ Solar elongation on sim date: 128.2°</code></pre>
 <span id="cb3-288"><a href="#cb3-288" aria-hidden="true" tabindex="-1"></a>minimises zodi for an ecliptic target; the sim date is already near the</span>
 <span id="cb3-289"><a href="#cb3-289" aria-hidden="true" tabindex="-1"></a>upper end of that window, so shifting dates cannot meaningfully lower the</span>
 <span id="cb3-290"><a href="#cb3-290" aria-hidden="true" tabindex="-1"></a>background from this pointing.</span>
+<span id="cb3-291"><a href="#cb3-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-292"><a href="#cb3-292" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data volume and wall time</span></span>
+<span id="cb3-293"><a href="#cb3-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-294"><a href="#cb3-294" aria-hidden="true" tabindex="-1"></a>Disk and wall-time cost of the full run. The pipeline is configured to</span>
+<span id="cb3-295"><a href="#cb3-295" aria-hidden="true" tabindex="-1"></a>use <span class="in">`output/cal/`</span> as a shared store (same filenames per visit/exposure/SCA),</span>
+<span id="cb3-296"><a href="#cb3-296" aria-hidden="true" tabindex="-1"></a>so cal files carry over between smoke and full — only the novel L2s were</span>
+<span id="cb3-297"><a href="#cb3-297" aria-hidden="true" tabindex="-1"></a>newly simulated for this run.</span>
+<span id="cb3-298"><a href="#cb3-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-301"><a href="#cb3-301" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-302"><a href="#cb3-302" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-303"><a href="#cb3-303" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Stage outputs and storage. Counts and sizes from the live output tree."</span></span>
+<span id="cb3-304"><a href="#cb3-304" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb3-305"><a href="#cb3-305" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> du_mb(pat):</span>
+<span id="cb3-306"><a href="#cb3-306" aria-hidden="true" tabindex="-1"></a>    total <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb3-307"><a href="#cb3-307" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> root, _, files <span class="kw">in</span> os.walk(REPO <span class="op">/</span> pat):</span>
+<span id="cb3-308"><a href="#cb3-308" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> f <span class="kw">in</span> files:</span>
+<span id="cb3-309"><a href="#cb3-309" aria-hidden="true" tabindex="-1"></a>            total <span class="op">+=</span> os.path.getsize(os.path.join(root, f))</span>
+<span id="cb3-310"><a href="#cb3-310" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> total <span class="op">/</span> <span class="fl">1e9</span></span>
+<span id="cb3-311"><a href="#cb3-311" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> count(pat):</span>
+<span id="cb3-312"><a href="#cb3-312" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> _ <span class="kw">in</span> (REPO <span class="op">/</span> os.path.dirname(pat)).glob(os.path.basename(pat)))</span>
+<span id="cb3-313"><a href="#cb3-313" aria-hidden="true" tabindex="-1"></a>rows <span class="op">=</span> [</span>
+<span id="cb3-314"><a href="#cb3-314" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"L2 cal files (output/cal/*_cal.asdf)"</span>,         count(<span class="st">"output/cal/*_cal.asdf"</span>), <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'output/cal'</span>)<span class="sc">:.1f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-315"><a href="#cb3-315" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"L3 mosaics (output/full/mosaic/*_coadd.asdf)"</span>, count(<span class="st">"output/full/mosaic/*_coadd.asdf"</span>), <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'output/full/mosaic'</span>)<span class="sc">:.1f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-316"><a href="#cb3-316" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"  — of which coadd.asdf only"</span>,                  <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span><span class="bu">sum</span>(p.stat().st_size <span class="cf">for</span> p <span class="kw">in</span> (REPO<span class="op">/</span><span class="st">'output/full/mosaic'</span>).glob(<span class="st">'*_coadd.asdf'</span>))<span class="op">/</span><span class="fl">1e9</span><span class="sc">:.1f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-317"><a href="#cb3-317" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"L3 catalogs (output/full/catalog/)"</span>,            count(<span class="st">"output/full/catalog/*_cat.parquet"</span>), <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'output/full/catalog'</span>)<span class="sc">:.1f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-318"><a href="#cb3-318" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"  — of which cat.parquet only"</span>,                 <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span><span class="bu">sum</span>(p.stat().st_size <span class="cf">for</span> p <span class="kw">in</span> (REPO<span class="op">/</span><span class="st">'output/full/catalog'</span>).glob(<span class="st">'*_cat.parquet'</span>))<span class="op">/</span><span class="fl">1e6</span><span class="sc">:.0f}</span><span class="ss"> MB"</span>),</span>
+<span id="cb3-319"><a href="#cb3-319" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"compare outputs (summary + 320 PNGs)"</span>,          <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'output/full/compare'</span>)<span class="sc">:.2f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-320"><a href="#cb3-320" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"per-sim + per-stage logs"</span>,                      <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'output/logs'</span>)<span class="op">*</span><span class="dv">1000</span><span class="sc">:.0f}</span><span class="ss"> MB"</span>),</span>
+<span id="cb3-321"><a href="#cb3-321" aria-hidden="true" tabindex="-1"></a>    (<span class="st">""</span>,                                              <span class="st">""</span>, <span class="st">""</span>),</span>
+<span id="cb3-322"><a href="#cb3-322" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"CRDS cache (14 reftypes × 18 SCAs F158)"</span>,       <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'crds_cache'</span>)<span class="sc">:.1f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-323"><a href="#cb3-323" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"STPSF data"</span>,                                    <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'stpsf-data'</span>)<span class="op">*</span><span class="dv">1000</span><span class="sc">:.0f}</span><span class="ss"> MB"</span>),</span>
+<span id="cb3-324"><a href="#cb3-324" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pixi env (default + report)"</span>,                   <span class="st">""</span>, <span class="ss">f"</span><span class="sc">{</span>du_mb(<span class="st">'.pixi'</span>)<span class="sc">:.1f}</span><span class="ss"> GB"</span>),</span>
+<span id="cb3-325"><a href="#cb3-325" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb3-326"><a href="#cb3-326" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(rows, columns<span class="op">=</span>[<span class="st">"artefact"</span>, <span class="st">"N"</span>, <span class="st">"size"</span>])</span>
+<span id="cb3-327"><a href="#cb3-327" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-328"><a href="#cb3-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-329"><a href="#cb3-329" aria-hidden="true" tabindex="-1"></a>Two small inefficiencies worth knowing about:</span>
+<span id="cb3-330"><a href="#cb3-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-331"><a href="#cb3-331" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`output/full/mosaic/`</span> contains **duplicates** of the catalog outputs</span>
+<span id="cb3-332"><a href="#cb3-332" aria-hidden="true" tabindex="-1"></a>  (<span class="in">`_cat.parquet`</span>, <span class="in">`_segm.asdf`</span>) that <span class="in">`MosaicPipeline`</span> writes as a</span>
+<span id="cb3-333"><a href="#cb3-333" aria-hidden="true" tabindex="-1"></a>  side-effect of its internal source-catalog substep; stage 05 then</span>
+<span id="cb3-334"><a href="#cb3-334" aria-hidden="true" tabindex="-1"></a>  regenerates them into <span class="in">`output/full/catalog/`</span>. The side-effect copies</span>
+<span id="cb3-335"><a href="#cb3-335" aria-hidden="true" tabindex="-1"></a>  account for ~24 GB of the mosaic-dir total.</span>
+<span id="cb3-336"><a href="#cb3-336" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Most of the L3-catalog volume is <span class="in">`_segm.asdf`</span>; the actual source</span>
+<span id="cb3-337"><a href="#cb3-337" aria-hidden="true" tabindex="-1"></a>  catalogs (<span class="in">`_cat.parquet`</span>) are tiny (~74 MB for all 320).</span>
+<span id="cb3-338"><a href="#cb3-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-341"><a href="#cb3-341" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb3-342"><a href="#cb3-342" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb3-343"><a href="#cb3-343" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Wall-time per stage, 4-way parallelism on an m5a.2xlarge (8 vCPU → 4 physical cores, 32 GB RAM)."</span></span>
+<span id="cb3-344"><a href="#cb3-344" aria-hidden="true" tabindex="-1"></a>wall <span class="op">=</span> [</span>
+<span id="cb3-345"><a href="#cb3-345" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Stage 02 — sims (romanisim)"</span>,      <span class="st">"~10 h"</span>,       <span class="st">"324 sims, 4-way xargs"</span>),</span>
+<span id="cb3-346"><a href="#cb3-346" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Stage 03 — asn (skycell_asn)"</span>,     <span class="st">"~1–2 min"</span>,    <span class="st">"320 asn JSONs"</span>),</span>
+<span id="cb3-347"><a href="#cb3-347" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Stage 04 — mosaic (MosaicPipeline)"</span>,<span class="st">"4 h 5 min"</span>,   <span class="st">"320 coadds, 4-way xargs"</span>),</span>
+<span id="cb3-348"><a href="#cb3-348" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Stage 05 — catalog (SourceCatalog)"</span>,<span class="st">"51 min"</span>,      <span class="st">"320 catalogs, 4-way"</span>),</span>
+<span id="cb3-349"><a href="#cb3-349" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Stage 06 — compare (per-skycell)"</span>, <span class="st">"12 min 30 s"</span>, <span class="st">"320 skycells, serial"</span>),</span>
+<span id="cb3-350"><a href="#cb3-350" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"Total end-to-end (stages 02–06)"</span>,  <span class="st">"~15.5 h"</span>,     <span class="st">"≈ $5–6 at m5a.2xlarge on-demand"</span>),</span>
+<span id="cb3-351"><a href="#cb3-351" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb3-352"><a href="#cb3-352" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(wall, columns<span class="op">=</span>[<span class="st">"stage"</span>, <span class="st">"wall time"</span>, <span class="st">"notes"</span>])</span>
+<span id="cb3-353"><a href="#cb3-353" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb3-354"><a href="#cb3-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-355"><a href="#cb3-355" aria-hidden="true" tabindex="-1"></a>The EBS volume grew from 259 GB (initial) to 415 GB mid-run when the</span>
+<span id="cb3-356"><a href="#cb3-356" aria-hidden="true" tabindex="-1"></a>mosaic step outgrew the original allocation. Current usage after the</span>
+<span id="cb3-357"><a href="#cb3-357" aria-hidden="true" tabindex="-1"></a>full run is ~300 GB / 415 GB (~73%).</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
