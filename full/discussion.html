@@ -262,6 +262,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Result in MJy/sr.</strong> 0.50 vs 0.38 → <strong>1.32×</strong> higher. That’s a modest model-vs-model difference between romanisim’s zodi model and Pandeia’s at the same coords and date, worth ~2.5·log₁₀(√1.32) ≈ <strong>0.15 mag</strong> of 5σ point-source depth.</p>
 <p><strong>Result in e⁻/s.</strong> 1.28 vs 0.206 → <strong>6.3×</strong>. This is <em>not</em> a real background excess. Cross-check: we aperture-photometered 30 isolated input point sources at AB 18.5–20.5 on the same cal file (3-pix circular aperture, annulus-subtracted sky, EE-corrected), multiplied by gain to get e⁻/s, and compared to the ETC zeropoint implied by its mag-24 example (1.42 e⁻/s in a 0.2″ aperture). The median measured/predicted ratio was <strong>6.7×</strong> — matching the sky ratio to within 5%. Both source and sky carry the same offset in the e⁻/s reporting, so the source/sky ratio — and therefore SNR at fixed AB magnitude — is internally self-consistent within romanisim.</p>
 <p>The likely origin of the 6–7× e⁻/s discrepancy is a convention difference between romanisim and Pandeia somewhere in the chain {bandpass integral, effective area, throughput, gain} — the two codes have to agree in MJy/sr (they roughly do) and in AB magnitudes (that we have not independently verified), but the e⁻/s-per-MJy/sr bridge between them is not constrained to match.</p>
+<p><strong>Cross-check against romanisim’s own sky model.</strong> <code>romanisim.image</code> (line ~697) injects sky using <code>galsim.roman.getSkyLevel</code>, scaled by <code>(1 + stray_light_fraction)</code> and with <code>thermal_backgrounds[H158]</code> added per pixel. Calling that chain directly at (RA=10°, Dec=0°), 2026-01-01:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>term</th>
+<th>value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>getSkyLevel</code> (zodi only)</td>
+<td>95.01 e⁻/s/arcsec²</td>
+</tr>
+<tr class="even">
+<td>× (1 + stray_light_fraction = 1.1)</td>
+<td>104.51 e⁻/s/arcsec²</td>
+</tr>
+<tr class="odd">
+<td>× pixel area (0.11² = 0.0121 arcsec²)</td>
+<td>1.265 e⁻/s/pix</td>
+</tr>
+<tr class="even">
+<td>+ <code>thermal_backgrounds['H158']</code> = 0.040 e⁻/s/pix</td>
+<td><strong>1.305 e⁻/s/pix</strong></td>
+</tr>
+</tbody>
+</table>
+<p>That matches the cal-file measurement of <strong>1.298 e⁻/s/pix</strong> to 0.5%, confirming the sim is faithfully injecting exactly what romanisim’s sky model predicts. Translating back to MJy/sr via the same romanisim-internal <code>get_abflux(F158) / 3631 Jy × pix_area_sr</code> conversion used above, 1.305 e⁻/s/pix corresponds to <strong>0.493 MJy/sr</strong>, versus 0.502 measured — again consistent. So the ~30% MJy/sr gap against Pandeia’s 0.38 is a genuine zodi-model disagreement between the Hirata tables galsim uses and Pandeia’s model, not a sim setup issue.</p>
+<p><strong>Gain consistency, as a side effect.</strong> <code>getSkyLevel</code> is gain-free (it returns e⁻/s/arcsec² from a direct table lookup), but our cal-side number is <code>DN/s × gain</code> with gain = <strong>1.994 e⁻/DN</strong> from the WFI01 CRDS reference (<code>roman_wfi_gain_0022.asdf</code>). The 0.5% agreement therefore verifies that the gain we multiply by on read matches the gain romanisim divided by when writing the DN/s slopes — a consistency check, not an absolute gain validation. (If the CRDS gain were physically off by 2× both sides would be wrong by 2× and still agree; that would need a separate absolute test, e.g.&nbsp;a ramp Poisson-noise consistency check.) In practice this is enough to trust <code>DN/s × gain_CRDS</code> as the correct way to recover e⁻/s from the cal file for any downstream analysis.</p>
 <p><strong>Upshot.</strong> Zodi is not responsible for the observed 0.5–1 mag depth shortfall. The earlier wording in this section — “3.4× the polar minimum → 0.67 mag of depth loss” — compared romanisim’s e⁻/s against a Pandeia-convention e⁻/s reference, which we now know is an apples-to-oranges comparison, and is retracted. The depth shortfall is still real and the explanation is still open.</p>
 </section>
 <section id="psf_flux-appears-to-be-in-different-units-than-aper08_flux-kron_flux" class="level2">
@@ -833,70 +866,105 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a>we have not independently verified), but the e⁻/s-per-MJy/sr bridge</span>
 <span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>between them is not constrained to match.</span>
 <span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>**Upshot.** Zodi is not responsible for the observed 0.5–1 mag depth</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>shortfall. The earlier wording in this section — "3.4× the polar</span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>minimum → 0.67 mag of depth loss" — compared romanisim's e⁻/s against</span>
-<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>a Pandeia-convention e⁻/s reference, which we now know is an</span>
-<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>apples-to-oranges comparison, and is retracted. The depth shortfall is</span>
-<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>still real and the explanation is still open.</span>
-<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="fu">## `psf_flux` appears to be in different units than `aper08_flux` / `kron_flux`</span></span>
-<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a>For input PSF sources, we expect <span class="in">`psf_flux ≈ aper08_flux`</span> (both capture</span>
-<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>total flux for point sources). Measured offset:</span>
-<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>**`psf_mag − aper08_mag = +0.656 mag`** (input-PSF sources,</span>
-<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>psf_flags = 0). The matching <span class="in">`kron − aper08`</span> is +0.07 for the same</span>
-<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>sources, so <span class="in">`kron`</span> and <span class="in">`aper08`</span> agree well.</span>
-<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a>Grepping <span class="in">`romancal.source_catalog.psf`</span>, <span class="in">`psf_flux`</span> comes straight from</span>
-<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>a <span class="in">`photutils.psf.PSFPhotometry`</span> fit on <span class="in">`image_model.data`</span> with the</span>
-<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a><span class="in">`flux_fit`</span> column renamed — **no unit conversion is applied** on the</span>
-<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>way out. <span class="in">`aper*_flux`</span> and <span class="in">`kron_flux`</span> in the same catalog output, in</span>
-<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>contrast, *are* in nJy (we confirmed <span class="in">`kron_flux`</span> round-trips with</span>
-<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a><span class="in">`kron_abmag`</span> via the standard AB formula to 1 part in 10⁴).</span>
-<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a>The systematic offset matches the median CRDS-gain across the 18 WFI</span>
-<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>SCAs (1.869 e⁻/DN → 2.5 × log₁₀ = +0.679 mag) to ~2%. Our working</span>
-<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a>hypothesis is that **<span class="in">`psf_flux`</span> is in DN/s-like units while</span>
-<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a><span class="in">`aper_flux`</span> and <span class="in">`kron_flux`</span> have been converted to nJy**. The 2%</span>
-<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>residual may come from (a) per-SCA gain variation, since L3 coadds are</span>
-<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>weighted combinations of contributing L2s, or (b) PSF-wing truncation</span>
-<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>in the 8-pixel aperture, which would push the sign the *other* way,</span>
-<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>so probably (a) dominates.</span>
-<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>Consequences for downstream science:</span>
-<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Do not use `psf_flux` as a standalone total flux estimator** until</span>
-<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a>  the unit chain is verified. Use <span class="in">`kron_flux`</span>, which is internally</span>
-<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>  self-consistent in this catalog, for flux comparisons.</span>
-<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Worth filing upstream against romancal to either (a) apply the gain</span>
-<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>  correction to <span class="in">`psf_flux`</span> in the same pipeline stage that converts</span>
-<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>  aperture/Kron fluxes, or (b) document the difference in unit</span>
-<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>  explicitly.</span>
-<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a><span class="fu">## Depth quantization to even integers</span></span>
-<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a>For context on the <span class="co">[</span><span class="ot">Results</span><span class="co">](results.qmd)</span> depth-distribution plot —</span>
-<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>per-pixel depths in this run occur **only at even integers** (2, 4, 6, 8).</span>
-<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>That is not a coverage artifact: passes 15 and 16 of the HLWAS design</span>
-<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>re-observe each visit with identical (RA, Dec, PA) and dither offsets,</span>
-<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>so a pixel sees depth *k* in pass 15 *and* depth *k* in pass 16 —</span>
-<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>the sum is always *2k*. The smoke config (1 visit × 3 dithers, no</span>
-<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a>second pass) did see odd depths 1/2/3; the full config shouldn't.</span>
-<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a><span class="fu">## Kron flux bias (+0.17 mag)</span></span>
-<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>The median <span class="in">`recovered Kron − input mag`</span> of **+0.17 mag** is stable</span>
-<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>across depth, skycell, and the smoke-vs-full comparison. It's a</span>
-<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a>well-known Kron property on *extended* sources — Kron radius is</span>
-<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a>self-sizing and catches ~90% of a Sérsic profile's light, not 100%.</span>
-<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>For input PSF sources the Kron residual is much smaller (median</span>
-<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>+0.07 mag on a deep skycell check). This is a photometry property,</span>
-<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>not a pipeline calibration issue.</span>
-<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a>If you want an unbiased recovered flux for galaxies specifically,</span>
-<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a><span class="in">`segment_flux`</span> or a larger aperture (e.g. <span class="in">`aper16_flux`</span>) would be the</span>
-<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a>better choice.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>**Cross-check against romanisim's own sky model.** <span class="in">`romanisim.image`</span></span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>(line ~697) injects sky using <span class="in">`galsim.roman.getSkyLevel`</span>, scaled by</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="in">`(1 + stray_light_fraction)`</span> and with <span class="in">`thermal_backgrounds[H158]`</span></span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>added per pixel. Calling that chain directly at (RA=10°, Dec=0°),</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>2026-01-01:</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> term <span class="pp">|</span> value <span class="pp">|</span></span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`getSkyLevel`</span> (zodi only) <span class="pp">|</span> 95.01 e⁻/s/arcsec² <span class="pp">|</span></span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> × (1 + stray_light_fraction = 1.1) <span class="pp">|</span> 104.51 e⁻/s/arcsec² <span class="pp">|</span></span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> × pixel area (0.11² = 0.0121 arcsec²) <span class="pp">|</span> 1.265 e⁻/s/pix <span class="pp">|</span></span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> + <span class="in">`thermal_backgrounds['H158']`</span> = 0.040 e⁻/s/pix <span class="pp">|</span> **1.305 e⁻/s/pix** <span class="pp">|</span></span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-106"><a href="#cb1-106" aria-hidden="true" tabindex="-1"></a>That matches the cal-file measurement of **1.298 e⁻/s/pix** to 0.5%,</span>
+<span id="cb1-107"><a href="#cb1-107" aria-hidden="true" tabindex="-1"></a>confirming the sim is faithfully injecting exactly what romanisim's</span>
+<span id="cb1-108"><a href="#cb1-108" aria-hidden="true" tabindex="-1"></a>sky model predicts. Translating back to MJy/sr via the same</span>
+<span id="cb1-109"><a href="#cb1-109" aria-hidden="true" tabindex="-1"></a>romanisim-internal <span class="in">`get_abflux(F158) / 3631 Jy × pix_area_sr`</span></span>
+<span id="cb1-110"><a href="#cb1-110" aria-hidden="true" tabindex="-1"></a>conversion used above, 1.305 e⁻/s/pix corresponds to **0.493 MJy/sr**,</span>
+<span id="cb1-111"><a href="#cb1-111" aria-hidden="true" tabindex="-1"></a>versus 0.502 measured — again consistent. So the ~30% MJy/sr gap</span>
+<span id="cb1-112"><a href="#cb1-112" aria-hidden="true" tabindex="-1"></a>against Pandeia's 0.38 is a genuine zodi-model disagreement between</span>
+<span id="cb1-113"><a href="#cb1-113" aria-hidden="true" tabindex="-1"></a>the Hirata tables galsim uses and Pandeia's model, not a sim setup</span>
+<span id="cb1-114"><a href="#cb1-114" aria-hidden="true" tabindex="-1"></a>issue.</span>
+<span id="cb1-115"><a href="#cb1-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-116"><a href="#cb1-116" aria-hidden="true" tabindex="-1"></a>**Gain consistency, as a side effect.** <span class="in">`getSkyLevel`</span> is gain-free (it</span>
+<span id="cb1-117"><a href="#cb1-117" aria-hidden="true" tabindex="-1"></a>returns e⁻/s/arcsec² from a direct table lookup), but our cal-side</span>
+<span id="cb1-118"><a href="#cb1-118" aria-hidden="true" tabindex="-1"></a>number is <span class="in">`DN/s × gain`</span> with gain = **1.994 e⁻/DN** from the WFI01 CRDS</span>
+<span id="cb1-119"><a href="#cb1-119" aria-hidden="true" tabindex="-1"></a>reference (<span class="in">`roman_wfi_gain_0022.asdf`</span>). The 0.5% agreement therefore</span>
+<span id="cb1-120"><a href="#cb1-120" aria-hidden="true" tabindex="-1"></a>verifies that the gain we multiply by on read matches the gain romanisim</span>
+<span id="cb1-121"><a href="#cb1-121" aria-hidden="true" tabindex="-1"></a>divided by when writing the DN/s slopes — a consistency check, not an</span>
+<span id="cb1-122"><a href="#cb1-122" aria-hidden="true" tabindex="-1"></a>absolute gain validation. (If the CRDS gain were physically off by 2×</span>
+<span id="cb1-123"><a href="#cb1-123" aria-hidden="true" tabindex="-1"></a>both sides would be wrong by 2× and still agree; that would need a</span>
+<span id="cb1-124"><a href="#cb1-124" aria-hidden="true" tabindex="-1"></a>separate absolute test, e.g. a ramp Poisson-noise consistency check.) In</span>
+<span id="cb1-125"><a href="#cb1-125" aria-hidden="true" tabindex="-1"></a>practice this is enough to trust <span class="in">`DN/s × gain_CRDS`</span> as the correct way</span>
+<span id="cb1-126"><a href="#cb1-126" aria-hidden="true" tabindex="-1"></a>to recover e⁻/s from the cal file for any downstream analysis.</span>
+<span id="cb1-127"><a href="#cb1-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-128"><a href="#cb1-128" aria-hidden="true" tabindex="-1"></a>**Upshot.** Zodi is not responsible for the observed 0.5–1 mag depth</span>
+<span id="cb1-129"><a href="#cb1-129" aria-hidden="true" tabindex="-1"></a>shortfall. The earlier wording in this section — "3.4× the polar</span>
+<span id="cb1-130"><a href="#cb1-130" aria-hidden="true" tabindex="-1"></a>minimum → 0.67 mag of depth loss" — compared romanisim's e⁻/s against</span>
+<span id="cb1-131"><a href="#cb1-131" aria-hidden="true" tabindex="-1"></a>a Pandeia-convention e⁻/s reference, which we now know is an</span>
+<span id="cb1-132"><a href="#cb1-132" aria-hidden="true" tabindex="-1"></a>apples-to-oranges comparison, and is retracted. The depth shortfall is</span>
+<span id="cb1-133"><a href="#cb1-133" aria-hidden="true" tabindex="-1"></a>still real and the explanation is still open.</span>
+<span id="cb1-134"><a href="#cb1-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-135"><a href="#cb1-135" aria-hidden="true" tabindex="-1"></a><span class="fu">## `psf_flux` appears to be in different units than `aper08_flux` / `kron_flux`</span></span>
+<span id="cb1-136"><a href="#cb1-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-137"><a href="#cb1-137" aria-hidden="true" tabindex="-1"></a>For input PSF sources, we expect <span class="in">`psf_flux ≈ aper08_flux`</span> (both capture</span>
+<span id="cb1-138"><a href="#cb1-138" aria-hidden="true" tabindex="-1"></a>total flux for point sources). Measured offset:</span>
+<span id="cb1-139"><a href="#cb1-139" aria-hidden="true" tabindex="-1"></a>**`psf_mag − aper08_mag = +0.656 mag`** (input-PSF sources,</span>
+<span id="cb1-140"><a href="#cb1-140" aria-hidden="true" tabindex="-1"></a>psf_flags = 0). The matching <span class="in">`kron − aper08`</span> is +0.07 for the same</span>
+<span id="cb1-141"><a href="#cb1-141" aria-hidden="true" tabindex="-1"></a>sources, so <span class="in">`kron`</span> and <span class="in">`aper08`</span> agree well.</span>
+<span id="cb1-142"><a href="#cb1-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-143"><a href="#cb1-143" aria-hidden="true" tabindex="-1"></a>Grepping <span class="in">`romancal.source_catalog.psf`</span>, <span class="in">`psf_flux`</span> comes straight from</span>
+<span id="cb1-144"><a href="#cb1-144" aria-hidden="true" tabindex="-1"></a>a <span class="in">`photutils.psf.PSFPhotometry`</span> fit on <span class="in">`image_model.data`</span> with the</span>
+<span id="cb1-145"><a href="#cb1-145" aria-hidden="true" tabindex="-1"></a><span class="in">`flux_fit`</span> column renamed — **no unit conversion is applied** on the</span>
+<span id="cb1-146"><a href="#cb1-146" aria-hidden="true" tabindex="-1"></a>way out. <span class="in">`aper*_flux`</span> and <span class="in">`kron_flux`</span> in the same catalog output, in</span>
+<span id="cb1-147"><a href="#cb1-147" aria-hidden="true" tabindex="-1"></a>contrast, *are* in nJy (we confirmed <span class="in">`kron_flux`</span> round-trips with</span>
+<span id="cb1-148"><a href="#cb1-148" aria-hidden="true" tabindex="-1"></a><span class="in">`kron_abmag`</span> via the standard AB formula to 1 part in 10⁴).</span>
+<span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-150"><a href="#cb1-150" aria-hidden="true" tabindex="-1"></a>The systematic offset matches the median CRDS-gain across the 18 WFI</span>
+<span id="cb1-151"><a href="#cb1-151" aria-hidden="true" tabindex="-1"></a>SCAs (1.869 e⁻/DN → 2.5 × log₁₀ = +0.679 mag) to ~2%. Our working</span>
+<span id="cb1-152"><a href="#cb1-152" aria-hidden="true" tabindex="-1"></a>hypothesis is that **<span class="in">`psf_flux`</span> is in DN/s-like units while</span>
+<span id="cb1-153"><a href="#cb1-153" aria-hidden="true" tabindex="-1"></a><span class="in">`aper_flux`</span> and <span class="in">`kron_flux`</span> have been converted to nJy**. The 2%</span>
+<span id="cb1-154"><a href="#cb1-154" aria-hidden="true" tabindex="-1"></a>residual may come from (a) per-SCA gain variation, since L3 coadds are</span>
+<span id="cb1-155"><a href="#cb1-155" aria-hidden="true" tabindex="-1"></a>weighted combinations of contributing L2s, or (b) PSF-wing truncation</span>
+<span id="cb1-156"><a href="#cb1-156" aria-hidden="true" tabindex="-1"></a>in the 8-pixel aperture, which would push the sign the *other* way,</span>
+<span id="cb1-157"><a href="#cb1-157" aria-hidden="true" tabindex="-1"></a>so probably (a) dominates.</span>
+<span id="cb1-158"><a href="#cb1-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-159"><a href="#cb1-159" aria-hidden="true" tabindex="-1"></a>Consequences for downstream science:</span>
+<span id="cb1-160"><a href="#cb1-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-161"><a href="#cb1-161" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Do not use `psf_flux` as a standalone total flux estimator** until</span>
+<span id="cb1-162"><a href="#cb1-162" aria-hidden="true" tabindex="-1"></a>  the unit chain is verified. Use <span class="in">`kron_flux`</span>, which is internally</span>
+<span id="cb1-163"><a href="#cb1-163" aria-hidden="true" tabindex="-1"></a>  self-consistent in this catalog, for flux comparisons.</span>
+<span id="cb1-164"><a href="#cb1-164" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Worth filing upstream against romancal to either (a) apply the gain</span>
+<span id="cb1-165"><a href="#cb1-165" aria-hidden="true" tabindex="-1"></a>  correction to <span class="in">`psf_flux`</span> in the same pipeline stage that converts</span>
+<span id="cb1-166"><a href="#cb1-166" aria-hidden="true" tabindex="-1"></a>  aperture/Kron fluxes, or (b) document the difference in unit</span>
+<span id="cb1-167"><a href="#cb1-167" aria-hidden="true" tabindex="-1"></a>  explicitly.</span>
+<span id="cb1-168"><a href="#cb1-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-169"><a href="#cb1-169" aria-hidden="true" tabindex="-1"></a><span class="fu">## Depth quantization to even integers</span></span>
+<span id="cb1-170"><a href="#cb1-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-171"><a href="#cb1-171" aria-hidden="true" tabindex="-1"></a>For context on the <span class="co">[</span><span class="ot">Results</span><span class="co">](results.qmd)</span> depth-distribution plot —</span>
+<span id="cb1-172"><a href="#cb1-172" aria-hidden="true" tabindex="-1"></a>per-pixel depths in this run occur **only at even integers** (2, 4, 6, 8).</span>
+<span id="cb1-173"><a href="#cb1-173" aria-hidden="true" tabindex="-1"></a>That is not a coverage artifact: passes 15 and 16 of the HLWAS design</span>
+<span id="cb1-174"><a href="#cb1-174" aria-hidden="true" tabindex="-1"></a>re-observe each visit with identical (RA, Dec, PA) and dither offsets,</span>
+<span id="cb1-175"><a href="#cb1-175" aria-hidden="true" tabindex="-1"></a>so a pixel sees depth *k* in pass 15 *and* depth *k* in pass 16 —</span>
+<span id="cb1-176"><a href="#cb1-176" aria-hidden="true" tabindex="-1"></a>the sum is always *2k*. The smoke config (1 visit × 3 dithers, no</span>
+<span id="cb1-177"><a href="#cb1-177" aria-hidden="true" tabindex="-1"></a>second pass) did see odd depths 1/2/3; the full config shouldn't.</span>
+<span id="cb1-178"><a href="#cb1-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-179"><a href="#cb1-179" aria-hidden="true" tabindex="-1"></a><span class="fu">## Kron flux bias (+0.17 mag)</span></span>
+<span id="cb1-180"><a href="#cb1-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-181"><a href="#cb1-181" aria-hidden="true" tabindex="-1"></a>The median <span class="in">`recovered Kron − input mag`</span> of **+0.17 mag** is stable</span>
+<span id="cb1-182"><a href="#cb1-182" aria-hidden="true" tabindex="-1"></a>across depth, skycell, and the smoke-vs-full comparison. It's a</span>
+<span id="cb1-183"><a href="#cb1-183" aria-hidden="true" tabindex="-1"></a>well-known Kron property on *extended* sources — Kron radius is</span>
+<span id="cb1-184"><a href="#cb1-184" aria-hidden="true" tabindex="-1"></a>self-sizing and catches ~90% of a Sérsic profile's light, not 100%.</span>
+<span id="cb1-185"><a href="#cb1-185" aria-hidden="true" tabindex="-1"></a>For input PSF sources the Kron residual is much smaller (median</span>
+<span id="cb1-186"><a href="#cb1-186" aria-hidden="true" tabindex="-1"></a>+0.07 mag on a deep skycell check). This is a photometry property,</span>
+<span id="cb1-187"><a href="#cb1-187" aria-hidden="true" tabindex="-1"></a>not a pipeline calibration issue.</span>
+<span id="cb1-188"><a href="#cb1-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-189"><a href="#cb1-189" aria-hidden="true" tabindex="-1"></a>If you want an unbiased recovered flux for galaxies specifically,</span>
+<span id="cb1-190"><a href="#cb1-190" aria-hidden="true" tabindex="-1"></a><span class="in">`segment_flux`</span> or a larger aperture (e.g. <span class="in">`aper16_flux`</span>) would be the</span>
+<span id="cb1-191"><a href="#cb1-191" aria-hidden="true" tabindex="-1"></a>better choice.</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
