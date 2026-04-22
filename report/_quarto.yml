@@ -33,6 +33,8 @@ website:
             text: Overview
           - href: detection/phase1_pointings.qmd
             text: Phase 1 — pointings
+          - href: detection/phase2_skycells.qmd
+            text: Phase 2 — skycells
 
 format:
   html:

@@ -1,0 +1,167 @@
+---
+title: "Phase 2 — skycell / SCA overlap"
+subtitle: "Finding depth-6 skycells for each selected pair and the exact (pointing, SCA) list to simulate"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from astropy.table import Table
+
+REPO = Path("../..").resolve()
+
+POINTINGS = Table.read(REPO / "catalogs/detection/selected_pointings.ecsv",
+                       format="ascii.ecsv").to_pandas().sort_values(
+    ["PAIR_ID", "PASS", "EXPOSURE"]).reset_index(drop=True)
+SCA_TABLE = Table.read(REPO / "catalogs/detection/skycell_overlap_sca.ecsv",
+                        format="ascii.ecsv").to_pandas()
+PT_TABLE = Table.read(REPO / "catalogs/detection/skycell_overlap_pointing.ecsv",
+                      format="ascii.ecsv").to_pandas()
+SELECTED = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
+                      format="ascii.ecsv").to_pandas()
+NEED_SIM = Table.read(REPO / "catalogs/detection/pointings_sca_to_simulate.ecsv",
+                      format="ascii.ecsv").to_pandas()
+```
+
+## What Phase 2 does
+
+Phase 2 is purely geometric — no image data is simulated. For each of
+the 30 pointings from [Phase 1](phase1_pointings.qmd), we:
+
+1. Build the 18-SCA WCS at the pointing (via
+   `galsim.roman.getWCS(world_pos, SCAs=None, date, PA)`), which
+   applies the SIAF field-of-view offsets and the Roman distortion
+   model to produce a GalSim `CelestialWCS` per SCA.
+2. Extract the four corner positions of each 4088×4088 SCA.
+3. Call `romancal.skycell.match.find_skycell_matches(corners)` to get
+   the list of skycells the SCA footprint overlaps — this walks the
+   skymap KDTree and tests polygon overlap against each candidate
+   projection region's skycell grid.
+
+From the 540 `(pointing, SCA) → skycell(s)` triples we build two
+aggregate tables and pick one depth-6 skycell per pair for Phase 3/4.
+
+## Overlap counts
+
+Every pair has ≥ 1 skycell where all 6 pointings overlap
+(**depth 6**, the design maximum); depth falls off near the edges of the
+pair's combined footprint.
+
+```{python}
+#| echo: false
+#| tbl-cap: "Per-pair skycell-depth distribution. A depth-d skycell gets contributions from d of the pair's 6 pointings."
+depth_table = (PT_TABLE
+               .groupby(["PAIR_ID", "n_pointings"]).size()
+               .rename("n_skycells").reset_index()
+               .pivot(index="PAIR_ID", columns="n_pointings",
+                      values="n_skycells").fillna(0).astype(int))
+depth_table.columns = [f"depth {c}" for c in depth_table.columns]
+depth_table
+```
+
+## Per-pair coverage maps
+
+Each panel shows one pair. Coloured polygons are skycells in the
+(pair, skycell) table — fill colour encodes mosaic depth (0 → max).
+Thin outlines are the 18 SCA footprints of each of the pair's 6
+pointings, colour-coded by pointing. The red thick outline is the
+Phase-2-selected skycell for that pair (the deepest one nearest the
+pair's nominal centre). The black `+` is the pair centre.
+
+```{python}
+#| echo: false
+from IPython.display import Image, display
+for pid in sorted(SELECTED["PAIR_ID"].unique()):
+    path = REPO / f"output/detection/phase2/coverage_pair_{pid}.png"
+    if path.exists():
+        display(Image(filename=str(path)))
+```
+
+## The selected skycells
+
+One depth-6 skycell per pair — selected to be the deepest skycell
+nearest the pair's nominal centre.
+
+```{python}
+#| echo: false
+#| tbl-cap: "The five selected skycells, one per pair. `n_pointings` is the mosaic depth (design maximum = 6); `n_sca_events` is the total number of distinct (pointing, SCA) contributions (may exceed 6 when the skycell straddles an SCA boundary inside a single pointing)."
+SELECTED[["PAIR_ID", "skycell_idx", "skycell_name",
+          "skycell_ra", "skycell_dec", "n_pointings", "n_sca_events"]].style.format(
+    {"skycell_ra": "{:.3f}", "skycell_dec": "{:.3f}"})
+```
+
+## L2 files to simulate
+
+For each selected skycell, the set of `(pointing, SCA)` pairs whose
+footprint overlaps the skycell:
+
+```{python}
+#| echo: false
+#| tbl-cap: "L2 file count per pair (distinct `(POINTING_IDX, SCA)` combinations after dedup)."
+l2_counts = (NEED_SIM
+             .drop_duplicates(["PAIR_ID", "POINTING_IDX", "SCA"])
+             .groupby("PAIR_ID").size().reset_index(name="n_l2_files"))
+l2_counts["n_pointings"] = NEED_SIM.groupby("PAIR_ID")["POINTING_IDX"].nunique().values
+l2_counts["scas_per_pointing_mean"] = (l2_counts["n_l2_files"] /
+                                       l2_counts["n_pointings"]).round(2)
+l2_counts
+```
+
+```{python}
+#| echo: false
+#| tbl-cap: "The full per-skycell list of L2 files Phase 4 will produce (one row per `(pointing, SCA)` pair per selected skycell)."
+NEED_SIM[["PAIR_ID", "skycell_idx", "skycell_name",
+          "POINTING_IDX", "PASS", "VISIT", "EXPOSURE",
+          "SCA"]].sort_values(
+    ["PAIR_ID", "POINTING_IDX", "SCA"]).reset_index(drop=True)
+```
+
+## Self-checks
+
+```{python}
+#| echo: false
+#| tbl-cap: "End-of-phase assertions on the overlap output."
+checks = [
+    ("5 skycells selected (one per pair)",        len(SELECTED) == 5),
+    ("every selected skycell has depth 6",
+     bool((SELECTED["n_pointings"] == 6).all())),
+    ("every pair has exactly one selected skycell",
+     SELECTED["PAIR_ID"].nunique() == SELECTED.shape[0]),
+    ("every pointing appears in the SCA table",
+     SCA_TABLE["POINTING_IDX"].nunique() == len(POINTINGS)),
+    ("all selected skycells have ≥ 6 distinct L2 contributions",
+     bool((SELECTED["n_sca_events"] >= 6).all())),
+    ("n_sca_events ≥ n_pointings for every (pair, skycell)",
+     bool((PT_TABLE["n_sca_events"] >= PT_TABLE["n_pointings"]).all())),
+]
+pd.DataFrame(checks, columns=["check", "pass"])
+```
+
+## Reproducing
+
+```bash
+pixi run python scripts/detection/02_skycell_overlap.py
+```
+
+Writes:
+
+- `catalogs/detection/skycell_overlap_sca.ecsv` — every
+  `(pointing, SCA, skycell)` triple
+- `catalogs/detection/skycell_overlap_pointing.ecsv` — aggregated to
+  one row per `(pair, skycell)`, with depth and contributing
+  pointings/SCAs
+- `catalogs/detection/selected_skycells.ecsv` — one depth-6 skycell
+  per pair
+- `catalogs/detection/pointings_sca_to_simulate.ecsv` — the
+  `(pointing, SCA)` list Phase 4 uses
+- `output/detection/phase2/coverage_pair_*.png`
+
+## Checkpoint
+
+Phase 2 deliverable. Before Phase 3, we need to pick a storage
+location with the user for the L2/L3 binary products (they won't live
+in the repo). Default: `output/detection/{l2,l3}/` in-tree, with the
+corresponding subpaths added to `.gitignore`.
