@@ -54,6 +54,7 @@ import galsim
 import galsim.roman as roman
 import numpy as np
 import pandas as pd
+import romanisim.wcs as rwcs
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astropy.time import Time
@@ -66,9 +67,13 @@ OUT_CAT = REPO / "catalogs/detection"
 OUT_PLOTS = REPO / "output/detection/phase2"
 
 
-def sca_sky_corners(wcs: galsim.CelestialWCS,
+def sca_sky_corners(wcs,
                     n_pix: int = roman.n_pix) -> np.ndarray:
-    """Return the 4 SCA corner positions in (RA_deg, Dec_deg)."""
+    """Return the 4 SCA corner positions in (RA_deg, Dec_deg).
+
+    Works for both galsim.CelestialWCS and romanisim.wcs.GWCS (both
+    expose `toWorld(galsim.PositionD(x, y))` returning a galsim
+    CelestialCoord)."""
     corners_pix = [(0, 0), (n_pix - 1, 0),
                    (n_pix - 1, n_pix - 1), (0, n_pix - 1)]
     out = np.empty((4, 2))
@@ -79,23 +84,52 @@ def sca_sky_corners(wcs: galsim.CelestialWCS,
     return out
 
 
+def _build_sca_wcs_crds(ra: float, dec: float, pa: float,
+                        date: Time, sca: int):
+    """CRDS-distortion-accurate WCS for one (pointing, SCA).
+
+    Matches the code path `romanisim-make-image --usecrds` takes, so
+    the resulting WCS corners agree with the real L2 image WCS
+    (boresight=False because HLWAS pointings specify the WFI aperture
+    centre, not the telescope boresight)."""
+    meta = {
+        "instrument": {"name": "WFI",
+                       "detector": f"WFI{sca:02d}",
+                       "optical_element": "F158"},
+        "exposure": {"start_time": date,
+                     "type": "WFI_IMAGE",
+                     "ma_table_number": 1007},
+        "observation": {"start_time": date},
+        "velocity_aberration": {"scale_factor": 1.0},
+        "pointing": {},
+        "wcsinfo": {},
+    }
+    rwcs.fill_in_parameters(
+        meta, SkyCoord(ra * u.deg, dec * u.deg),
+        pa_aper=pa, boresight=False
+    )
+    return rwcs.get_wcs(meta, usecrds=True)
+
+
 def _overlap_for_one_pointing(args):
     """Worker: compute (pointing, SCA) → skycell triples for one pointing.
 
-    Module-level for pickling into a process pool, though we use a
-    fork-based pool so module-state (including a pre-loaded SKYMAP) is
-    inherited and no re-load is needed in the worker.
+    Uses romanisim.wcs.get_wcs under CRDS distortion (boresight=False,
+    matching `romanisim-make-image --usecrds`) so the corners agree with
+    the real L2 WCS — the galsim.roman.getWCS analytical model was off
+    by ~arcmin per SCA and flipped near-edge overlap decisions.
+
+    Module-level for pickling into a fork-based process pool so
+    module-state (SKYMAP, CRDS cache) is inherited via copy-on-write.
     """
     import time as _t
     pidx, p_dict = args
     t0 = _t.time()
-    world = galsim.CelestialCoord(
-        p_dict["RA"] * galsim.degrees, p_dict["DEC"] * galsim.degrees)
-    date = Time(p_dict["SIM_DATE"]).datetime
-    wcs_dict = roman.getWCS(world_pos=world, SCAs=None, date=date,
-                            PA=p_dict["PA"] * galsim.degrees)
+    date = Time(p_dict["SIM_DATE"])
     out = []
-    for sca, wcs in wcs_dict.items():
+    for sca in range(1, 19):
+        wcs = _build_sca_wcs_crds(
+            p_dict["RA"], p_dict["DEC"], p_dict["PA"], date, sca)
         corners = sca_sky_corners(wcs)
         for sc_idx in find_skycell_matches([tuple(r) for r in corners]):
             out.append({
@@ -184,7 +218,18 @@ def select_skycells_per_pair(pt_table: pd.DataFrame,
                               pointings: pd.DataFrame,
                               target_depth: int = 6,
                               n_per_pair: int = 1) -> pd.DataFrame:
-    """Pick the `n_per_pair` deepest + most-central skycells per pair."""
+    """Pick the `n_per_pair` deepest + most-central skycells per pair.
+
+    Priority order:
+    1. Max `n_pointings` (up to `target_depth`) — most dithers contribute.
+    2. Min `n_sca_events` at that depth — prefer skycells where each
+       pointing contributes via a single SCA. When a pointing's 2 SCAs
+       both overlap a skycell (SCA-boundary straddle), they cover
+       disjoint regions of the skycell, so per-pixel depth is strictly
+       less than the pointing count. Minimising `n_sca_events` gets us
+       closer to true per-pixel depth = `n_pointings`.
+    3. Nearest to the pair's nominal centre (tiebreak).
+    """
     picks = []
     for pair_id, sub in pt_table.groupby("PAIR_ID"):
         p_centre = pointings[pointings["PAIR_ID"] == pair_id].iloc[0]
@@ -193,6 +238,8 @@ def select_skycells_per_pair(pt_table: pd.DataFrame,
         want = sub[sub["n_pointings"] == max(max_depth, target_depth)]
         if want.empty:
             want = sub[sub["n_pointings"] == max_depth]
+        # Within that depth, prefer fewer SCA events (no SCA straddling)
+        want = want[want["n_sca_events"] == want["n_sca_events"].min()]
         dra = np.minimum(np.abs(want["skycell_ra"] - ra0),
                          360.0 - np.abs(want["skycell_ra"] - ra0))
         ddec = np.abs(want["skycell_dec"] - dec0)
@@ -229,17 +276,15 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
 
     ra0, dec0 = ptr.iloc[0]["RA"], ptr.iloc[0]["DEC"]
 
-    # SCA footprints in absolute RA, converted to relative at plot time
+    # SCA footprints (CRDS-distortion-accurate). Slower than galsim's
+    # analytical WCS but consistent with find_skycell_matches results.
     sca_polygons = {}
     for pidx, p in ptr.iterrows():
-        world = galsim.CelestialCoord(p["RA"] * galsim.degrees,
-                                      p["DEC"] * galsim.degrees)
-        date = Time(p["SIM_DATE"]).datetime
-        wcs_dict = roman.getWCS(world_pos=world, SCAs=None, date=date,
-                                PA=p["PA"] * galsim.degrees)
-        sca_polygons[int(pidx)] = {
-            sca: sca_sky_corners(wcs) for sca, wcs in wcs_dict.items()
-        }
+        date = Time(p["SIM_DATE"])
+        sca_polygons[int(pidx)] = {}
+        for sca in range(1, 19):
+            wcs = _build_sca_wcs_crds(p["RA"], p["DEC"], p["PA"], date, sca)
+            sca_polygons[int(pidx)][sca] = sca_sky_corners(wcs)
 
     skycell_idxs = pt_rows["skycell_idx"].unique().tolist()
     cells = SkyCells(skycell_idxs)

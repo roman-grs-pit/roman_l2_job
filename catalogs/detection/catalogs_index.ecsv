@@ -12,8 +12,8 @@
 # - {name: galaxies_path, datatype: string}
 # schema: astropy-2.0
 PAIR_ID skycell_idx skycell_name n_stars n_galaxies mag_min mag_max stars_path galaxies_path
-2525 4140867 021m03x67y41 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_021m03x67y41_stars.parquet catalogs/detection/catalogs/skycell_021m03x67y41_galaxies.parquet
-2550 6197861 021m34x43y45 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_021m34x43y45_stars.parquet catalogs/detection/catalogs/skycell_021m34x43y45_galaxies.parquet
-3316 5172636 028m18x58y37 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_028m18x58y37_stars.parquet catalogs/detection/catalogs/skycell_028m18x58y37_galaxies.parquet
-10101 5355994 350m18x59y45 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_350m18x59y45_stars.parquet catalogs/detection/catalogs/skycell_350m18x59y45_galaxies.parquet
-11119 5156876 000m18x58y45 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_000m18x58y45_stars.parquet catalogs/detection/catalogs/skycell_000m18x58y45_galaxies.parquet
+2525 4140671 021m03x63y41 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_021m03x63y41_stars.parquet catalogs/detection/catalogs/skycell_021m03x63y41_galaxies.parquet
+2550 6197746 021m34x40y47 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_021m34x40y47_stars.parquet catalogs/detection/catalogs/skycell_021m34x40y47_galaxies.parquet
+3316 5172492 028m18x55y34 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_028m18x55y34_stars.parquet catalogs/detection/catalogs/skycell_028m18x55y34_galaxies.parquet
+10101 5355902 350m18x57y47 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_350m18x57y47_stars.parquet catalogs/detection/catalogs/skycell_350m18x57y47_galaxies.parquet
+11119 5156967 000m18x60y42 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_000m18x60y42_stars.parquet catalogs/detection/catalogs/skycell_000m18x60y42_galaxies.parquet

@@ -31,10 +31,11 @@ NEED_SIM = Table.read(REPO / "catalogs/detection/pointings_sca_to_simulate.ecsv"
 Phase 2 is purely geometric — no image data is simulated. For each of
 the 30 pointings from [Phase 1](phase1_pointings.qmd), we:
 
-1. Build the 18-SCA WCS at the pointing (via
-   `galsim.roman.getWCS(world_pos, SCAs=None, date, PA)`), which
-   applies the SIAF field-of-view offsets and the Roman distortion
-   model to produce a GalSim `CelestialWCS` per SCA.
+1. Build each of the 18 SCA WCSs via
+   `romanisim.wcs.get_wcs(meta_dict, usecrds=True)` with
+   `fill_in_parameters(coord, pa_aper, boresight=False)`. This is the
+   same CRDS-backed code path `romanisim-make-image --usecrds` uses,
+   so the corners agree with the L2 image WCS to sub-pixel accuracy.
 2. Extract the four corner positions of each 4088×4088 SCA.
 3. Call `romancal.skycell.match.find_skycell_matches(corners)` to get
    the list of skycells the SCA footprint overlaps — this walks the
@@ -43,6 +44,20 @@ the 30 pointings from [Phase 1](phase1_pointings.qmd), we:
 
 From the 540 `(pointing, SCA) → skycell(s)` triples we build two
 aggregate tables and pick one depth-6 skycell per pair for Phase 3/4.
+
+::: {.callout-note collapse="true"}
+## WCS-model note — why CRDS over galsim
+
+The first iteration of this script used `galsim.roman.getWCS`, which
+applies GalSim's analytical (SIAF-based) Roman distortion model. That
+model differs from the CRDS-provided distortion that
+`romanisim-make-image --usecrds` applies by several arcmin per SCA —
+enough to flip overlap decisions at skycell boundaries. Phase 4a
+surfaced this: the Phase-2-selected "depth 6" skycell for pair 11119
+only received contributions from 4 of the 6 pointings at sim time, not
+6. Switching to the romanisim CRDS path made Phase-2 predictions and
+post-sim `skycell_asn` output agree.
+:::
 
 ## Overlap counts
 

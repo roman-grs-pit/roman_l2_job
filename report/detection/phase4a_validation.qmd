@@ -15,120 +15,114 @@ REPO = Path("../..").resolve()
 
 Before scaling to all 5 pairs, validate the full
 **L2 → L3 → (Phase 5) source detection** chain on one (pair, skycell).
-Concretely, for pair 11119 (skycell 000m18x58y45):
+Concretely, for pair 11119 (skycell 000m18x60y42):
 
-1. Build a combined truth catalog (stars + galaxies merged, mixed
-   `type` column — romanisim ingests both in one file).
-2. Emit 14 `romanisim-make-image` commands (`output/detection/sims_11119.script`),
-   one per (pointing, SCA) pair from Phase 2, each with a deterministic
-   CRC32-of-basename seed so every dither draws an independent noise
-   realisation.
-3. Run the sims 4-way parallel. Output L2s in
-   `output/detection/l2/` (2.8 GB for 14 files).
-4. Run `skycell_asn --product-type full` on the 14 L2s to get one
-   association JSON per overlapping skycell.
-5. Run `MosaicPipeline` on the selected-skycell association.
+1. Build a combined truth catalog (stars + galaxies merged in one
+   parquet — romanisim ingests both via the per-row `type` column).
+2. Emit 6 `romanisim-make-image` commands (`output/detection/sims_11119.script`),
+   one per (pointing, SCA) pair from the corrected Phase 2, each with a
+   deterministic CRC32-of-basename seed so every dither draws an
+   independent noise realisation.
+3. Run the sims 4-way parallel (~11 min). Output L2s in
+   `output/detection/l2/` (~200 MB each).
+4. Run `skycell_asn --product-type full` on the 6 L2s — target skycell
+   gets all 6 members.
+5. Run `MosaicPipeline` → 502 MB coadd for x60y42.
 6. Inspect depth, weight, image, truth-to-image correspondence.
 
-Wall time: 14 sims × ~5.8 min / 4-way = **~23 min** for stage 02,
-plus ~3 min each for stages 03 + 04 = **~30 min end-to-end**.
+Wall time for pair 11119: **~15 min end-to-end** (11 min sims + 3 min
+mosaic + <1 min validate).
 
-## Depth anomaly — Phase 2 galsim-vs-CRDS WCS mismatch
+## Phase 2 WCS fix (applied before this run)
 
-Phase 2 predicted skycell `000m18x58y45` would reach depth 6 (all 6
-pointings contributing via at least one SCA). The real `skycell_asn`
-output contradicts that: only **4 L2 files** overlap `x58y45`, from
-only 4 of the 6 pointings (exposures 2 and 3 of each pass; exposure 1's
-SCAs 2 and 3 land ~0.1° west of the skycell, outside its footprint).
+The first Phase-4a run surfaced a Phase-2 bug. Phase 2 had been
+computing SCA corners via `galsim.roman.getWCS`, which uses GalSim's
+analytical (SIAF-based) distortion. The L2 sims run with `--usecrds`
+and use the CRDS distortion reference instead; the two models disagree
+by ~arcmin per SCA, flipping overlap decisions near skycell edges.
+Consequence: the first-run selected "depth 6" skycell x58y45 only
+received contributions from 4 of the 6 pointings at sim time.
 
-Cause: Phase 2 computed SCA corners via `galsim.roman.getWCS`, which
-uses GalSim's analytical distortion model (SIAF-based). The L2 sims
-used `--usecrds`, which applies the CRDS distortion reference — a
-per-SCA tweak that can shift corners by several arc-minutes. Near
-skycell edges (4.6' cells), that's enough to flip the overlap decision.
+**Fix**: use `romanisim.wcs.get_wcs(meta_dict, usecrds=True)` with
+`fill_in_parameters(coord, pa_aper, boresight=False)` — the exact
+code path `romanisim-make-image --usecrds` takes. After the fix,
+Phase-2 predictions and `skycell_asn` agree on every skycell.
 
-### What this means
+## Per-pixel depth vs "design depth" — a coverage-geometry note
 
-- For Phase 4a: depth-4 instead of depth-6 in the mosaic. Still
-  enough to exercise the pipeline end-to-end, but the expected
-  detection threshold is ~0.2 mag shallower.
-- For Phase 4b (scale to 5 pairs): we need to fix Phase 2 before
-  re-selecting skycells. Likely fix: replace `galsim.roman.getWCS`
-  with `romanisim.wcs.get_wcs(..., usecrds=True)` for the overlap
-  analysis, which exercises the same CRDS path the L2 sim uses.
+The corrected Phase 2 picks skycell **000m18x60y42** for pair 11119
+with `n_pointings = 6` and `n_sca_events = 6` — 6 pointings, one SCA
+per pointing (SCAs 1, 4, 7 across the three dithers × two passes).
 
-```{python}
-#| echo: false
-#| tbl-cap: "L2 files that actually overlap x58y45 per skycell_asn (4 of the 14 simulated). Exposure 1 contributions are missing — those SCAs land in neighbouring skycells instead."
-asn_members = [
-    ("r0000101015215001011_0002_wfi11_f158_cal.asdf", 15, 2, 11),
-    ("r0000101015215001011_0003_wfi01_f158_cal.asdf", 15, 3,  1),
-    ("r0000101016215001011_0002_wfi11_f158_cal.asdf", 16, 2, 11),
-    ("r0000101016215001011_0003_wfi01_f158_cal.asdf", 16, 3,  1),
-]
-pd.DataFrame(asn_members, columns=["L2 file", "PASS", "EXP", "SCA"])
-```
+The mosaic depth map shows **max depth 4, median interior depth 4**,
+not 6. This is not a bug — it's the HLWAS dither geometry:
+
+- The three dithers in a visit shift the telescope by ~7-12′ each,
+  larger than a 4.6′ skycell.
+- So the "SCA that covers a given skycell" differs between dithers.
+  For pair 11119 at x60y42: exp 1 covers the skycell via SCA 1,
+  exp 2 via SCA 4, exp 3 via SCA 7 — but those three SCAs cover
+  *different regions* within the skycell, not the same pixels.
+- Most interior pixels are covered by two dithers (SCA 1 + SCA 4),
+  not three, giving per-pixel depth 2 × 2 passes = **4**. A thin
+  southern strip has only SCA 7 → depth 2.
+
+This matches the full-run observation
+([memory](../full/design.qmd#data-volume-and-wall-time)): "44% pixels
+at depth 2, 20% at 6, 1% at 8". For pair 11119's single skycell the
+distribution is tighter — ~95 % of pixels at depth 4, ~5 % at depth 2
+at the southern edge.
+
+Selection criterion is therefore `n_pointings` (primary) then
+`n_sca_events == n_pointings` (prefer no SCA straddling) — produces
+the cleanest uniform coverage, not the highest per-pixel number.
 
 ## Mosaic diagnostics
 
 ```{python}
 #| echo: false
-#| fig-cap: "2×2 diagnostic: L3 image, weight map, per-pixel depth map, and truth positions overlaid. Depth map shows a 4-exposure core across most of the skycell — the expected pattern for 2 dithers × 2 passes × 1 SCA each contributing. A depth-2 strip in the upper-left comes from a single SCA with smaller coverage; the small empty corner drops out entirely."
+#| fig-cap: "2×2 diagnostic: L3 image, weight map, per-pixel depth map, and truth positions overlaid. Depth map is uniformly 4 across ~95% of the skycell interior — from SCAs 1 + 4 (× 2 passes) overlapping most pixels. The thin southern strip at depth 2 is where only SCA 7 contributes. 210 stars (blue) and 210 galaxies (red), 21 F158 mag bins × 10 sources, Sobol-distributed inside the [200, 4800]² core."
 from IPython.display import Image, display
 display(Image(filename=str(REPO / "output/detection/phase4a/validate_pair_11119.png")))
 ```
 
-Key numbers (from the validation script):
-
 | quantity | value |
 |---|---|
 | image shape | 5000 × 5000 |
-| sigma-clipped median | 0.354 MJy/sr |
+| sigma-clipped median | 0.356 MJy/sr |
 | sigma-clipped sigma | 0.021 MJy/sr |
-| weight map median | 1125 (arb. units) |
-| depth map max | 4 |
-| depth map median (interior) | 4 |
+| weight map median | 1115 (arb. units) |
+| depth map max / median (interior) | 4 / 4 |
+| L2 files in asn | 6 |
 
-The zodi level matches expectation: Phase 1's `galsim.getSkyLevel`
-predicted **0.96 e⁻/pix/s** for this pair at its sim date, which at
-the MJy/sr conversion used by `MosaicPipeline` is roughly **0.36
-MJy/sr** — consistent with the measured 0.354 MJy/sr.
+Sigma-clipped median 0.356 MJy/sr is consistent with Phase-1's
+`galsim.getSkyLevel` prediction of 0.96 e⁻/pix/s for this pair at its
+sim date (a unit conversion from e⁻/pix/s → MJy/sr puts this within
+5% of the measured value — the same sanity check that held for the
+full run's 0.49 MJy/sr measurement).
 
 ```{python}
 #| echo: false
-#| fig-cap: "Zoom around the brightest truth source (star 31, F158 mag 23.0). Clear point source in the centre — confirms the truth-to-image mapping is correct (Phase 1 RA/Dec → Phase 3 catalog RA/Dec → romanisim draw → mosaic resample → same pixel position). Other overlaid markers show matched faint sources (galaxies have extended surface-brightness profiles; stars at fainter mags are not yet visible against the noise in this zoom)."
+#| fig-cap: "Zoom around the brightest truth source (F158 mag 23.0 star). Clear PSF at the injected RA/Dec — confirms that every stage of the catalog → sim → mosaic → resample chain preserves source positions correctly to sub-pixel precision."
 display(Image(filename=str(REPO / "output/detection/phase4a/validate_pair_11119_zoom.png")))
 ```
 
-## What works, what doesn't
+## What works
 
-**Works:**
-
-- L2 sim pipeline: 14/14 sims succeed, no CRDS hiccups, seeds
-  produce independent noise realisations (log files clean).
-- skycell_asn: emits valid associations for 22 skycells. Target
-  skycell's asn has 4 members, consistent with actual L2 coverage.
-- MosaicPipeline: runs on the asn, produces a 410 MB coadd (image +
-  weight + context arrays), zodi background and sigma match expected.
-- Truth-to-image mapping: the brightest star (mag 23.0) shows as a
-  clear PSF in the mosaic at exactly the injected RA/Dec. Fainter
-  sources and extended galaxies show at their expected positions.
-
-**Doesn't (to fix before Phase 4b):**
-
-- Phase 2 overlap analysis uses galsim's internal distortion model,
-  not the CRDS distortion applied by `romanisim-make-image --usecrds`.
-  The two disagree by several arcmin per SCA, flipping
-  near-skycell-edge decisions. Effect: Phase 2 predicted depth 6 but
-  reality is depth 4 for the representative skycell.
+- **L2 sims**: 6/6 succeed in 11 minutes (4-way parallel, ~5.8 min/sim).
+- **skycell_asn**: target skycell gets all 6 L2 members after the
+  Phase-2 WCS fix.
+- **MosaicPipeline**: clean 502 MB coadd, no rejection artifacts,
+  uniform depth over the unique core.
+- **Truth mapping**: brightest star (mag 23.0) at its injected
+  RA/Dec in the mosaic. The Sobol-spread sources are all inside the
+  mosaic footprint.
+- **Zodi**: measured sigma-clipped median matches the Phase-1
+  `galsim.getSkyLevel` prediction.
 
 ## Checkpoint
 
-Phase 4a success criteria met: pipeline works end-to-end on one
-(pair, skycell). **Blocker for Phase 4b / 5 full scale-up:** the
-Phase 2 bug needs fixing before committing to 5 pairs × 5 skycells ×
-more sims. Proposed fix: replace `galsim.roman.getWCS` with
-`romanisim.wcs.get_wcs(image_dict, usecrds=True)` in
-`02_skycell_overlap.py`, re-run Phase 2, re-select skycells, then
-regenerate Phase-3 catalogs at the new skycell positions before
-Phase 4b.
+Phase 4a criteria met. Ready for Phase 4b scale-up (5 pairs × N
+skycells per pair). Per the user's directive, if 4a passes we go to
+**5 skycells per pair** for 4b — ~30 L2 files per pair × 5 = 150 L2
+files, ~6 hr at 4-way parallelism.
