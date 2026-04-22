@@ -180,34 +180,45 @@ def enrich_with_skycell_meta(pt_table: pd.DataFrame) -> pd.DataFrame:
     return pt_table.merge(meta, on="skycell_idx")
 
 
-def select_one_skycell_per_pair(pt_table: pd.DataFrame,
-                                pointings: pd.DataFrame,
-                                target_depth: int = 6) -> pd.DataFrame:
-    """Pick one deepest + most-central skycell per pair."""
+def select_skycells_per_pair(pt_table: pd.DataFrame,
+                              pointings: pd.DataFrame,
+                              target_depth: int = 6,
+                              n_per_pair: int = 1) -> pd.DataFrame:
+    """Pick the `n_per_pair` deepest + most-central skycells per pair."""
     picks = []
     for pair_id, sub in pt_table.groupby("PAIR_ID"):
-        # Pair nominal centre = pointing RA/Dec (all 6 share centre)
         p_centre = pointings[pointings["PAIR_ID"] == pair_id].iloc[0]
         ra0, dec0 = p_centre["RA"], p_centre["DEC"]
-        # Must hit target_depth; if none, fall back to max depth in the pair
         max_depth = sub["n_pointings"].max()
         want = sub[sub["n_pointings"] == max(max_depth, target_depth)]
         if want.empty:
             want = sub[sub["n_pointings"] == max_depth]
-        # Central-most
         dra = np.minimum(np.abs(want["skycell_ra"] - ra0),
                          360.0 - np.abs(want["skycell_ra"] - ra0))
         ddec = np.abs(want["skycell_dec"] - dec0)
         d2 = (dra * np.cos(np.deg2rad(dec0))) ** 2 + ddec ** 2
-        best_idx = want.iloc[int(d2.values.argmin())]
-        picks.append(best_idx)
-    return pd.DataFrame(picks).reset_index(drop=True)
+        want = want.assign(_dist2=d2.values).sort_values("_dist2")
+        picks.append(want.head(n_per_pair).drop(columns="_dist2"))
+    return pd.concat(picks).reset_index(drop=True)
+
+
+def _ra_rel(ra: np.ndarray | float, ra0: float) -> np.ndarray | float:
+    """Return RA − ra0 wrapped to [−180°, +180°]. Used to draw near RA=0
+    without the 0/360 discontinuity collapsing the axis."""
+    return (np.asarray(ra) - ra0 + 180.0) % 360.0 - 180.0
 
 
 def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
                        sca_table: pd.DataFrame, pt_table: pd.DataFrame,
                        selected_skycell_idx: int, out_path: Path) -> None:
-    """Per-pair coverage map: SCA footprints + skycell depth heat-map + pick."""
+    """Per-pair coverage map: SCA footprints + skycell depth heat-map + pick.
+
+    All RA coordinates are plotted as "RA − pair-centre RA", wrapped to
+    [−180°, +180°]. Axis ticks are relabelled with the absolute RA so
+    this is transparent to the reader. This is essential near RA = 0°:
+    without the re-origination, polygon corners at RA 359.x and 0.x
+    collapse the x-axis across 360°.
+    """
     import matplotlib.pyplot as plt
     from matplotlib.patches import Polygon
     from matplotlib.collections import PatchCollection
@@ -216,7 +227,9 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
     sca_rows = sca_table[sca_table["PAIR_ID"] == pair_id]
     pt_rows = pt_table[pt_table["PAIR_ID"] == pair_id]
 
-    # SCA footprints
+    ra0, dec0 = ptr.iloc[0]["RA"], ptr.iloc[0]["DEC"]
+
+    # SCA footprints in absolute RA, converted to relative at plot time
     sca_polygons = {}
     for pidx, p in ptr.iterrows():
         world = galsim.CelestialCoord(p["RA"] * galsim.degrees,
@@ -228,7 +241,6 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
             sca: sca_sky_corners(wcs) for sca, wcs in wcs_dict.items()
         }
 
-    # Skycell polygons (keyed by idx)
     skycell_idxs = pt_rows["skycell_idx"].unique().tolist()
     cells = SkyCells(skycell_idxs)
     skycell_corners = cells.radec_corners
@@ -236,13 +248,13 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
 
     fig, ax = plt.subplots(figsize=(9, 7.5))
 
-    # Depth-coloured skycell polygons
     max_d = int(pt_rows["n_pointings"].max())
     cmap = plt.get_cmap("viridis")
     patches, colours = [], []
     for i, idx in enumerate(skycell_idxs):
-        poly = Polygon(skycell_corners[i], closed=True)
-        patches.append(poly)
+        rel_corners = skycell_corners[i].copy()
+        rel_corners[:, 0] = _ra_rel(rel_corners[:, 0], ra0)
+        patches.append(Polygon(rel_corners, closed=True))
         colours.append(depth_by_idx[idx] / max_d)
     pc = PatchCollection(patches, alpha=0.45, edgecolor="white", lw=0.3)
     pc.set_array(np.array(colours))
@@ -250,26 +262,25 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
     pc.set_clim(0, 1)
     ax.add_collection(pc)
 
-    # SCA outlines, colour-coded by pointing
     pidx_list = sorted(sca_polygons.keys())
     pcmap = plt.get_cmap("tab10")
     for j, pidx in enumerate(pidx_list):
         for sca, corners in sca_polygons[pidx].items():
-            xy = np.vstack([corners, corners[:1]])
+            corners_rel = corners.copy()
+            corners_rel[:, 0] = _ra_rel(corners_rel[:, 0], ra0)
+            xy = np.vstack([corners_rel, corners_rel[:1]])
             ax.plot(xy[:, 0], xy[:, 1], color=pcmap(j % 10),
                     lw=0.7, alpha=0.6)
 
-    # Highlight the selected skycell
     sel_i = skycell_idxs.index(int(selected_skycell_idx))
-    sel_corners = skycell_corners[sel_i]
-    xy = np.vstack([sel_corners, sel_corners[:1]])
+    sel_rel = skycell_corners[sel_i].copy()
+    sel_rel[:, 0] = _ra_rel(sel_rel[:, 0], ra0)
+    xy = np.vstack([sel_rel, sel_rel[:1]])
     ax.plot(xy[:, 0], xy[:, 1], color="tab:red", lw=2.5, zorder=6,
             label=f"selected skycell (idx {selected_skycell_idx}, depth "
                   f"{depth_by_idx[int(selected_skycell_idx)]})")
 
-    # Pair centre
-    ra0, dec0 = ptr.iloc[0]["RA"], ptr.iloc[0]["DEC"]
-    ax.plot(ra0, dec0, "k+", markersize=14, mew=2, label="pair centre")
+    ax.plot(0, dec0, "k+", markersize=14, mew=2, label="pair centre")
 
     ax.set_xlabel("RA (deg)")
     ax.set_ylabel("Dec (deg)")
@@ -281,6 +292,11 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
         f"Pair {pair_id} — 6 pointings × 18 SCAs; skycells coloured by "
         f"mosaic depth (max = {max_d})"
     )
+    # Relabel x-axis with absolute RA
+    def _rel_to_abs(x, pos):
+        return f"{(ra0 + x) % 360:.2f}"
+    from matplotlib.ticker import FuncFormatter
+    ax.xaxis.set_major_formatter(FuncFormatter(_rel_to_abs))
     fig.colorbar(pc, ax=ax, ticks=np.arange(max_d + 1) / max_d,
                  label="depth fraction of max", shrink=0.7)
     fig.tight_layout()
@@ -291,6 +307,12 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--target-depth", type=int, default=6)
+    p.add_argument("--n-skycells-per-pair", type=int, default=1,
+                   help="how many depth-`target-depth` skycells to select per pair")
+    p.add_argument("--force", action="store_true",
+                   help="rebuild the SCA-level overlap table even if cached")
+    p.add_argument("--plots-only", action="store_true",
+                   help="only regenerate per-pair diagnostic plots from existing tables")
     args = p.parse_args()
 
     OUT_CAT.mkdir(parents=True, exist_ok=True)
@@ -298,40 +320,48 @@ def main():
 
     pointings = Table.read(POINTINGS_IN,
                            format="ascii.ecsv").to_pandas()
-    # Reset index so POINTING_IDX is stable
     pointings = pointings.sort_values(["PAIR_ID", "PASS", "EXPOSURE"]).reset_index(drop=True)
     print(f"Loaded {len(pointings)} pointings across "
           f"{pointings['PAIR_ID'].nunique()} pairs.")
 
-    print("\nBuilding SCA-level overlap table "
-          f"({len(pointings)} pointings × 18 SCAs)…")
-    sca_table = build_sca_overlap_table(pointings)
-    print(f"  {len(sca_table):,} (pointing, SCA, skycell) triples")
-    print(f"  distinct skycells touched: "
-          f"{sca_table['skycell_idx'].nunique():,}")
+    sca_ecsv = OUT_CAT / "skycell_overlap_sca.ecsv"
+    pt_ecsv = OUT_CAT / "skycell_overlap_pointing.ecsv"
+    if args.force or args.plots_only:
+        use_cache = args.plots_only
+    else:
+        use_cache = sca_ecsv.exists() and pt_ecsv.exists()
 
-    Table.from_pandas(sca_table).write(
-        OUT_CAT / "skycell_overlap_sca.ecsv",
-        format="ascii.ecsv", overwrite=True
-    )
+    if use_cache:
+        print(f"\nReading cached overlap tables from {OUT_CAT}/ "
+              "(use --force to rebuild)…")
+        sca_table = Table.read(sca_ecsv, format="ascii.ecsv").to_pandas()
+        pt_table = Table.read(pt_ecsv, format="ascii.ecsv").to_pandas()
+    else:
+        print("\nBuilding SCA-level overlap table "
+              f"({len(pointings)} pointings × 18 SCAs)…")
+        sca_table = build_sca_overlap_table(pointings)
+        print(f"  {len(sca_table):,} (pointing, SCA, skycell) triples")
+        print(f"  distinct skycells touched: "
+              f"{sca_table['skycell_idx'].nunique():,}")
+        Table.from_pandas(sca_table).write(sca_ecsv, format="ascii.ecsv",
+                                           overwrite=True)
 
-    print("\nAggregating to pointing level…")
-    pt_table = aggregate_to_pointing_level(sca_table, pointings)
-    pt_table = enrich_with_skycell_meta(pt_table)
-    print(f"  {len(pt_table):,} (pair, skycell) rows")
-    depth_counts = (pt_table.groupby("PAIR_ID")["n_pointings"]
-                    .apply(lambda s: (s == args.target_depth).sum()))
-    print(f"  depth-{args.target_depth} skycells per pair:")
-    for pid, cnt in depth_counts.items():
-        print(f"    pair {pid:5d}: {cnt} skycells")
+        print("\nAggregating to pointing level…")
+        pt_table = aggregate_to_pointing_level(sca_table, pointings)
+        pt_table = enrich_with_skycell_meta(pt_table)
+        print(f"  {len(pt_table):,} (pair, skycell) rows")
+        depth_counts = (pt_table.groupby("PAIR_ID")["n_pointings"]
+                        .apply(lambda s: (s == args.target_depth).sum()))
+        print(f"  depth-{args.target_depth} skycells per pair:")
+        for pid, cnt in depth_counts.items():
+            print(f"    pair {pid:5d}: {cnt} skycells")
+        Table.from_pandas(pt_table).write(pt_ecsv, format="ascii.ecsv",
+                                          overwrite=True)
 
-    Table.from_pandas(pt_table).write(
-        OUT_CAT / "skycell_overlap_pointing.ecsv",
-        format="ascii.ecsv", overwrite=True
-    )
-
-    print(f"\nSelecting 1 depth-{args.target_depth} skycell per pair…")
-    selected = select_one_skycell_per_pair(pt_table, pointings, args.target_depth)
+    print(f"\nSelecting {args.n_skycells_per_pair} depth-"
+          f"{args.target_depth} skycell(s) per pair…")
+    selected = select_skycells_per_pair(
+        pt_table, pointings, args.target_depth, args.n_skycells_per_pair)
     Table.from_pandas(selected).write(
         OUT_CAT / "selected_skycells.ecsv",
         format="ascii.ecsv", overwrite=True
