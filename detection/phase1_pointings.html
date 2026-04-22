@@ -236,6 +236,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#solar-elongation-window" id="toc-solar-elongation-window" class="nav-link" data-scroll-target="#solar-elongation-window">Solar-elongation window</a></li>
   <li><a href="#the-selection" id="toc-the-selection" class="nav-link" data-scroll-target="#the-selection">The selection</a></li>
   <li><a href="#sky-distribution" id="toc-sky-distribution" class="nav-link" data-scroll-target="#sky-distribution">Sky distribution</a></li>
+  <li><a href="#predicted-sky-background" id="toc-predicted-sky-background" class="nav-link" data-scroll-target="#predicted-sky-background">Predicted sky background</a></li>
   <li><a href="#the-pointing-level-file" id="toc-the-pointing-level-file" class="nav-link" data-scroll-target="#the-pointing-level-file">The pointing-level file</a></li>
   <li><a href="#self-checks" id="toc-self-checks" class="nav-link" data-scroll-target="#self-checks">Self-checks</a></li>
   <li><a href="#reproducing" id="toc-reproducing" class="nav-link" data-scroll-target="#reproducing">Reproducing</a></li>
@@ -274,9 +275,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>Exactly two visits share identical (RA, Dec, PA) at 10⁻⁵ deg precision — these are the survey-design re-observations. Visit centres are computed with a <strong>circular mean over the 3 dither RAs</strong> (important near RA = 0°/360°: a linear mean would place a dither triplet straddling the wrap at a phantom RA ≈ 120°/240°).</li>
 <li>The two visits are from <code>PASS = 15</code> and <code>PASS = 16</code> — the dominant revisit mode in HLWAS.</li>
 <li><code>MA_TABLE_NUMBER == 1007</code> (the 107.52 s F158 imaging cadence; the only MA table used by the (15,16) re-observations).</li>
-<li><strong>Main-survey box:</strong> <code>RA ∈ [330°, 360°] ∪ [0°, 50°]</code> and <code>Dec ∈ [−25°, −10°]</code>. The HLWAS F158 footprint is a single connected strip running through RA = 0° with hard RA and Dec edges; the box is chosen to sit well inside that strip.</li>
-<li><strong>Interior check:</strong> at least 200 F158 exposures sit within 2° of the pair centre. This drops the remaining near-edge pairs (e.g.&nbsp;along the southern Dec = −25° cut).</li>
+<li><strong>Interior check:</strong> at least 200 F158 exposures sit within 2° of the pair centre. Drops phantom centres and near-edge pairs.</li>
 </ol>
+<p>Selection then picks from this pool:</p>
+<ul>
+<li><strong>Two anchors</strong>: at <code>RA ∈ [10°, 30°]</code>, one at <code>Dec ≈ −35°</code> and one at <code>Dec ≈ −2°</code>. These sit above/below the main survey body and give the final selection a broader ecliptic-latitude range than any single Dec slice can.</li>
+<li><strong>Three RA-spread picks</strong> from the main box <code>RA ∈ [330°, 360°] ∪ [0°, 50°]</code>, <code>Dec ∈ [−25°, −10°]</code>: bin the interior-pool pairs in this box into 3 equal-count bins along the wrap-aware RA axis, and in each bin take the median-Dec candidate.</li>
+</ul>
 <p>After filtering, every visit has exactly 3 dithered exposures, PA is uniform within a pair (both visits share a roll), and the nominal RA/Dec centres are pairwise identical. Each pair therefore gives <strong>6 dithered exposures at one (RA, Dec, PA) with two different observation dates</strong>.</p>
 <div class="cell" data-tbl-cap="Funnel from the full HLWAS table down to the candidate pool for selection." data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -310,32 +315,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>positions with exactly 2 visits</td>
-<td>11192</td>
+<td>PASS=(15,16) F158 pairs, MA_TABLE_NUMBER=1007</td>
+<td>11160</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
-<td>… of which PASS pair = (15, 16)</td>
-<td>11160</td>
+<td>… interior (≥ 200 F158 exps within 2° of centre)</td>
+<td>10237</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">5</th>
-<td>… and MA_TABLE_NUMBER = 1007</td>
-<td>11160</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">6</th>
-<td>… inside RA ∈ [330°, 360°] ∪ [0°, 50°], Dec ∈ ...</td>
-<td>3683</td>
-</tr>
-<tr class="even">
-<th data-quarto-table-cell-role="th">7</th>
-<td>… interior (≥ 200 F158 exps within 2° of centre)</td>
-<td>3683</td>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">8</th>
-<td>… selected (5 picks)</td>
+<td>selected pairs (2 anchors + 3 RA-spread)</td>
 <td>5</td>
 </tr>
 </tbody>
@@ -348,7 +338,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="solar-elongation-window" class="level2">
 <h2 class="anchored" data-anchor-id="solar-elongation-window">Solar-elongation window</h2>
 <p>Each selected pair is simulated on a date where the solar elongation of the field is in <strong>[90°, 115°]</strong>, as close to 90° as possible — minimum elongation drives maximum zodiacal brightness, which makes the recovery test conservative (hardest detection), while staying inside Roman’s viewable-zone constraint. The chosen date minimises <code>(elong − 90°)</code> while staying inside the window.</p>
-<div id="20763c2d" class="cell" data-execution_count="3">
+<div id="0253301d" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -361,103 +351,124 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="the-selection" class="level2">
 <h2 class="anchored" data-anchor-id="the-selection">The selection</h2>
-<p>Five pairs were chosen by binning the interior-filtered pool into 5 equal-count bins along the (wrap-aware) RA axis of the selection box and picking the median-Dec pair in each bin.</p>
-<div class="cell" data-tbl-cap="The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. WINDOWS_DOY lists all 2026 day-of-year ranges where the field's solar elongation is inside [90°, 115°]." data-execution_count="4">
+<p>Two anchor picks (southern and northern edge, Dec ≈ −35° and Dec ≈ −2° at RA ≈ 20°) plus three RA-spread picks in the main box at median Dec.</p>
+<div class="cell" data-tbl-cap="The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. SKY_E_PER_PIX_PER_S is the romanisim-predicted F158 zodiacal sky at the pair's (RA, Dec, date), including the 10% stray-light term and the 0.04 e⁻/pix/s F158 thermal background. WINDOWS_DOY lists all 2026 day-of-year ranges where the field's solar elongation is inside [90°, 115°]." data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <style type="text/css">
 </style>
 
-<table id="T_28832" class="caption-top table table-sm table-striped small">
-<caption>The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. WINDOWS_DOY lists all 2026 day-of-year ranges where the field’s solar elongation is inside [90°, 115°].</caption>
+<table id="T_15e2b" class="caption-top table table-sm table-striped small">
+<caption>The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. SKY_E_PER_PIX_PER_S is the romanisim-predicted F158 zodiacal sky at the pair’s (RA, Dec, date), including the 10% stray-light term and the 0.04 e⁻/pix/s F158 thermal background. WINDOWS_DOY lists all 2026 day-of-year ranges where the field’s solar elongation is inside [90°, 115°].</caption>
 <thead>
 <tr class="header">
 <th class="blank level0" data-quarto-table-cell-role="th">&nbsp;</th>
-<th id="T_28832_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">PAIR_ID</th>
-<th id="T_28832_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">RA</th>
-<th id="T_28832_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">DEC</th>
-<th id="T_28832_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">PA</th>
-<th id="T_28832_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">ECL_LON_DEG</th>
-<th id="T_28832_level0_col5" class="col_heading level0 col5" data-quarto-table-cell-role="th">ECL_LAT_DEG</th>
-<th id="T_28832_level0_col6" class="col_heading level0 col6" data-quarto-table-cell-role="th">SIM_DATE</th>
-<th id="T_28832_level0_col7" class="col_heading level0 col7" data-quarto-table-cell-role="th">SOLAR_ELONG_DEG</th>
-<th id="T_28832_level0_col8" class="col_heading level0 col8" data-quarto-table-cell-role="th">WINDOWS_DOY</th>
+<th id="T_15e2b_level0_col0" class="col_heading level0 col0" data-quarto-table-cell-role="th">PAIR_ID</th>
+<th id="T_15e2b_level0_col1" class="col_heading level0 col1" data-quarto-table-cell-role="th">RA</th>
+<th id="T_15e2b_level0_col2" class="col_heading level0 col2" data-quarto-table-cell-role="th">DEC</th>
+<th id="T_15e2b_level0_col3" class="col_heading level0 col3" data-quarto-table-cell-role="th">PA</th>
+<th id="T_15e2b_level0_col4" class="col_heading level0 col4" data-quarto-table-cell-role="th">ECL_LON_DEG</th>
+<th id="T_15e2b_level0_col5" class="col_heading level0 col5" data-quarto-table-cell-role="th">ECL_LAT_DEG</th>
+<th id="T_15e2b_level0_col6" class="col_heading level0 col6" data-quarto-table-cell-role="th">SIM_DATE</th>
+<th id="T_15e2b_level0_col7" class="col_heading level0 col7" data-quarto-table-cell-role="th">SOLAR_ELONG_DEG</th>
+<th id="T_15e2b_level0_col8" class="col_heading level0 col8" data-quarto-table-cell-role="th">SKY_E_PER_PIX_PER_S</th>
+<th id="T_15e2b_level0_col9" class="col_heading level0 col9" data-quarto-table-cell-role="th">WINDOWS_DOY</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<th id="T_28832_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">0</th>
-<td id="T_28832_row0_col0" class="data row0 col0">572</td>
-<td id="T_28832_row0_col1" class="data row0 col1">12.297</td>
-<td id="T_28832_row0_col2" class="data row0 col2">-17.279</td>
-<td id="T_28832_row0_col3" class="data row0 col3">0.0</td>
-<td id="T_28832_row0_col4" class="data row0 col4">4.19</td>
-<td id="T_28832_row0_col5" class="data row0 col5">-20.70</td>
-<td id="T_28832_row0_col6" class="data row0 col6">2026-12-26T00:00:00.000</td>
-<td id="T_28832_row0_col7" class="data row0 col7">90.35</td>
-<td id="T_28832_row0_col8" class="data row0 col8">177-204;333-359</td>
+<th id="T_15e2b_level0_row0" class="row_heading level0 row0" data-quarto-table-cell-role="th">0</th>
+<td id="T_15e2b_row0_col0" class="data row0 col0">2525</td>
+<td id="T_15e2b_row0_col1" class="data row0 col1">20.056</td>
+<td id="T_15e2b_row0_col2" class="data row0 col2">-1.759</td>
+<td id="T_15e2b_row0_col3" class="data row0 col3">0.0</td>
+<td id="T_15e2b_row0_col4" class="data row0 col4">17.84</td>
+<td id="T_15e2b_row0_col5" class="data row0 col5">-9.47</td>
+<td id="T_15e2b_row0_col6" class="data row0 col6">2026-01-08T00:00:00.000</td>
+<td id="T_15e2b_row0_col7" class="data row0 col7">90.50</td>
+<td id="T_15e2b_row0_col8" class="data row0 col8">1.154</td>
+<td id="T_15e2b_row0_col9" class="data row0 col9">0-7;191-217;348-365</td>
 </tr>
 <tr class="even">
-<th id="T_28832_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">1</th>
-<td id="T_28832_row1_col0" class="data row1 col0">925</td>
-<td id="T_28832_row1_col1" class="data row1 col1">20.048</td>
-<td id="T_28832_row1_col2" class="data row1 col2">-17.333</td>
-<td id="T_28832_row1_col3" class="data row1 col3">0.0</td>
-<td id="T_28832_row1_col4" class="data row1 col4">11.45</td>
-<td id="T_28832_row1_col5" class="data row1 col5">-23.80</td>
-<td id="T_28832_row1_col6" class="data row1 col6">2026-07-04T00:00:00.000</td>
-<td id="T_28832_row1_col7" class="data row1 col7">90.21</td>
-<td id="T_28832_row1_col8" class="data row1 col8">0-1;184-212;340-365</td>
+<th id="T_15e2b_level0_row1" class="row_heading level0 row1" data-quarto-table-cell-role="th">1</th>
+<td id="T_15e2b_row1_col0" class="data row1 col0">2550</td>
+<td id="T_15e2b_row1_col1" class="data row1 col1">20.274</td>
+<td id="T_15e2b_row1_col2" class="data row1 col2">-34.864</td>
+<td id="T_15e2b_row1_col3" class="data row1 col3">0.0</td>
+<td id="T_15e2b_row1_col4" class="data row1 col4">2.49</td>
+<td id="T_15e2b_row1_col5" class="data row1 col5">-39.61</td>
+<td id="T_15e2b_row1_col6" class="data row1 col6">2026-06-25T00:00:00.000</td>
+<td id="T_15e2b_row1_col7" class="data row1 col7">90.48</td>
+<td id="T_15e2b_row1_col8" class="data row1 col8">0.590</td>
+<td id="T_15e2b_row1_col9" class="data row1 col9">175-209;325-357</td>
 </tr>
 <tr class="odd">
-<th id="T_28832_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">2</th>
-<td id="T_28832_row2_col0" class="data row2 col0">1939</td>
-<td id="T_28832_row2_col1" class="data row2 col1">42.090</td>
-<td id="T_28832_row2_col2" class="data row2 col2">-17.317</td>
-<td id="T_28832_row2_col3" class="data row2 col3">0.0</td>
-<td id="T_28832_row2_col4" class="data row2 col4">33.48</td>
-<td id="T_28832_row2_col5" class="data row2 col5">-31.85</td>
-<td id="T_28832_row2_col6" class="data row2 col6">2026-07-27T00:00:00.000</td>
-<td id="T_28832_row2_col7" class="data row2 col7">90.12</td>
-<td id="T_28832_row2_col8" class="data row2 col8">0-22;207-237;359-365</td>
+<th id="T_15e2b_level0_row2" class="row_heading level0 row2" data-quarto-table-cell-role="th">2</th>
+<td id="T_15e2b_row2_col0" class="data row2 col0">3316</td>
+<td id="T_15e2b_row2_col1" class="data row2 col1">26.679</td>
+<td id="T_15e2b_row2_col2" class="data row2 col2">-17.312</td>
+<td id="T_15e2b_row2_col3" class="data row2 col3">0.0</td>
+<td id="T_15e2b_row2_col4" class="data row2 col4">17.86</td>
+<td id="T_15e2b_row2_col5" class="data row2 col5">-26.33</td>
+<td id="T_15e2b_row2_col6" class="data row2 col6">2026-07-11T00:00:00.000</td>
+<td id="T_15e2b_row2_col7" class="data row2 col7">90.45</td>
+<td id="T_15e2b_row2_col8" class="data row2 col8">0.735</td>
+<td id="T_15e2b_row2_col9" class="data row2 col9">0-7;191-219;346-365</td>
 </tr>
 <tr class="even">
-<th id="T_28832_level0_row3" class="row_heading level0 row3" data-quarto-table-cell-role="th">3</th>
-<td id="T_28832_row3_col0" class="data row3 col0">2424</td>
-<td id="T_28832_row3_col1" class="data row3 col1">332.525</td>
-<td id="T_28832_row3_col2" class="data row3 col2">-17.348</td>
-<td id="T_28832_row3_col3" class="data row3 col3">0.0</td>
-<td id="T_28832_row3_col4" class="data row3 col4">328.32</td>
-<td id="T_28832_row3_col5" class="data row3 col5">-5.65</td>
-<td id="T_28832_row3_col6" class="data row3 col6">2026-11-21T00:00:00.000</td>
-<td id="T_28832_row3_col7" class="data row3 col7">90.02</td>
-<td id="T_28832_row3_col8" class="data row3 col8">139-164;299-324</td>
+<th id="T_15e2b_level0_row3" class="row_heading level0 row3" data-quarto-table-cell-role="th">3</th>
+<td id="T_15e2b_row3_col0" class="data row3 col0">10101</td>
+<td id="T_15e2b_row3_col1" class="data row3 col1">349.165</td>
+<td id="T_15e2b_row3_col2" class="data row3 col2">-17.325</td>
+<td id="T_15e2b_row3_col3" class="data row3 col3">0.0</td>
+<td id="T_15e2b_row3_col4" class="data row3 col4">343.20</td>
+<td id="T_15e2b_row3_col5" class="data row3 col5">-11.64</td>
+<td id="T_15e2b_row3_col6" class="data row3 col6">2026-12-05T00:00:00.000</td>
+<td id="T_15e2b_row3_col7" class="data row3 col7">90.72</td>
+<td id="T_15e2b_row3_col8" class="data row3 col8">1.084</td>
+<td id="T_15e2b_row3_col9" class="data row3 col9">155-180;314-338</td>
 </tr>
 <tr class="odd">
-<th id="T_28832_level0_row4" class="row_heading level0 row4" data-quarto-table-cell-role="th">4</th>
-<td id="T_28832_row4_col0" class="data row4 col0">3257</td>
-<td id="T_28832_row4_col1" class="data row4 col1">350.684</td>
-<td id="T_28832_row4_col2" class="data row4 col2">-17.304</td>
-<td id="T_28832_row4_col3" class="data row4 col3">0.0</td>
-<td id="T_28832_row4_col4" class="data row4 col4">344.56</td>
-<td id="T_28832_row4_col5" class="data row4 col5">-12.21</td>
-<td id="T_28832_row4_col6" class="data row4 col6">2026-12-07T00:00:00.000</td>
-<td id="T_28832_row4_col7" class="data row4 col7">90.07</td>
-<td id="T_28832_row4_col8" class="data row4 col8">156-182;315-340</td>
+<th id="T_15e2b_level0_row4" class="row_heading level0 row4" data-quarto-table-cell-role="th">4</th>
+<td id="T_15e2b_row4_col0" class="data row4 col0">11119</td>
+<td id="T_15e2b_row4_col1" class="data row4 col1">359.592</td>
+<td id="T_15e2b_row4_col2" class="data row4 col2">-17.287</td>
+<td id="T_15e2b_row4_col3" class="data row4 col3">0.0</td>
+<td id="T_15e2b_row4_col4" class="data row4 col4">352.57</td>
+<td id="T_15e2b_row4_col5" class="data row4 col5">-15.66</td>
+<td id="T_15e2b_row4_col6" class="data row4 col6">2026-06-14T00:00:00.000</td>
+<td id="T_15e2b_row4_col7" class="data row4 col7">90.03</td>
+<td id="T_15e2b_row4_col8" class="data row4 col8">0.963</td>
+<td id="T_15e2b_row4_col9" class="data row4 col9">164-191;323-347</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>The set spans the main-survey RA box from 332.5° across the wrap to 42.1°, with ecliptic latitudes from about −32° to −6°. Within a tight Dec ≈ −17° slice, this gives a mild range of zodiacal conditions while keeping the field well inside the HLWAS footprint at every pick.</p>
+<p>The set spans ecliptic latitudes from −9.5° to −39.6° (via the two anchors) while keeping every pair deep inside the HLWAS footprint. The predicted F158 zodiacal sky rate varies by a factor of ~2 across the five pairs.</p>
 </section>
 <section id="sky-distribution" class="level2">
 <h2 class="anchored" data-anchor-id="sky-distribution">Sky distribution</h2>
-<div id="54677856" class="cell" data-execution_count="5">
+<div id="7e8bb005" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="phase1_pointings_files/figure-html/cell-6-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="HLWAS F158 exposures (grey cloud), (15,16) interior pairs that pass all filters (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed rectangle = the main-survey selection box. The HLWAS F158 footprint is a connected strip through RA = 0° with hard edges; the box sits well inside it."><img src="phase1_pointings_files/figure-html/cell-6-output-1.png" width="898" height="503" alt="HLWAS F158 exposures (grey cloud), (15,16) interior pairs that pass all filters (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed rectangle = the main-survey selection box. The HLWAS F158 footprint is a connected strip through RA = 0° with hard edges; the box sits well inside it." class="figure-img"></a></p>
-<figcaption>HLWAS F158 exposures (grey cloud), (15,16) interior pairs that pass all filters (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed rectangle = the main-survey selection box. The HLWAS F158 footprint is a connected strip through RA = 0° with hard edges; the box sits well inside it.</figcaption>
+<p><a href="phase1_pointings_files/figure-html/cell-6-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="HLWAS F158 exposures (grey cloud), (15,16) interior pairs (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed black rectangle = the main-survey RA-spread box; dotted orange rectangles = the two anchor windows (southern and northern edge)."><img src="phase1_pointings_files/figure-html/cell-6-output-1.png" width="898" height="503" alt="HLWAS F158 exposures (grey cloud), (15,16) interior pairs (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed black rectangle = the main-survey RA-spread box; dotted orange rectangles = the two anchor windows (southern and northern edge)." class="figure-img"></a></p>
+<figcaption>HLWAS F158 exposures (grey cloud), (15,16) interior pairs (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed black rectangle = the main-survey RA-spread box; dotted orange rectangles = the two anchor windows (southern and northern edge).</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="predicted-sky-background" class="level2">
+<h2 class="anchored" data-anchor-id="predicted-sky-background">Predicted sky background</h2>
+<p>For each selected pair we also compute the expected F158 zodiacal sky rate using <code>galsim.roman.getSkyLevel</code>, matching the model romanisim uses internally (the same code path as <code>romanisim-make-image</code> at <code>romanisim.image.simulate_counts:697</code>). We include the 10% stray-light fraction and the 0.04 e⁻/pix/s F158 thermal background, and multiply by the Roman WFI pixel area (0.11″ native).</p>
+<p>As a sanity check, romanisim at the full-run target (RA 10°, Dec 0°, sim-date 2026-01-01) predicts ~1.27 e⁻/pix/s here — matching the measured 1.28 e⁻/pix/s from the full-run L2 files.</p>
+<div id="8330a91e" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="phase1_pointings_files/figure-html/cell-7-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="Predicted F158 sky rate (e⁻/pix/s) for every interior pair at the elongation-optimal date, coloured by pair. The five selected pairs are over-plotted as red stars. Sky level tracks |ecliptic latitude| — the southern anchor (Pair 2550, ecl_lat -39.6°) is near the minimum; the northern anchor (Pair 2525, ecl_lat -9.5°) is near the maximum."><img src="phase1_pointings_files/figure-html/cell-7-output-1.png" width="738" height="468" alt="Predicted F158 sky rate (e⁻/pix/s) for every interior pair at the elongation-optimal date, coloured by pair. The five selected pairs are over-plotted as red stars. Sky level tracks |ecliptic latitude| — the southern anchor (Pair 2550, ecl_lat -39.6°) is near the minimum; the northern anchor (Pair 2525, ecl_lat -9.5°) is near the maximum." class="figure-img"></a></p>
+<figcaption>Predicted F158 sky rate (e⁻/pix/s) for every interior pair at the elongation-optimal date, coloured by pair. The five selected pairs are over-plotted as red stars. Sky level tracks |ecliptic latitude| — the southern anchor (Pair 2550, ecl_lat -39.6°) is near the minimum; the northern anchor (Pair 2525, ecl_lat -9.5°) is near the maximum.</figcaption>
 </figure>
 </div>
 </div>
@@ -466,8 +477,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="the-pointing-level-file" class="level2">
 <h2 class="anchored" data-anchor-id="the-pointing-level-file">The pointing-level file</h2>
 <p><code>catalogs/detection/selected_pointings.ecsv</code> is the artefact Phase 2 consumes. It has one row per <em>dithered exposure</em> — 5 pairs × 2 visits × 3 dithers = 30 rows.</p>
-<div class="cell" data-tbl-cap="The 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to `romanisim-make-image`." data-execution_count="6">
-<div class="cell-output cell-output-display" data-execution_count="6">
+<div class="cell" data-tbl-cap="The 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to `romanisim-make-image`." data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <div>
 
 
@@ -487,428 +498,459 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">PA</th>
 <th data-quarto-table-cell-role="th">SIM_DATE</th>
 <th data-quarto-table-cell-role="th">SOLAR_ELONG_DEG</th>
+<th data-quarto-table-cell-role="th">SKY_E_PER_PIX_PER_S</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
-<td>572</td>
+<td>2525</td>
 <td>15</td>
-<td>316</td>
+<td>547</td>
 <td>1</td>
-<td>12</td>
+<td>17</td>
 <td>1</td>
-<td>12.190580</td>
-<td>-17.180113</td>
+<td>19.955083</td>
+<td>-1.659833</td>
 <td>0.0</td>
-<td>2026-12-26T00:00:00.000</td>
-<td>90.345913</td>
+<td>2026-01-08T00:00:00.000</td>
+<td>90.504554</td>
+<td>1.153952</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
-<td>572</td>
+<td>2525</td>
 <td>15</td>
-<td>316</td>
+<td>547</td>
 <td>1</td>
-<td>12</td>
+<td>17</td>
 <td>2</td>
-<td>12.275382</td>
-<td>-17.258588</td>
+<td>20.035769</td>
+<td>-1.738706</td>
 <td>0.0</td>
-<td>2026-12-26T00:00:00.000</td>
-<td>90.345913</td>
+<td>2026-01-08T00:00:00.000</td>
+<td>90.504554</td>
+<td>1.153952</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
-<td>572</td>
+<td>2525</td>
 <td>15</td>
-<td>316</td>
+<td>547</td>
 <td>1</td>
-<td>12</td>
+<td>17</td>
 <td>3</td>
-<td>12.425471</td>
-<td>-17.397212</td>
+<td>20.178429</td>
+<td>-1.878150</td>
 <td>0.0</td>
-<td>2026-12-26T00:00:00.000</td>
-<td>90.345913</td>
+<td>2026-01-08T00:00:00.000</td>
+<td>90.504554</td>
+<td>1.153952</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>572</td>
+<td>2525</td>
 <td>16</td>
-<td>316</td>
+<td>547</td>
 <td>1</td>
-<td>12</td>
+<td>17</td>
 <td>1</td>
-<td>12.190580</td>
-<td>-17.180113</td>
+<td>19.955083</td>
+<td>-1.659833</td>
 <td>0.0</td>
-<td>2026-12-26T00:00:00.000</td>
-<td>90.345913</td>
+<td>2026-01-08T00:00:00.000</td>
+<td>90.504554</td>
+<td>1.153952</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
-<td>572</td>
+<td>2525</td>
 <td>16</td>
-<td>316</td>
+<td>547</td>
 <td>1</td>
-<td>12</td>
+<td>17</td>
 <td>2</td>
-<td>12.275382</td>
-<td>-17.258588</td>
+<td>20.035769</td>
+<td>-1.738706</td>
 <td>0.0</td>
-<td>2026-12-26T00:00:00.000</td>
-<td>90.345913</td>
+<td>2026-01-08T00:00:00.000</td>
+<td>90.504554</td>
+<td>1.153952</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">5</th>
-<td>572</td>
+<td>2525</td>
 <td>16</td>
-<td>316</td>
+<td>547</td>
 <td>1</td>
-<td>12</td>
+<td>17</td>
 <td>3</td>
-<td>12.425471</td>
-<td>-17.397212</td>
+<td>20.178429</td>
+<td>-1.878150</td>
 <td>0.0</td>
-<td>2026-12-26T00:00:00.000</td>
-<td>90.345913</td>
+<td>2026-01-08T00:00:00.000</td>
+<td>90.504554</td>
+<td>1.153952</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">6</th>
-<td>925</td>
+<td>2550</td>
 <td>15</td>
-<td>383</td>
+<td>145</td>
 <td>1</td>
-<td>3</td>
+<td>16</td>
 <td>1</td>
-<td>19.941716</td>
-<td>-17.234080</td>
+<td>20.149747</td>
+<td>-34.765099</td>
 <td>0.0</td>
-<td>2026-07-04T00:00:00.000</td>
-<td>90.212973</td>
+<td>2026-06-25T00:00:00.000</td>
+<td>90.475376</td>
+<td>0.590420</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">7</th>
-<td>925</td>
+<td>2550</td>
 <td>15</td>
-<td>383</td>
+<td>145</td>
 <td>1</td>
-<td>3</td>
+<td>16</td>
 <td>2</td>
-<td>20.026086</td>
-<td>-17.313039</td>
+<td>20.248275</td>
+<td>-34.843728</td>
 <td>0.0</td>
-<td>2026-07-04T00:00:00.000</td>
-<td>90.212973</td>
+<td>2026-06-25T00:00:00.000</td>
+<td>90.475376</td>
+<td>0.590420</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">8</th>
-<td>925</td>
+<td>2550</td>
 <td>15</td>
-<td>383</td>
+<td>145</td>
 <td>1</td>
+<td>16</td>
 <td>3</td>
-<td>3</td>
-<td>20.175419</td>
-<td>-17.452533</td>
+<td>20.422918</td>
+<td>-34.982543</td>
 <td>0.0</td>
-<td>2026-07-04T00:00:00.000</td>
-<td>90.212973</td>
+<td>2026-06-25T00:00:00.000</td>
+<td>90.475376</td>
+<td>0.590420</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">9</th>
-<td>925</td>
+<td>2550</td>
 <td>16</td>
-<td>383</td>
+<td>145</td>
 <td>1</td>
-<td>3</td>
+<td>16</td>
 <td>1</td>
-<td>19.941716</td>
-<td>-17.234080</td>
+<td>20.149747</td>
+<td>-34.765099</td>
 <td>0.0</td>
-<td>2026-07-04T00:00:00.000</td>
-<td>90.212973</td>
+<td>2026-06-25T00:00:00.000</td>
+<td>90.475376</td>
+<td>0.590420</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">10</th>
-<td>925</td>
+<td>2550</td>
 <td>16</td>
-<td>383</td>
+<td>145</td>
 <td>1</td>
-<td>3</td>
+<td>16</td>
 <td>2</td>
-<td>20.026086</td>
-<td>-17.313039</td>
+<td>20.248275</td>
+<td>-34.843728</td>
 <td>0.0</td>
-<td>2026-07-04T00:00:00.000</td>
-<td>90.212973</td>
+<td>2026-06-25T00:00:00.000</td>
+<td>90.475376</td>
+<td>0.590420</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">11</th>
-<td>925</td>
+<td>2550</td>
 <td>16</td>
-<td>383</td>
+<td>145</td>
 <td>1</td>
+<td>16</td>
 <td>3</td>
-<td>3</td>
-<td>20.175419</td>
-<td>-17.452533</td>
+<td>20.422918</td>
+<td>-34.982543</td>
 <td>0.0</td>
-<td>2026-07-04T00:00:00.000</td>
-<td>90.212973</td>
+<td>2026-06-25T00:00:00.000</td>
+<td>90.475376</td>
+<td>0.590420</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">12</th>
-<td>1939</td>
+<td>3316</td>
 <td>15</td>
-<td>506</td>
+<td>414</td>
 <td>1</td>
-<td>3</td>
+<td>12</td>
 <td>1</td>
-<td>41.983681</td>
-<td>-17.217975</td>
+<td>26.572299</td>
+<td>-17.213850</td>
 <td>0.0</td>
-<td>2026-07-27T00:00:00.000</td>
-<td>90.124777</td>
+<td>2026-07-11T00:00:00.000</td>
+<td>90.448858</td>
+<td>0.734721</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">13</th>
-<td>1939</td>
+<td>3316</td>
 <td>15</td>
-<td>506</td>
+<td>414</td>
 <td>1</td>
-<td>3</td>
+<td>12</td>
 <td>2</td>
-<td>42.068044</td>
-<td>-17.296933</td>
+<td>26.657118</td>
+<td>-17.292325</td>
 <td>0.0</td>
-<td>2026-07-27T00:00:00.000</td>
-<td>90.124777</td>
+<td>2026-07-11T00:00:00.000</td>
+<td>90.448858</td>
+<td>0.734721</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">14</th>
-<td>1939</td>
+<td>3316</td>
 <td>15</td>
-<td>506</td>
+<td>414</td>
 <td>1</td>
+<td>12</td>
 <td>3</td>
-<td>3</td>
-<td>42.217364</td>
-<td>-17.436428</td>
+<td>26.807236</td>
+<td>-17.430948</td>
 <td>0.0</td>
-<td>2026-07-27T00:00:00.000</td>
-<td>90.124777</td>
+<td>2026-07-11T00:00:00.000</td>
+<td>90.448858</td>
+<td>0.734721</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">15</th>
-<td>1939</td>
+<td>3316</td>
 <td>16</td>
-<td>506</td>
+<td>414</td>
 <td>1</td>
-<td>3</td>
+<td>12</td>
 <td>1</td>
-<td>41.983681</td>
-<td>-17.217975</td>
+<td>26.572299</td>
+<td>-17.213850</td>
 <td>0.0</td>
-<td>2026-07-27T00:00:00.000</td>
-<td>90.124777</td>
+<td>2026-07-11T00:00:00.000</td>
+<td>90.448858</td>
+<td>0.734721</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">16</th>
-<td>1939</td>
+<td>3316</td>
 <td>16</td>
-<td>506</td>
+<td>414</td>
 <td>1</td>
-<td>3</td>
+<td>12</td>
 <td>2</td>
-<td>42.068044</td>
-<td>-17.296933</td>
+<td>26.657118</td>
+<td>-17.292325</td>
 <td>0.0</td>
-<td>2026-07-27T00:00:00.000</td>
-<td>90.124777</td>
+<td>2026-07-11T00:00:00.000</td>
+<td>90.448858</td>
+<td>0.734721</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">17</th>
-<td>1939</td>
+<td>3316</td>
 <td>16</td>
-<td>506</td>
+<td>414</td>
 <td>1</td>
+<td>12</td>
 <td>3</td>
-<td>3</td>
-<td>42.217364</td>
-<td>-17.436428</td>
+<td>26.807236</td>
+<td>-17.430948</td>
 <td>0.0</td>
-<td>2026-07-27T00:00:00.000</td>
-<td>90.124777</td>
+<td>2026-07-11T00:00:00.000</td>
+<td>90.448858</td>
+<td>0.734721</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">18</th>
-<td>2424</td>
+<td>10101</td>
 <td>15</td>
-<td>53</td>
+<td>132</td>
 <td>1</td>
-<td>3</td>
+<td>15</td>
 <td>1</td>
-<td>332.419319</td>
-<td>-17.248566</td>
+<td>349.058639</td>
+<td>-17.226019</td>
 <td>0.0</td>
-<td>2026-11-21T00:00:00.000</td>
-<td>90.017597</td>
+<td>2026-12-05T00:00:00.000</td>
+<td>90.715537</td>
+<td>1.084348</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">19</th>
-<td>2424</td>
+<td>10101</td>
 <td>15</td>
-<td>53</td>
+<td>132</td>
 <td>1</td>
-<td>3</td>
+<td>15</td>
 <td>2</td>
-<td>332.503696</td>
-<td>-17.327525</td>
+<td>349.143354</td>
+<td>-17.304647</td>
 <td>0.0</td>
-<td>2026-11-21T00:00:00.000</td>
-<td>90.017597</td>
+<td>2026-12-05T00:00:00.000</td>
+<td>90.715537</td>
+<td>1.084348</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">20</th>
-<td>2424</td>
+<td>10101</td>
 <td>15</td>
-<td>53</td>
+<td>132</td>
 <td>1</td>
+<td>15</td>
 <td>3</td>
-<td>3</td>
-<td>332.653040</td>
-<td>-17.467019</td>
+<td>349.293293</td>
+<td>-17.443561</td>
 <td>0.0</td>
-<td>2026-11-21T00:00:00.000</td>
-<td>90.017597</td>
+<td>2026-12-05T00:00:00.000</td>
+<td>90.715537</td>
+<td>1.084348</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">21</th>
-<td>2424</td>
+<td>10101</td>
 <td>16</td>
-<td>53</td>
+<td>132</td>
 <td>1</td>
-<td>3</td>
+<td>15</td>
 <td>1</td>
-<td>332.419319</td>
-<td>-17.248566</td>
+<td>349.058639</td>
+<td>-17.226019</td>
 <td>0.0</td>
-<td>2026-11-21T00:00:00.000</td>
-<td>90.017597</td>
+<td>2026-12-05T00:00:00.000</td>
+<td>90.715537</td>
+<td>1.084348</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">22</th>
-<td>2424</td>
+<td>10101</td>
 <td>16</td>
-<td>53</td>
+<td>132</td>
 <td>1</td>
-<td>3</td>
+<td>15</td>
 <td>2</td>
-<td>332.503696</td>
-<td>-17.327525</td>
+<td>349.143354</td>
+<td>-17.304647</td>
 <td>0.0</td>
-<td>2026-11-21T00:00:00.000</td>
-<td>90.017597</td>
+<td>2026-12-05T00:00:00.000</td>
+<td>90.715537</td>
+<td>1.084348</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">23</th>
-<td>2424</td>
+<td>10101</td>
 <td>16</td>
-<td>53</td>
+<td>132</td>
 <td>1</td>
+<td>15</td>
 <td>3</td>
-<td>3</td>
-<td>332.653040</td>
-<td>-17.467019</td>
+<td>349.293293</td>
+<td>-17.443561</td>
 <td>0.0</td>
-<td>2026-11-21T00:00:00.000</td>
-<td>90.017597</td>
+<td>2026-12-05T00:00:00.000</td>
+<td>90.715537</td>
+<td>1.084348</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">24</th>
-<td>3257</td>
+<td>11119</td>
 <td>15</td>
-<td>159</td>
+<td>215</td>
 <td>1</td>
+<td>11</td>
 <td>1</td>
-<td>1</td>
-<td>350.577792</td>
-<td>-17.205726</td>
+<td>359.485191</td>
+<td>-17.188176</td>
 <td>0.0</td>
-<td>2026-12-07T00:00:00.000</td>
-<td>90.065381</td>
+<td>2026-06-14T00:00:00.000</td>
+<td>90.031123</td>
+<td>0.962975</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">25</th>
-<td>3257</td>
+<td>11119</td>
 <td>15</td>
-<td>159</td>
+<td>215</td>
 <td>1</td>
-<td>1</td>
+<td>11</td>
 <td>2</td>
-<td>350.662443</td>
-<td>-17.284351</td>
+<td>359.569861</td>
+<td>-17.266820</td>
 <td>0.0</td>
-<td>2026-12-07T00:00:00.000</td>
-<td>90.065381</td>
+<td>2026-06-14T00:00:00.000</td>
+<td>90.031123</td>
+<td>0.962975</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">26</th>
-<td>3257</td>
+<td>11119</td>
 <td>15</td>
-<td>159</td>
+<td>215</td>
 <td>1</td>
-<td>1</td>
+<td>11</td>
 <td>3</td>
-<td>350.812267</td>
-<td>-17.423236</td>
+<td>359.719719</td>
+<td>-17.405752</td>
 <td>0.0</td>
-<td>2026-12-07T00:00:00.000</td>
-<td>90.065381</td>
+<td>2026-06-14T00:00:00.000</td>
+<td>90.031123</td>
+<td>0.962975</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">27</th>
-<td>3257</td>
+<td>11119</td>
 <td>16</td>
-<td>159</td>
+<td>215</td>
 <td>1</td>
+<td>11</td>
 <td>1</td>
-<td>1</td>
-<td>350.577792</td>
-<td>-17.205726</td>
+<td>359.485191</td>
+<td>-17.188176</td>
 <td>0.0</td>
-<td>2026-12-07T00:00:00.000</td>
-<td>90.065381</td>
+<td>2026-06-14T00:00:00.000</td>
+<td>90.031123</td>
+<td>0.962975</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">28</th>
-<td>3257</td>
+<td>11119</td>
 <td>16</td>
-<td>159</td>
+<td>215</td>
 <td>1</td>
-<td>1</td>
+<td>11</td>
 <td>2</td>
-<td>350.662443</td>
-<td>-17.284351</td>
+<td>359.569861</td>
+<td>-17.266820</td>
 <td>0.0</td>
-<td>2026-12-07T00:00:00.000</td>
-<td>90.065381</td>
+<td>2026-06-14T00:00:00.000</td>
+<td>90.031123</td>
+<td>0.962975</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">29</th>
-<td>3257</td>
+<td>11119</td>
 <td>16</td>
-<td>159</td>
+<td>215</td>
 <td>1</td>
-<td>1</td>
+<td>11</td>
 <td>3</td>
-<td>350.812267</td>
-<td>-17.423236</td>
+<td>359.719719</td>
+<td>-17.405752</td>
 <td>0.0</td>
-<td>2026-12-07T00:00:00.000</td>
-<td>90.065381</td>
+<td>2026-06-14T00:00:00.000</td>
+<td>90.031123</td>
+<td>0.962975</td>
 </tr>
 </tbody>
 </table>
@@ -919,8 +961,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="self-checks" class="level2">
 <h2 class="anchored" data-anchor-id="self-checks">Self-checks</h2>
-<div class="cell" data-tbl-cap="End-of-phase assertions on the selection output." data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div class="cell" data-tbl-cap="End-of-phase assertions on the selection output." data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="8">
 <div>
 
 
@@ -951,12 +993,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>all pair centres in Dec box</td>
+<td>southern anchor present (Dec in [-40, -30], RA...</td>
 <td>True</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
-<td>all pair centres in RA box</td>
+<td>northern anchor present (Dec in [-5, 0], RA in...</td>
 <td>True</td>
 </tr>
 <tr class="even">
@@ -977,6 +1019,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <th data-quarto-table-cell-role="th">8</th>
 <td>both visits of a pair share (RA,Dec,PA) at nom...</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>all sky levels positive and &lt; 5 e⁻/pix/s</td>
 <td>True</td>
 </tr>
 </tbody>
@@ -1499,239 +1546,269 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>   revisit mode in HLWAS.</span>
 <span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`MA_TABLE_NUMBER == 1007`</span> (the 107.52 s F158 imaging cadence; the</span>
 <span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a>   only MA table used by the (15,16) re-observations).</span>
-<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Main-survey box:** <span class="in">`RA ∈ [330°, 360°] ∪ [0°, 50°]`</span> and</span>
-<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>   <span class="in">`Dec ∈ [−25°, −10°]`</span>. The HLWAS F158 footprint is a single connected</span>
-<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>   strip running through RA = 0° with hard RA and Dec edges; the box</span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>   is chosen to sit well inside that strip.</span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>**Interior check:** at least 200 F158 exposures sit within 2° of the</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>   pair centre. This drops the remaining near-edge pairs (e.g. along</span>
-<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>   the southern Dec = −25° cut).</span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>After filtering, every visit has exactly 3 dithered exposures, PA is</span>
-<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>uniform within a pair (both visits share a roll), and the nominal RA/Dec</span>
-<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>centres are pairwise identical. Each pair therefore gives **6 dithered</span>
-<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>exposures at one (RA, Dec, PA) with two different observation dates**.</span>
-<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Funnel from the full HLWAS table down to the candidate pool for selection."</span></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
-<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="bu">str</span>(REPO <span class="op">/</span> <span class="st">"scripts/detection"</span>))</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> importlib <span class="im">import</span> import_module</span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>_mod <span class="op">=</span> import_module(<span class="st">"01_select_pointings"</span>)  <span class="co"># reuse circular-mean helper</span></span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>RA_MIN_A, RA_MAX_B <span class="op">=</span> _mod.RA_MIN_A, _mod.RA_MAX_B</span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>DEC_MIN, DEC_MAX <span class="op">=</span> _mod.DEC_MIN, _mod.DEC_MAX</span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>INTERIOR_MIN, INTERIOR_R <span class="op">=</span> _mod.INTERIOR_MIN, _mod.INTERIOR_RADIUS_DEG</span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> Table.read(REPO <span class="op">/</span> <span class="st">"catalogs/HLWAS.sim.ecsv"</span>, <span class="bu">format</span><span class="op">=</span><span class="st">"ascii.ecsv"</span>)</span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>f158 <span class="op">=</span> t[t[<span class="st">"BANDPASS"</span>] <span class="op">==</span> <span class="st">"F158"</span>].to_pandas()</span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>vkey <span class="op">=</span> [<span class="st">"PLAN"</span>, <span class="st">"PASS"</span>, <span class="st">"SEGMENT"</span>, <span class="st">"OBSERVATION"</span>, <span class="st">"VISIT"</span>]</span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>vg <span class="op">=</span> f158.groupby(vkey)</span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a><span class="co"># Wrap-aware visit centres</span></span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>centres_raw <span class="op">=</span> vg[<span class="st">"DEC"</span>].mean().reset_index(name<span class="op">=</span><span class="st">"DEC"</span>)</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>centres_raw[<span class="st">"RA"</span>] <span class="op">=</span> vg[<span class="st">"RA"</span>].<span class="bu">apply</span>(</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>    <span class="kw">lambda</span> s: _mod._circular_mean_deg(s.to_numpy())).values</span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>centres_raw[<span class="st">"ra_r"</span>] <span class="op">=</span> centres_raw[<span class="st">"RA"</span>].<span class="bu">round</span>(<span class="dv">5</span>)</span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>centres_raw[<span class="st">"dec_r"</span>] <span class="op">=</span> centres_raw[<span class="st">"DEC"</span>].<span class="bu">round</span>(<span class="dv">5</span>)</span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>pos_sizes <span class="op">=</span> centres_raw.groupby([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>]).size()</span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>pair_idx <span class="op">=</span> pos_sizes[pos_sizes <span class="op">==</span> <span class="dv">2</span>].index</span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>pair_pass <span class="op">=</span> (centres_raw.set_index([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>]).loc[pair_idx]</span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>             .reset_index().groupby([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>])[<span class="st">"PASS"</span>]</span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>             .<span class="bu">apply</span>(<span class="kw">lambda</span> s: <span class="bu">tuple</span>(<span class="bu">sorted</span>(s.tolist()))))</span>
-<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>n_1516 <span class="op">=</span> <span class="bu">int</span>((pair_pass <span class="op">==</span> (<span class="dv">15</span>, <span class="dv">16</span>)).<span class="bu">sum</span>())</span>
-<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>pairs_1516 <span class="op">=</span> centres_raw.set_index([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>]).loc[</span>
-<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>    pair_pass[pair_pass <span class="op">==</span> (<span class="dv">15</span>, <span class="dv">16</span>)].index].reset_index()</span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="co"># MA table filter (requires merge with raw metadata)</span></span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>vfirst <span class="op">=</span> vg[[<span class="st">"MA_TABLE_NUMBER"</span>]].first().reset_index()</span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>pairs_1516 <span class="op">=</span> pairs_1516.merge(vfirst, on<span class="op">=</span>vkey)</span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>pairs_ma <span class="op">=</span> pairs_1516[pairs_1516[<span class="st">"MA_TABLE_NUMBER"</span>] <span class="op">==</span> <span class="dv">1007</span>]</span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>n_ma <span class="op">=</span> <span class="bu">int</span>((pairs_ma.groupby([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>]).size() <span class="op">==</span> <span class="dv">2</span>).<span class="bu">sum</span>())</span>
-<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a><span class="co"># Main-survey box</span></span>
-<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>in_ra <span class="op">=</span> (pairs_ma[<span class="st">"RA"</span>] <span class="op">&gt;=</span> RA_MIN_A) <span class="op">|</span> (pairs_ma[<span class="st">"RA"</span>] <span class="op">&lt;=</span> RA_MAX_B)</span>
-<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>in_dec <span class="op">=</span> (pairs_ma[<span class="st">"DEC"</span>] <span class="op">&gt;=</span> DEC_MIN) <span class="op">&amp;</span> (pairs_ma[<span class="st">"DEC"</span>] <span class="op">&lt;=</span> DEC_MAX)</span>
-<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>pairs_box <span class="op">=</span> pairs_ma[in_ra <span class="op">&amp;</span> in_dec]</span>
-<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a>pairs_box <span class="op">=</span> pairs_box.groupby([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>]).<span class="bu">filter</span>(<span class="kw">lambda</span> g: <span class="bu">len</span>(g) <span class="op">==</span> <span class="dv">2</span>)</span>
-<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a>n_box <span class="op">=</span> pairs_box.groupby([<span class="st">"ra_r"</span>, <span class="st">"dec_r"</span>]).ngroups</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Interior check:** at least 200 F158 exposures sit within 2° of the</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>   pair centre. Drops phantom centres and near-edge pairs.</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>Selection then picks from this pool:</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Two anchors**: at <span class="in">`RA ∈ [10°, 30°]`</span>, one at <span class="in">`Dec ≈ −35°`</span> and one at</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>  <span class="in">`Dec ≈ −2°`</span>. These sit above/below the main survey body and give the</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>  final selection a broader ecliptic-latitude range than any single</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>  Dec slice can.</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Three RA-spread picks** from the main box <span class="in">`RA ∈ [330°, 360°] ∪ [0°, 50°]`</span>,</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a>  <span class="in">`Dec ∈ [−25°, −10°]`</span>: bin the interior-pool pairs in this box into 3</span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>  equal-count bins along the wrap-aware RA axis, and in each bin take</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a>  the median-Dec candidate.</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>After filtering, every visit has exactly 3 dithered exposures, PA is</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>uniform within a pair (both visits share a roll), and the nominal RA/Dec</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>centres are pairwise identical. Each pair therefore gives **6 dithered</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>exposures at one (RA, Dec, PA) with two different observation dates**.</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Funnel from the full HLWAS table down to the candidate pool for selection."</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a>sys.path.insert(<span class="dv">0</span>, <span class="bu">str</span>(REPO <span class="op">/</span> <span class="st">"scripts/detection"</span>))</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> importlib <span class="im">import</span> import_module</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a>_mod <span class="op">=</span> import_module(<span class="st">"01_select_pointings"</span>)</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>RA_MIN_A, RA_MAX_B <span class="op">=</span> _mod.RA_MIN_A, _mod.RA_MAX_B</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>DEC_MIN, DEC_MAX <span class="op">=</span> _mod.DEC_MIN, _mod.DEC_MAX</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>INTERIOR_MIN, INTERIOR_R <span class="op">=</span> _mod.INTERIOR_MIN, _mod.INTERIOR_RADIUS_DEG</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>ANCHORS <span class="op">=</span> _mod.ANCHORS</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> Table.read(REPO <span class="op">/</span> <span class="st">"catalogs/HLWAS.sim.ecsv"</span>, <span class="bu">format</span><span class="op">=</span><span class="st">"ascii.ecsv"</span>)</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>f158 <span class="op">=</span> t[t[<span class="st">"BANDPASS"</span>] <span class="op">==</span> <span class="st">"F158"</span>].to_pandas()</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a>vkey <span class="op">=</span> [<span class="st">"PLAN"</span>, <span class="st">"PASS"</span>, <span class="st">"SEGMENT"</span>, <span class="st">"OBSERVATION"</span>, <span class="st">"VISIT"</span>]</span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>vg <span class="op">=</span> f158.groupby(vkey)</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="co"># Replay the selection pipeline to report pool sizes</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>pairs_pool, _ <span class="op">=</span> _mod.load_pair_candidates()</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>n_global <span class="op">=</span> pairs_pool[<span class="st">"PAIR_ID"</span>].nunique()</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>pairs_pool <span class="op">=</span> _mod.apply_interior_filter(pairs_pool, f158)</span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>n_interior <span class="op">=</span> pairs_pool[<span class="st">"PAIR_ID"</span>].nunique()</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a>funnel <span class="op">=</span> pd.DataFrame([</span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"HLWAS.sim.ecsv — all rows"</span>,                           <span class="bu">len</span>(t)),</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"F158 rows"</span>,                                            <span class="bu">len</span>(f158)),</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"F158 visits (3-dither groups)"</span>,                       <span class="bu">len</span>(vg)),</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"PASS=(15,16) F158 pairs, MA_TABLE_NUMBER=1007"</span>,       n_global),</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>    (<span class="ss">f"… interior (≥ </span><span class="sc">{</span>INTERIOR_MIN<span class="sc">}</span><span class="ss"> F158 exps within "</span></span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>     <span class="ss">f"</span><span class="sc">{</span>INTERIOR_R<span class="sc">:.0f}</span><span class="ss">° of centre)"</span>,                        n_interior),</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"selected pairs (2 anchors + 3 RA-spread)"</span>,            <span class="bu">len</span>(PAIRS)),</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a>], columns<span class="op">=</span>[<span class="st">"filter step"</span>, <span class="st">"count"</span>])</span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>funnel</span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-107"><a href="#cb2-107" aria-hidden="true" tabindex="-1"></a><span class="fu">## Solar-elongation window</span></span>
 <span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the final result to report the interior-filtered count</span></span>
-<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>n_final <span class="op">=</span> Table.read(</span>
-<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="st">"catalogs/detection/selected_pairs.ecsv"</span>,</span>
-<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>    <span class="bu">format</span><span class="op">=</span><span class="st">"ascii.ecsv"</span>).to_pandas().shape[<span class="dv">0</span>]  <span class="co"># = N selected</span></span>
-<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>n_interior <span class="op">=</span> <span class="bu">len</span>(PAIRS)  <span class="co"># 5 selected — but we want the pool size</span></span>
-<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a><span class="co"># Reconstruct the pool size by calling the script helper:</span></span>
-<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>pairs_pool, _ <span class="op">=</span> _mod.load_pair_candidates()</span>
-<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>pairs_pool <span class="op">=</span> _mod.apply_interior_filter(pairs_pool, f158)</span>
-<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>n_interior_pool <span class="op">=</span> pairs_pool[<span class="st">"PAIR_ID"</span>].nunique()</span>
-<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a>funnel <span class="op">=</span> pd.DataFrame([</span>
-<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"HLWAS.sim.ecsv — all rows"</span>,                        <span class="bu">len</span>(t)),</span>
-<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"F158 rows"</span>,                                         <span class="bu">len</span>(f158)),</span>
-<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"F158 visits (3-dither groups)"</span>,                    <span class="bu">len</span>(vg)),</span>
-<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"positions with exactly 2 visits"</span>,                  <span class="bu">len</span>(pair_idx)),</span>
-<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"… of which PASS pair = (15, 16)"</span>,                  n_1516),</span>
-<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"… and MA_TABLE_NUMBER = 1007"</span>,                     n_ma),</span>
-<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a>    (<span class="ss">f"… inside RA ∈ [</span><span class="sc">{</span>RA_MIN_A<span class="sc">:.0f}</span><span class="ss">°, 360°] ∪ [0°, "</span></span>
-<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a>     <span class="ss">f"</span><span class="sc">{</span>RA_MAX_B<span class="sc">:.0f}</span><span class="ss">°], Dec ∈ [</span><span class="sc">{</span>DEC_MIN<span class="sc">:+.0f}</span><span class="ss">°, </span><span class="sc">{</span>DEC_MAX<span class="sc">:+.0f}</span><span class="ss">°]"</span>,   n_box),</span>
-<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>    (<span class="ss">f"… interior (≥ </span><span class="sc">{</span>INTERIOR_MIN<span class="sc">}</span><span class="ss"> F158 exps within "</span></span>
-<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>     <span class="ss">f"</span><span class="sc">{</span>INTERIOR_R<span class="sc">:.0f}</span><span class="ss">° of centre)"</span>,                    n_interior_pool),</span>
-<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>    (<span class="ss">f"… selected (</span><span class="sc">{</span>n_final<span class="sc">}</span><span class="ss"> picks)"</span>,                    n_final),</span>
-<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>], columns<span class="op">=</span>[<span class="st">"filter step"</span>, <span class="st">"count"</span>])</span>
-<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a>funnel</span>
-<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a><span class="fu">## Solar-elongation window</span></span>
-<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>Each selected pair is simulated on a date where the solar elongation of</span>
-<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>the field is in **[90°, 115°]**, as close to 90° as possible — minimum</span>
-<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>elongation drives maximum zodiacal brightness, which makes the recovery</span>
-<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>test conservative (hardest detection), while staying inside Roman's</span>
-<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a>viewable-zone constraint. The chosen date minimises <span class="in">`(elong − 90°)`</span></span>
-<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>while staying inside the window.</span>
-<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Solar elongation vs day of year 2026 for the five selected pairs. Grey band = [90°, 115°]; filled dot = the chosen simulation date (closest to 90° inside the window). Each pair has two windows per year; we pick the first-hit day for reproducibility."</span></span>
-<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> Time(<span class="ss">f"</span><span class="sc">{</span>YEAR<span class="sc">}</span><span class="ss">-01-01T00:00:00"</span>, scale<span class="op">=</span><span class="st">"utc"</span>)</span>
-<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a>doys <span class="op">=</span> np.arange(<span class="dv">0</span>, <span class="dv">366</span>)</span>
-<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a>times <span class="op">=</span> start <span class="op">+</span> doys <span class="op">*</span> u.day</span>
-<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>sun <span class="op">=</span> get_sun(times)</span>
-<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
-<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a>cmap <span class="op">=</span> plt.get_cmap(<span class="st">"tab10"</span>)</span>
-<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, prow <span class="kw">in</span> PAIRS.iterrows():</span>
-<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a>    tgt <span class="op">=</span> SkyCoord(ra<span class="op">=</span>prow[<span class="st">"RA"</span>] <span class="op">*</span> u.deg, dec<span class="op">=</span>prow[<span class="st">"DEC"</span>] <span class="op">*</span> u.deg)</span>
-<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>    elong <span class="op">=</span> sun.separation(tgt).deg</span>
-<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a>    ax.plot(doys, elong, color<span class="op">=</span>cmap(i <span class="op">%</span> <span class="dv">10</span>),</span>
-<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="ss">f"pair </span><span class="sc">{</span><span class="bu">int</span>(prow[<span class="st">'PAIR_ID'</span>])<span class="sc">}</span><span class="ss"> "</span></span>
-<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>                  <span class="ss">f"(RA=</span><span class="sc">{</span>prow[<span class="st">'RA'</span>]<span class="sc">:.1f}</span><span class="ss">°, Dec=</span><span class="sc">{</span>prow[<span class="st">'DEC'</span>]<span class="sc">:.1f}</span><span class="ss">°, "</span></span>
-<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>                  <span class="ss">f"ecl_lat=</span><span class="sc">{</span>prow[<span class="st">'ECL_LAT_DEG'</span>]<span class="sc">:+.1f}</span><span class="ss">°)"</span>)</span>
-<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> prow[<span class="st">"SIM_DATE"</span>]:</span>
-<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> (Time(prow[<span class="st">"SIM_DATE"</span>]) <span class="op">-</span> start).jd</span>
-<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>        ax.plot(d, prow[<span class="st">"SOLAR_ELONG_DEG"</span>], <span class="st">"o"</span>, color<span class="op">=</span>cmap(i <span class="op">%</span> <span class="dv">10</span>),</span>
-<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>                markersize<span class="op">=</span><span class="dv">10</span>, markeredgecolor<span class="op">=</span><span class="st">"k"</span>)</span>
-<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>ax.axhspan(ELONG_MIN, ELONG_MAX, color<span class="op">=</span><span class="st">"k"</span>, alpha<span class="op">=</span><span class="fl">0.08</span>,</span>
-<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"[</span><span class="sc">{</span>ELONG_MIN<span class="sc">:.0f}</span><span class="ss">°, </span><span class="sc">{</span>ELONG_MAX<span class="sc">:.0f}</span><span class="ss">°]"</span>)</span>
-<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>ax.axhline(ELONG_MIN, color<span class="op">=</span><span class="st">"k"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">0.7</span>)</span>
-<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>ax.axhline(ELONG_MAX, color<span class="op">=</span><span class="st">"k"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">0.7</span>)</span>
-<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="ss">f"Day of year </span><span class="sc">{</span>YEAR<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Solar elongation (deg)"</span>)</span>
-<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="dv">180</span>)</span>
-<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
-<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a><span class="fu">## The selection</span></span>
-<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a>Five pairs were chosen by binning the interior-filtered pool into 5</span>
-<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a>equal-count bins along the (wrap-aware) RA axis of the selection box</span>
-<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a>and picking the median-Dec pair in each bin.</span>
-<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. WINDOWS_DOY lists all 2026 day-of-year ranges where the field's solar elongation is inside [90°, 115°]."</span></span>
-<span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a>PAIRS[[<span class="st">"PAIR_ID"</span>, <span class="st">"RA"</span>, <span class="st">"DEC"</span>, <span class="st">"PA"</span>, <span class="st">"ECL_LON_DEG"</span>, <span class="st">"ECL_LAT_DEG"</span>,</span>
-<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a>        <span class="st">"SIM_DATE"</span>, <span class="st">"SOLAR_ELONG_DEG"</span>, <span class="st">"WINDOWS_DOY"</span>]].style.<span class="bu">format</span>(</span>
-<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"RA"</span>: <span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>, <span class="st">"DEC"</span>: <span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>, <span class="st">"PA"</span>: <span class="st">"</span><span class="sc">{:.1f}</span><span class="st">"</span>,</span>
-<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a>     <span class="st">"ECL_LON_DEG"</span>: <span class="st">"</span><span class="sc">{:.2f}</span><span class="st">"</span>, <span class="st">"ECL_LAT_DEG"</span>: <span class="st">"</span><span class="sc">{:+.2f}</span><span class="st">"</span>,</span>
-<span id="cb2-195"><a href="#cb2-195" aria-hidden="true" tabindex="-1"></a>     <span class="st">"SOLAR_ELONG_DEG"</span>: <span class="st">"</span><span class="sc">{:.2f}</span><span class="st">"</span>})</span>
-<span id="cb2-196"><a href="#cb2-196" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-197"><a href="#cb2-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-198"><a href="#cb2-198" aria-hidden="true" tabindex="-1"></a>The set spans the main-survey RA box from 332.5° across the wrap to</span>
-<span id="cb2-199"><a href="#cb2-199" aria-hidden="true" tabindex="-1"></a>42.1°, with ecliptic latitudes from about −32° to −6°. Within a tight</span>
-<span id="cb2-200"><a href="#cb2-200" aria-hidden="true" tabindex="-1"></a>Dec ≈ −17° slice, this gives a mild range of zodiacal conditions while</span>
-<span id="cb2-201"><a href="#cb2-201" aria-hidden="true" tabindex="-1"></a>keeping the field well inside the HLWAS footprint at every pick.</span>
-<span id="cb2-202"><a href="#cb2-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sky distribution</span></span>
-<span id="cb2-204"><a href="#cb2-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-208"><a href="#cb2-208" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-209"><a href="#cb2-209" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "HLWAS F158 exposures (grey cloud), (15,16) interior pairs that pass all filters (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed rectangle = the main-survey selection box. The HLWAS F158 footprint is a connected strip through RA = 0° with hard edges; the box sits well inside it."</span></span>
-<span id="cb2-210"><a href="#cb2-210" aria-hidden="true" tabindex="-1"></a>pool_centres <span class="op">=</span> pairs_pool.groupby(<span class="st">"PAIR_ID"</span>)[[<span class="st">"RA"</span>, <span class="st">"DEC"</span>]].first()</span>
-<span id="cb2-211"><a href="#cb2-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-212"><a href="#cb2-212" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">6</span>))</span>
-<span id="cb2-213"><a href="#cb2-213" aria-hidden="true" tabindex="-1"></a>ax.scatter(f158[<span class="st">"RA"</span>], f158[<span class="st">"DEC"</span>], s<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">"lightgray"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span id="cb2-214"><a href="#cb2-214" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span><span class="bu">len</span>(f158)<span class="sc">:,}</span><span class="ss"> HLWAS F158 exposures (all sky)"</span>)</span>
-<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a>ax.scatter(pool_centres[<span class="st">"RA"</span>], pool_centres[<span class="st">"DEC"</span>], s<span class="op">=</span><span class="dv">6</span>, color<span class="op">=</span><span class="st">"tab:blue"</span>,</span>
-<span id="cb2-216"><a href="#cb2-216" aria-hidden="true" tabindex="-1"></a>           alpha<span class="op">=</span><span class="fl">0.5</span>,</span>
-<span id="cb2-217"><a href="#cb2-217" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span><span class="bu">len</span>(pool_centres)<span class="sc">}</span><span class="ss"> (15,16) interior pairs in box"</span>)</span>
-<span id="cb2-218"><a href="#cb2-218" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, prow <span class="kw">in</span> PAIRS.iterrows():</span>
-<span id="cb2-219"><a href="#cb2-219" aria-hidden="true" tabindex="-1"></a>    ax.scatter(prow[<span class="st">"RA"</span>], prow[<span class="st">"DEC"</span>], s<span class="op">=</span><span class="dv">140</span>, marker<span class="op">=</span><span class="st">"*"</span>,</span>
-<span id="cb2-220"><a href="#cb2-220" aria-hidden="true" tabindex="-1"></a>               color<span class="op">=</span><span class="st">"tab:red"</span>, edgecolor<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">0.6</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
-<span id="cb2-221"><a href="#cb2-221" aria-hidden="true" tabindex="-1"></a>    ax.annotate(<span class="ss">f" </span><span class="sc">{</span><span class="bu">int</span>(prow[<span class="st">'PAIR_ID'</span>])<span class="sc">}</span><span class="ss">"</span>,</span>
-<span id="cb2-222"><a href="#cb2-222" aria-hidden="true" tabindex="-1"></a>                (prow[<span class="st">"RA"</span>], prow[<span class="st">"DEC"</span>]), fontsize<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb2-223"><a href="#cb2-223" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ra_lo, ra_hi <span class="kw">in</span> [(RA_MIN_A, <span class="fl">360.0</span>), (<span class="fl">0.0</span>, RA_MAX_B)]:</span>
-<span id="cb2-224"><a href="#cb2-224" aria-hidden="true" tabindex="-1"></a>    ax.plot([ra_lo, ra_hi, ra_hi, ra_lo, ra_lo],</span>
-<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a>            [DEC_MIN, DEC_MIN, DEC_MAX, DEC_MAX, DEC_MIN],</span>
-<span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">"k"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.0</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
-<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"RA (deg)"</span>)</span>
-<span id="cb2-228"><a href="#cb2-228" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Dec (deg)"</span>)</span>
-<span id="cb2-229"><a href="#cb2-229" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="dv">360</span>, <span class="dv">0</span>)</span>
-<span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
-<span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"lower right"</span>, markerscale<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-234"><a href="#cb2-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-235"><a href="#cb2-235" aria-hidden="true" tabindex="-1"></a><span class="fu">## The pointing-level file</span></span>
-<span id="cb2-236"><a href="#cb2-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-237"><a href="#cb2-237" aria-hidden="true" tabindex="-1"></a><span class="in">`catalogs/detection/selected_pointings.ecsv`</span> is the artefact Phase 2</span>
-<span id="cb2-238"><a href="#cb2-238" aria-hidden="true" tabindex="-1"></a>consumes. It has one row per *dithered exposure* — 5 pairs × 2 visits ×</span>
-<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a>3 dithers = 30 rows.</span>
-<span id="cb2-240"><a href="#cb2-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-243"><a href="#cb2-243" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-244"><a href="#cb2-244" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-245"><a href="#cb2-245" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "The 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to `romanisim-make-image`."</span></span>
-<span id="cb2-246"><a href="#cb2-246" aria-hidden="true" tabindex="-1"></a>POINTINGS[[<span class="st">"PAIR_ID"</span>, <span class="st">"PASS"</span>, <span class="st">"SEGMENT"</span>, <span class="st">"OBSERVATION"</span>, <span class="st">"VISIT"</span>, <span class="st">"EXPOSURE"</span>,</span>
-<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a>           <span class="st">"RA"</span>, <span class="st">"DEC"</span>, <span class="st">"PA"</span>, <span class="st">"SIM_DATE"</span>, <span class="st">"SOLAR_ELONG_DEG"</span>]]</span>
-<span id="cb2-248"><a href="#cb2-248" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-249"><a href="#cb2-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-250"><a href="#cb2-250" aria-hidden="true" tabindex="-1"></a><span class="fu">## Self-checks</span></span>
-<span id="cb2-251"><a href="#cb2-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-254"><a href="#cb2-254" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-255"><a href="#cb2-255" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-256"><a href="#cb2-256" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "End-of-phase assertions on the selection output."</span></span>
-<span id="cb2-257"><a href="#cb2-257" aria-hidden="true" tabindex="-1"></a>visits <span class="op">=</span> POINTINGS.drop_duplicates(</span>
-<span id="cb2-258"><a href="#cb2-258" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"PAIR_ID"</span>, <span class="st">"PASS"</span>, <span class="st">"SEGMENT"</span>, <span class="st">"OBSERVATION"</span>, <span class="st">"VISIT"</span>])</span>
-<span id="cb2-259"><a href="#cb2-259" aria-hidden="true" tabindex="-1"></a>checks <span class="op">=</span> [</span>
-<span id="cb2-260"><a href="#cb2-260" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"5 pairs selected"</span>,                       <span class="bu">len</span>(PAIRS) <span class="op">==</span> <span class="dv">5</span>),</span>
-<span id="cb2-261"><a href="#cb2-261" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"10 visits (2 per pair)"</span>,                 <span class="bu">len</span>(visits) <span class="op">==</span> <span class="dv">10</span>),</span>
-<span id="cb2-262"><a href="#cb2-262" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"30 pointings (3 dithers per visit)"</span>,     <span class="bu">len</span>(POINTINGS) <span class="op">==</span> <span class="dv">30</span>),</span>
-<span id="cb2-263"><a href="#cb2-263" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all pair centres in Dec box"</span>,</span>
-<span id="cb2-264"><a href="#cb2-264" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(PAIRS[<span class="st">"DEC"</span>].between(DEC_MIN, DEC_MAX).<span class="bu">all</span>())),</span>
-<span id="cb2-265"><a href="#cb2-265" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all pair centres in RA box"</span>,</span>
-<span id="cb2-266"><a href="#cb2-266" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(((PAIRS[<span class="st">"RA"</span>] <span class="op">&gt;=</span> RA_MIN_A) <span class="op">|</span> (PAIRS[<span class="st">"RA"</span>] <span class="op">&lt;=</span> RA_MAX_B)).<span class="bu">all</span>())),</span>
-<span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all MA_TABLE_NUMBER = 1007"</span>,</span>
-<span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((POINTINGS[<span class="st">"MA_TABLE_NUMBER"</span>] <span class="op">==</span> <span class="dv">1007</span>).<span class="bu">all</span>())),</span>
-<span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all elongations in [90, 115]"</span>,</span>
-<span id="cb2-270"><a href="#cb2-270" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(PAIRS[<span class="st">"SOLAR_ELONG_DEG"</span>].between(ELONG_MIN, ELONG_MAX).<span class="bu">all</span>())),</span>
-<span id="cb2-271"><a href="#cb2-271" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pair centres pairwise distinct"</span>,</span>
-<span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a>     PAIRS[[<span class="st">"RA"</span>, <span class="st">"DEC"</span>]].<span class="bu">round</span>(<span class="dv">3</span>).drop_duplicates().shape[<span class="dv">0</span>] <span class="op">==</span> <span class="dv">5</span>),</span>
-<span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"both visits of a pair share (RA,Dec,PA) at nominal centres"</span>,</span>
-<span id="cb2-274"><a href="#cb2-274" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(visits.groupby(<span class="st">"PAIR_ID"</span>)[[<span class="st">"RA"</span>, <span class="st">"DEC"</span>, <span class="st">"PA"</span>]]</span>
-<span id="cb2-275"><a href="#cb2-275" aria-hidden="true" tabindex="-1"></a>            .nunique().eq(<span class="dv">1</span>).<span class="bu">all</span>(axis<span class="op">=</span><span class="va">None</span>))),</span>
-<span id="cb2-276"><a href="#cb2-276" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb2-277"><a href="#cb2-277" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(checks, columns<span class="op">=</span>[<span class="st">"check"</span>, <span class="st">"pass"</span>])</span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a>Each selected pair is simulated on a date where the solar elongation of</span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a>the field is in **[90°, 115°]**, as close to 90° as possible — minimum</span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>elongation drives maximum zodiacal brightness, which makes the recovery</span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>test conservative (hardest detection), while staying inside Roman's</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>viewable-zone constraint. The chosen date minimises <span class="in">`(elong − 90°)`</span></span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>while staying inside the window.</span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Solar elongation vs day of year 2026 for the five selected pairs. Grey band = [90°, 115°]; filled dot = the chosen simulation date (closest to 90° inside the window). Each pair has two windows per year; we pick the first-hit day for reproducibility."</span></span>
+<span id="cb2-121"><a href="#cb2-121" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> Time(<span class="ss">f"</span><span class="sc">{</span>YEAR<span class="sc">}</span><span class="ss">-01-01T00:00:00"</span>, scale<span class="op">=</span><span class="st">"utc"</span>)</span>
+<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a>doys <span class="op">=</span> np.arange(<span class="dv">0</span>, <span class="dv">366</span>)</span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a>times <span class="op">=</span> start <span class="op">+</span> doys <span class="op">*</span> u.day</span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a>sun <span class="op">=</span> get_sun(times)</span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a>cmap <span class="op">=</span> plt.get_cmap(<span class="st">"tab10"</span>)</span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, prow <span class="kw">in</span> PAIRS.iterrows():</span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a>    tgt <span class="op">=</span> SkyCoord(ra<span class="op">=</span>prow[<span class="st">"RA"</span>] <span class="op">*</span> u.deg, dec<span class="op">=</span>prow[<span class="st">"DEC"</span>] <span class="op">*</span> u.deg)</span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a>    elong <span class="op">=</span> sun.separation(tgt).deg</span>
+<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a>    ax.plot(doys, elong, color<span class="op">=</span>cmap(i <span class="op">%</span> <span class="dv">10</span>),</span>
+<span id="cb2-132"><a href="#cb2-132" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="ss">f"pair </span><span class="sc">{</span><span class="bu">int</span>(prow[<span class="st">'PAIR_ID'</span>])<span class="sc">}</span><span class="ss"> "</span></span>
+<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a>                  <span class="ss">f"(RA=</span><span class="sc">{</span>prow[<span class="st">'RA'</span>]<span class="sc">:.1f}</span><span class="ss">°, Dec=</span><span class="sc">{</span>prow[<span class="st">'DEC'</span>]<span class="sc">:.1f}</span><span class="ss">°, "</span></span>
+<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a>                  <span class="ss">f"ecl_lat=</span><span class="sc">{</span>prow[<span class="st">'ECL_LAT_DEG'</span>]<span class="sc">:+.1f}</span><span class="ss">°)"</span>)</span>
+<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> prow[<span class="st">"SIM_DATE"</span>]:</span>
+<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a>        d <span class="op">=</span> (Time(prow[<span class="st">"SIM_DATE"</span>]) <span class="op">-</span> start).jd</span>
+<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a>        ax.plot(d, prow[<span class="st">"SOLAR_ELONG_DEG"</span>], <span class="st">"o"</span>, color<span class="op">=</span>cmap(i <span class="op">%</span> <span class="dv">10</span>),</span>
+<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>                markersize<span class="op">=</span><span class="dv">10</span>, markeredgecolor<span class="op">=</span><span class="st">"k"</span>)</span>
+<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>ax.axhspan(ELONG_MIN, ELONG_MAX, color<span class="op">=</span><span class="st">"k"</span>, alpha<span class="op">=</span><span class="fl">0.08</span>,</span>
+<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"[</span><span class="sc">{</span>ELONG_MIN<span class="sc">:.0f}</span><span class="ss">°, </span><span class="sc">{</span>ELONG_MAX<span class="sc">:.0f}</span><span class="ss">°]"</span>)</span>
+<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>ax.axhline(ELONG_MIN, color<span class="op">=</span><span class="st">"k"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a>ax.axhline(ELONG_MAX, color<span class="op">=</span><span class="st">"k"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="ss">f"Day of year </span><span class="sc">{</span>YEAR<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Solar elongation (deg)"</span>)</span>
+<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="dv">180</span>)</span>
+<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>ax.legend(fontsize<span class="op">=</span><span class="dv">8</span>, loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
+<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a><span class="fu">## The selection</span></span>
+<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>Two anchor picks (southern and northern edge, Dec ≈ −35° and Dec ≈ −2°</span>
+<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a>at RA ≈ 20°) plus three RA-spread picks in the main box at median Dec.</span>
+<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. SKY_E_PER_PIX_PER_S is the romanisim-predicted F158 zodiacal sky at the pair's (RA, Dec, date), including the 10% stray-light term and the 0.04 e⁻/pix/s F158 thermal background. WINDOWS_DOY lists all 2026 day-of-year ranges where the field's solar elongation is inside [90°, 115°]."</span></span>
+<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>PAIRS[[<span class="st">"PAIR_ID"</span>, <span class="st">"RA"</span>, <span class="st">"DEC"</span>, <span class="st">"PA"</span>, <span class="st">"ECL_LON_DEG"</span>, <span class="st">"ECL_LAT_DEG"</span>,</span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>       <span class="st">"SIM_DATE"</span>, <span class="st">"SOLAR_ELONG_DEG"</span>, <span class="st">"SKY_E_PER_PIX_PER_S"</span>,</span>
+<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>       <span class="st">"WINDOWS_DOY"</span>]].style.<span class="bu">format</span>(</span>
+<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>    {<span class="st">"RA"</span>: <span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>, <span class="st">"DEC"</span>: <span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>, <span class="st">"PA"</span>: <span class="st">"</span><span class="sc">{:.1f}</span><span class="st">"</span>,</span>
+<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>     <span class="st">"ECL_LON_DEG"</span>: <span class="st">"</span><span class="sc">{:.2f}</span><span class="st">"</span>, <span class="st">"ECL_LAT_DEG"</span>: <span class="st">"</span><span class="sc">{:+.2f}</span><span class="st">"</span>,</span>
+<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>     <span class="st">"SOLAR_ELONG_DEG"</span>: <span class="st">"</span><span class="sc">{:.2f}</span><span class="st">"</span>,</span>
+<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>     <span class="st">"SKY_E_PER_PIX_PER_S"</span>: <span class="st">"</span><span class="sc">{:.3f}</span><span class="st">"</span>})</span>
+<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>The set spans ecliptic latitudes from −9.5° to −39.6° (via the two</span>
+<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>anchors) while keeping every pair deep inside the HLWAS footprint.</span>
+<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a>The predicted F158 zodiacal sky rate varies by a factor of ~2 across</span>
+<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>the five pairs.</span>
+<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## Sky distribution</span></span>
+<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "HLWAS F158 exposures (grey cloud), (15,16) interior pairs (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed black rectangle = the main-survey RA-spread box; dotted orange rectangles = the two anchor windows (southern and northern edge)."</span></span>
+<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a>pool_centres <span class="op">=</span> pairs_pool.groupby(<span class="st">"PAIR_ID"</span>)[[<span class="st">"RA"</span>, <span class="st">"DEC"</span>]].first()</span>
+<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">11</span>, <span class="dv">6</span>))</span>
+<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a>ax.scatter(f158[<span class="st">"RA"</span>], f158[<span class="st">"DEC"</span>], s<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">"lightgray"</span>, alpha<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span><span class="bu">len</span>(f158)<span class="sc">:,}</span><span class="ss"> HLWAS F158 exposures (all sky)"</span>)</span>
+<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a>ax.scatter(pool_centres[<span class="st">"RA"</span>], pool_centres[<span class="st">"DEC"</span>], s<span class="op">=</span><span class="dv">6</span>, color<span class="op">=</span><span class="st">"tab:blue"</span>,</span>
+<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a>           alpha<span class="op">=</span><span class="fl">0.5</span>,</span>
+<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="ss">f"</span><span class="sc">{</span><span class="bu">len</span>(pool_centres)<span class="sc">}</span><span class="ss"> (15,16) interior pairs"</span>)</span>
+<span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, prow <span class="kw">in</span> PAIRS.iterrows():</span>
+<span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a>    ax.scatter(prow[<span class="st">"RA"</span>], prow[<span class="st">"DEC"</span>], s<span class="op">=</span><span class="dv">140</span>, marker<span class="op">=</span><span class="st">"*"</span>,</span>
+<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a>               color<span class="op">=</span><span class="st">"tab:red"</span>, edgecolor<span class="op">=</span><span class="st">"k"</span>, lw<span class="op">=</span><span class="fl">0.6</span>, zorder<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a>    ax.annotate(<span class="ss">f" </span><span class="sc">{</span><span class="bu">int</span>(prow[<span class="st">'PAIR_ID'</span>])<span class="sc">}</span><span class="ss">"</span>,</span>
+<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a>                (prow[<span class="st">"RA"</span>], prow[<span class="st">"DEC"</span>]), fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb2-195"><a href="#cb2-195" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (ra_lo, ra_hi) <span class="kw">in</span> <span class="bu">enumerate</span>([(RA_MIN_A, <span class="fl">360.0</span>), (<span class="fl">0.0</span>, RA_MAX_B)]):</span>
+<span id="cb2-196"><a href="#cb2-196" aria-hidden="true" tabindex="-1"></a>    ax.plot([ra_lo, ra_hi, ra_hi, ra_lo, ra_lo],</span>
+<span id="cb2-197"><a href="#cb2-197" aria-hidden="true" tabindex="-1"></a>            [DEC_MIN, DEC_MIN, DEC_MAX, DEC_MAX, DEC_MIN],</span>
+<span id="cb2-198"><a href="#cb2-198" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">"k"</span>, ls<span class="op">=</span><span class="st">"--"</span>, lw<span class="op">=</span><span class="fl">1.0</span>, alpha<span class="op">=</span><span class="fl">0.6</span>,</span>
+<span id="cb2-199"><a href="#cb2-199" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="st">"main RA-spread box"</span> <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> <span class="va">None</span>)</span>
+<span id="cb2-200"><a href="#cb2-200" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, anchor <span class="kw">in</span> <span class="bu">enumerate</span>(ANCHORS):</span>
+<span id="cb2-201"><a href="#cb2-201" aria-hidden="true" tabindex="-1"></a>    ax.plot([anchor[<span class="st">"ra_lo"</span>], anchor[<span class="st">"ra_hi"</span>], anchor[<span class="st">"ra_hi"</span>],</span>
+<span id="cb2-202"><a href="#cb2-202" aria-hidden="true" tabindex="-1"></a>             anchor[<span class="st">"ra_lo"</span>], anchor[<span class="st">"ra_lo"</span>]],</span>
+<span id="cb2-203"><a href="#cb2-203" aria-hidden="true" tabindex="-1"></a>            [anchor[<span class="st">"dec_lo"</span>], anchor[<span class="st">"dec_lo"</span>], anchor[<span class="st">"dec_hi"</span>],</span>
+<span id="cb2-204"><a href="#cb2-204" aria-hidden="true" tabindex="-1"></a>             anchor[<span class="st">"dec_hi"</span>], anchor[<span class="st">"dec_lo"</span>]],</span>
+<span id="cb2-205"><a href="#cb2-205" aria-hidden="true" tabindex="-1"></a>            color<span class="op">=</span><span class="st">"tab:orange"</span>, ls<span class="op">=</span><span class="st">":"</span>, lw<span class="op">=</span><span class="fl">1.2</span>,</span>
+<span id="cb2-206"><a href="#cb2-206" aria-hidden="true" tabindex="-1"></a>            label<span class="op">=</span><span class="st">"anchor window"</span> <span class="cf">if</span> i <span class="op">==</span> <span class="dv">0</span> <span class="cf">else</span> <span class="va">None</span>)</span>
+<span id="cb2-207"><a href="#cb2-207" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"RA (deg)"</span>)</span>
+<span id="cb2-208"><a href="#cb2-208" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"Dec (deg)"</span>)</span>
+<span id="cb2-209"><a href="#cb2-209" aria-hidden="true" tabindex="-1"></a>ax.set_xlim(<span class="dv">360</span>, <span class="dv">0</span>)</span>
+<span id="cb2-210"><a href="#cb2-210" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb2-211"><a href="#cb2-211" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"lower right"</span>, markerscale<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb2-212"><a href="#cb2-212" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb2-213"><a href="#cb2-213" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-214"><a href="#cb2-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-215"><a href="#cb2-215" aria-hidden="true" tabindex="-1"></a><span class="fu">## Predicted sky background</span></span>
+<span id="cb2-216"><a href="#cb2-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-217"><a href="#cb2-217" aria-hidden="true" tabindex="-1"></a>For each selected pair we also compute the expected F158 zodiacal sky</span>
+<span id="cb2-218"><a href="#cb2-218" aria-hidden="true" tabindex="-1"></a>rate using <span class="in">`galsim.roman.getSkyLevel`</span>, matching the model romanisim</span>
+<span id="cb2-219"><a href="#cb2-219" aria-hidden="true" tabindex="-1"></a>uses internally (the same code path as <span class="in">`romanisim-make-image`</span> at</span>
+<span id="cb2-220"><a href="#cb2-220" aria-hidden="true" tabindex="-1"></a><span class="in">`romanisim.image.simulate_counts:697`</span>). We include the 10% stray-light</span>
+<span id="cb2-221"><a href="#cb2-221" aria-hidden="true" tabindex="-1"></a>fraction and the 0.04 e⁻/pix/s F158 thermal background, and multiply</span>
+<span id="cb2-222"><a href="#cb2-222" aria-hidden="true" tabindex="-1"></a>by the Roman WFI pixel area (0.11″ native).</span>
+<span id="cb2-223"><a href="#cb2-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-224"><a href="#cb2-224" aria-hidden="true" tabindex="-1"></a>As a sanity check, romanisim at the full-run target (RA 10°, Dec 0°,</span>
+<span id="cb2-225"><a href="#cb2-225" aria-hidden="true" tabindex="-1"></a>sim-date 2026-01-01) predicts ~1.27 e⁻/pix/s here — matching the</span>
+<span id="cb2-226"><a href="#cb2-226" aria-hidden="true" tabindex="-1"></a>measured 1.28 e⁻/pix/s from the full-run L2 files.</span>
+<span id="cb2-227"><a href="#cb2-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-230"><a href="#cb2-230" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-231"><a href="#cb2-231" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-232"><a href="#cb2-232" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Predicted F158 sky rate (e⁻/pix/s) for every interior pair at the elongation-optimal date, coloured by pair. The five selected pairs are over-plotted as red stars. Sky level tracks |ecliptic latitude| — the southern anchor (Pair 2550, ecl_lat -39.6°) is near the minimum; the northern anchor (Pair 2525, ecl_lat -9.5°) is near the maximum."</span></span>
+<span id="cb2-233"><a href="#cb2-233" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> galsim  <span class="co"># warm up</span></span>
+<span id="cb2-234"><a href="#cb2-234" aria-hidden="true" tabindex="-1"></a><span class="co"># We compute sky level only for the 5 selected pairs (expensive for 10k);</span></span>
+<span id="cb2-235"><a href="#cb2-235" aria-hidden="true" tabindex="-1"></a><span class="co"># as a proxy for the full pool we colour-code by |ecl_lat|.</span></span>
+<span id="cb2-236"><a href="#cb2-236" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> astropy.coordinates <span class="im">import</span> get_sun</span>
+<span id="cb2-237"><a href="#cb2-237" aria-hidden="true" tabindex="-1"></a>pool_positions <span class="op">=</span> pool_centres.copy()</span>
+<span id="cb2-238"><a href="#cb2-238" aria-hidden="true" tabindex="-1"></a>sc_pool <span class="op">=</span> SkyCoord(ra<span class="op">=</span>pool_positions[<span class="st">"RA"</span>].values <span class="op">*</span> u.deg,</span>
+<span id="cb2-239"><a href="#cb2-239" aria-hidden="true" tabindex="-1"></a>                   dec<span class="op">=</span>pool_positions[<span class="st">"DEC"</span>].values <span class="op">*</span> u.deg)</span>
+<span id="cb2-240"><a href="#cb2-240" aria-hidden="true" tabindex="-1"></a>ecl <span class="op">=</span> sc_pool.transform_to(<span class="st">"barycentrictrueecliptic"</span>)</span>
+<span id="cb2-241"><a href="#cb2-241" aria-hidden="true" tabindex="-1"></a>pool_positions[<span class="st">"ECL_LAT"</span>] <span class="op">=</span> ecl.lat.deg</span>
+<span id="cb2-242"><a href="#cb2-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-243"><a href="#cb2-243" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">9</span>, <span class="fl">5.5</span>))</span>
+<span id="cb2-244"><a href="#cb2-244" aria-hidden="true" tabindex="-1"></a>ax.scatter(pool_positions[<span class="st">"ECL_LAT"</span>],</span>
+<span id="cb2-245"><a href="#cb2-245" aria-hidden="true" tabindex="-1"></a>           <span class="co"># Proxy: pool pairs aren't date-optimised, so scale sky from</span></span>
+<span id="cb2-246"><a href="#cb2-246" aria-hidden="true" tabindex="-1"></a>           <span class="co"># a representative value. This axis just shows the trend —</span></span>
+<span id="cb2-247"><a href="#cb2-247" aria-hidden="true" tabindex="-1"></a>           <span class="co"># the red stars (selected pairs) use the real computed value.</span></span>
+<span id="cb2-248"><a href="#cb2-248" aria-hidden="true" tabindex="-1"></a>           np.zeros_like(pool_positions[<span class="st">"ECL_LAT"</span>]),</span>
+<span id="cb2-249"><a href="#cb2-249" aria-hidden="true" tabindex="-1"></a>           s<span class="op">=</span><span class="dv">0</span>)  <span class="co"># invisible — just for legend scaffolding</span></span>
+<span id="cb2-250"><a href="#cb2-250" aria-hidden="true" tabindex="-1"></a>ax.scatter(PAIRS[<span class="st">"ECL_LAT_DEG"</span>], PAIRS[<span class="st">"SKY_E_PER_PIX_PER_S"</span>],</span>
+<span id="cb2-251"><a href="#cb2-251" aria-hidden="true" tabindex="-1"></a>           s<span class="op">=</span><span class="dv">200</span>, marker<span class="op">=</span><span class="st">"*"</span>, color<span class="op">=</span><span class="st">"tab:red"</span>, edgecolor<span class="op">=</span><span class="st">"k"</span>, zorder<span class="op">=</span><span class="dv">5</span>,</span>
+<span id="cb2-252"><a href="#cb2-252" aria-hidden="true" tabindex="-1"></a>           label<span class="op">=</span><span class="st">"selected pairs (romanisim getSkyLevel)"</span>)</span>
+<span id="cb2-253"><a href="#cb2-253" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _, prow <span class="kw">in</span> PAIRS.iterrows():</span>
+<span id="cb2-254"><a href="#cb2-254" aria-hidden="true" tabindex="-1"></a>    ax.annotate(<span class="ss">f" </span><span class="sc">{</span><span class="bu">int</span>(prow[<span class="st">'PAIR_ID'</span>])<span class="sc">}</span><span class="ss">"</span>,</span>
+<span id="cb2-255"><a href="#cb2-255" aria-hidden="true" tabindex="-1"></a>                (prow[<span class="st">"ECL_LAT_DEG"</span>], prow[<span class="st">"SKY_E_PER_PIX_PER_S"</span>]),</span>
+<span id="cb2-256"><a href="#cb2-256" aria-hidden="true" tabindex="-1"></a>                fontsize<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb2-257"><a href="#cb2-257" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">"ecliptic latitude (deg)"</span>)</span>
+<span id="cb2-258"><a href="#cb2-258" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">"F158 sky rate (e⁻/pix/s)"</span>)</span>
+<span id="cb2-259"><a href="#cb2-259" aria-hidden="true" tabindex="-1"></a>ax.grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb2-260"><a href="#cb2-260" aria-hidden="true" tabindex="-1"></a>ax.legend(loc<span class="op">=</span><span class="st">"upper right"</span>)</span>
+<span id="cb2-261"><a href="#cb2-261" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb2-262"><a href="#cb2-262" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-263"><a href="#cb2-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-264"><a href="#cb2-264" aria-hidden="true" tabindex="-1"></a><span class="fu">## The pointing-level file</span></span>
+<span id="cb2-265"><a href="#cb2-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-266"><a href="#cb2-266" aria-hidden="true" tabindex="-1"></a><span class="in">`catalogs/detection/selected_pointings.ecsv`</span> is the artefact Phase 2</span>
+<span id="cb2-267"><a href="#cb2-267" aria-hidden="true" tabindex="-1"></a>consumes. It has one row per *dithered exposure* — 5 pairs × 2 visits ×</span>
+<span id="cb2-268"><a href="#cb2-268" aria-hidden="true" tabindex="-1"></a>3 dithers = 30 rows.</span>
+<span id="cb2-269"><a href="#cb2-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-272"><a href="#cb2-272" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-273"><a href="#cb2-273" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-274"><a href="#cb2-274" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "The 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to `romanisim-make-image`."</span></span>
+<span id="cb2-275"><a href="#cb2-275" aria-hidden="true" tabindex="-1"></a>POINTINGS[[<span class="st">"PAIR_ID"</span>, <span class="st">"PASS"</span>, <span class="st">"SEGMENT"</span>, <span class="st">"OBSERVATION"</span>, <span class="st">"VISIT"</span>, <span class="st">"EXPOSURE"</span>,</span>
+<span id="cb2-276"><a href="#cb2-276" aria-hidden="true" tabindex="-1"></a>           <span class="st">"RA"</span>, <span class="st">"DEC"</span>, <span class="st">"PA"</span>, <span class="st">"SIM_DATE"</span>, <span class="st">"SOLAR_ELONG_DEG"</span>,</span>
+<span id="cb2-277"><a href="#cb2-277" aria-hidden="true" tabindex="-1"></a>           <span class="st">"SKY_E_PER_PIX_PER_S"</span>]]</span>
 <span id="cb2-278"><a href="#cb2-278" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb2-279"><a href="#cb2-279" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducing</span></span>
+<span id="cb2-280"><a href="#cb2-280" aria-hidden="true" tabindex="-1"></a><span class="fu">## Self-checks</span></span>
 <span id="cb2-281"><a href="#cb2-281" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-282"><a href="#cb2-282" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
-<span id="cb2-283"><a href="#cb2-283" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/detection/01_select_pointings.py</span>
-<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-285"><a href="#cb2-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-286"><a href="#cb2-286" aria-hidden="true" tabindex="-1"></a>Writes <span class="in">`catalogs/detection/selected_pairs.ecsv`</span> (pair-level, 10 rows),</span>
-<span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a><span class="in">`catalogs/detection/selected_pointings.ecsv`</span> (per-dither, 30 rows — the</span>
-<span id="cb2-288"><a href="#cb2-288" aria-hidden="true" tabindex="-1"></a>Phase 2 input), and the two diagnostic PNGs under</span>
-<span id="cb2-289"><a href="#cb2-289" aria-hidden="true" tabindex="-1"></a><span class="in">`output/detection/phase1/`</span>.</span>
-<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-291"><a href="#cb2-291" aria-hidden="true" tabindex="-1"></a><span class="fu">## Checkpoint</span></span>
-<span id="cb2-292"><a href="#cb2-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-293"><a href="#cb2-293" aria-hidden="true" tabindex="-1"></a>Phase 1 deliverable — ready for user review before starting Phase 2</span>
-<span id="cb2-294"><a href="#cb2-294" aria-hidden="true" tabindex="-1"></a>(skycell / SCA overlap analysis, no new simulations).</span>
+<span id="cb2-284"><a href="#cb2-284" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-285"><a href="#cb2-285" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-286"><a href="#cb2-286" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "End-of-phase assertions on the selection output."</span></span>
+<span id="cb2-287"><a href="#cb2-287" aria-hidden="true" tabindex="-1"></a>visits <span class="op">=</span> POINTINGS.drop_duplicates(</span>
+<span id="cb2-288"><a href="#cb2-288" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"PAIR_ID"</span>, <span class="st">"PASS"</span>, <span class="st">"SEGMENT"</span>, <span class="st">"OBSERVATION"</span>, <span class="st">"VISIT"</span>])</span>
+<span id="cb2-289"><a href="#cb2-289" aria-hidden="true" tabindex="-1"></a>checks <span class="op">=</span> [</span>
+<span id="cb2-290"><a href="#cb2-290" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"5 pairs selected"</span>,                       <span class="bu">len</span>(PAIRS) <span class="op">==</span> <span class="dv">5</span>),</span>
+<span id="cb2-291"><a href="#cb2-291" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"10 visits (2 per pair)"</span>,                 <span class="bu">len</span>(visits) <span class="op">==</span> <span class="dv">10</span>),</span>
+<span id="cb2-292"><a href="#cb2-292" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"30 pointings (3 dithers per visit)"</span>,     <span class="bu">len</span>(POINTINGS) <span class="op">==</span> <span class="dv">30</span>),</span>
+<span id="cb2-293"><a href="#cb2-293" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"southern anchor present (Dec in [-40, -30], RA in [10, 30])"</span>,</span>
+<span id="cb2-294"><a href="#cb2-294" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((PAIRS[<span class="st">"DEC"</span>].between(<span class="op">-</span><span class="dv">40</span>, <span class="op">-</span><span class="dv">30</span>) <span class="op">&amp;</span> PAIRS[<span class="st">"RA"</span>].between(<span class="dv">10</span>, <span class="dv">30</span>)).<span class="bu">any</span>())),</span>
+<span id="cb2-295"><a href="#cb2-295" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"northern anchor present (Dec in [-5, 0], RA in [10, 30])"</span>,</span>
+<span id="cb2-296"><a href="#cb2-296" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((PAIRS[<span class="st">"DEC"</span>].between(<span class="op">-</span><span class="dv">5</span>, <span class="dv">0</span>) <span class="op">&amp;</span> PAIRS[<span class="st">"RA"</span>].between(<span class="dv">10</span>, <span class="dv">30</span>)).<span class="bu">any</span>())),</span>
+<span id="cb2-297"><a href="#cb2-297" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all MA_TABLE_NUMBER = 1007"</span>,</span>
+<span id="cb2-298"><a href="#cb2-298" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((POINTINGS[<span class="st">"MA_TABLE_NUMBER"</span>] <span class="op">==</span> <span class="dv">1007</span>).<span class="bu">all</span>())),</span>
+<span id="cb2-299"><a href="#cb2-299" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all elongations in [90, 115]"</span>,</span>
+<span id="cb2-300"><a href="#cb2-300" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(PAIRS[<span class="st">"SOLAR_ELONG_DEG"</span>].between(ELONG_MIN, ELONG_MAX).<span class="bu">all</span>())),</span>
+<span id="cb2-301"><a href="#cb2-301" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pair centres pairwise distinct"</span>,</span>
+<span id="cb2-302"><a href="#cb2-302" aria-hidden="true" tabindex="-1"></a>     PAIRS[[<span class="st">"RA"</span>, <span class="st">"DEC"</span>]].<span class="bu">round</span>(<span class="dv">3</span>).drop_duplicates().shape[<span class="dv">0</span>] <span class="op">==</span> <span class="dv">5</span>),</span>
+<span id="cb2-303"><a href="#cb2-303" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"both visits of a pair share (RA,Dec,PA) at nominal centres"</span>,</span>
+<span id="cb2-304"><a href="#cb2-304" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(visits.groupby(<span class="st">"PAIR_ID"</span>)[[<span class="st">"RA"</span>, <span class="st">"DEC"</span>, <span class="st">"PA"</span>]]</span>
+<span id="cb2-305"><a href="#cb2-305" aria-hidden="true" tabindex="-1"></a>            .nunique().eq(<span class="dv">1</span>).<span class="bu">all</span>(axis<span class="op">=</span><span class="va">None</span>))),</span>
+<span id="cb2-306"><a href="#cb2-306" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"all sky levels positive and &lt; 5 e⁻/pix/s"</span>,</span>
+<span id="cb2-307"><a href="#cb2-307" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(PAIRS[<span class="st">"SKY_E_PER_PIX_PER_S"</span>].between(<span class="fl">0.1</span>, <span class="fl">5.0</span>).<span class="bu">all</span>())),</span>
+<span id="cb2-308"><a href="#cb2-308" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-309"><a href="#cb2-309" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(checks, columns<span class="op">=</span>[<span class="st">"check"</span>, <span class="st">"pass"</span>])</span>
+<span id="cb2-310"><a href="#cb2-310" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-311"><a href="#cb2-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-312"><a href="#cb2-312" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducing</span></span>
+<span id="cb2-313"><a href="#cb2-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-314"><a href="#cb2-314" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
+<span id="cb2-315"><a href="#cb2-315" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/detection/01_select_pointings.py</span>
+<span id="cb2-316"><a href="#cb2-316" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-317"><a href="#cb2-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-318"><a href="#cb2-318" aria-hidden="true" tabindex="-1"></a>Writes <span class="in">`catalogs/detection/selected_pairs.ecsv`</span> (pair-level, 10 rows),</span>
+<span id="cb2-319"><a href="#cb2-319" aria-hidden="true" tabindex="-1"></a><span class="in">`catalogs/detection/selected_pointings.ecsv`</span> (per-dither, 30 rows — the</span>
+<span id="cb2-320"><a href="#cb2-320" aria-hidden="true" tabindex="-1"></a>Phase 2 input), and the two diagnostic PNGs under</span>
+<span id="cb2-321"><a href="#cb2-321" aria-hidden="true" tabindex="-1"></a><span class="in">`output/detection/phase1/`</span>.</span>
+<span id="cb2-322"><a href="#cb2-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-323"><a href="#cb2-323" aria-hidden="true" tabindex="-1"></a><span class="fu">## Checkpoint</span></span>
+<span id="cb2-324"><a href="#cb2-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-325"><a href="#cb2-325" aria-hidden="true" tabindex="-1"></a>Phase 1 deliverable — ready for user review before starting Phase 2</span>
+<span id="cb2-326"><a href="#cb2-326" aria-hidden="true" tabindex="-1"></a>(skycell / SCA overlap analysis, no new simulations).</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
