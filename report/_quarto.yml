@@ -37,6 +37,8 @@ website:
             text: Phase 2 — skycells
           - href: detection/phase3_catalogs.qmd
             text: Phase 3 — catalogs
+          - href: detection/phase4a_validation.qmd
+            text: Phase 4a — validation
 
 format:
   html:

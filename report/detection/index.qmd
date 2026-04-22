@@ -46,9 +46,11 @@ version control. A pointer file will be added when Phase 4 starts.
 
 ## Status
 
-Phases 1-3 complete. Phase 4a (single-skycell L2 + L3 validation on
-pair 11119) next.
+Phase 4a validated the L2 → L3 chain on pair 11119 and surfaced a
+Phase-2 overlap bug (galsim vs CRDS distortion) that needs fixing
+before the 4b scale-up.
 
 - [Phase 1 — pointing selection](phase1_pointings.qmd)
 - [Phase 2 — skycell / SCA overlap](phase2_skycells.qmd)
 - [Phase 3 — truth-catalog generation](phase3_catalogs.qmd)
+- [Phase 4a — L2 + L3 validation](phase4a_validation.qmd)
