@@ -286,9 +286,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="placement-sobol-quasi-random" class="level2">
 <h2 class="anchored" data-anchor-id="placement-sobol-quasi-random">Placement — Sobol quasi-random</h2>
 <p>Instead of a regular grid (which would correlate magnitude with pixel column and could interact with SCA boundaries or PSF variations), we use a <strong>2-D Sobol low-discrepancy sequence</strong> inside the skycell’s unique core. The magnitude assignment is a separate seeded shuffle, so every mag bin’s 10 sources are scattered across the full skycell area — no systematic mag-vs-position correlation.</p>
-<p>Skycells overlap their neighbours by <code>skycell_border_pixels = 100</code> (per the Roman skymap reference file), so the unique core of each 5000×5000 skycell is <code>[100, 4900]²</code>. We inject sources inside <code>[300, 4700]²</code> — a 300-pixel margin that puts every source at least 200 pixels <em>inside</em> the unique core, giving slack for drizzle kernels, PSF wings, and mosaic weight-map edge effects.</p>
-<p>With 210 sources in a 4400×4400 pix injection area at 0.055″/pix, mean nearest-neighbour separation is ~16″, well above the ~5–10″ blending threshold, so no rejection sampling is needed.</p>
-<div id="8d92e3dc" class="cell" data-execution_count="2">
+<p>Skycells overlap their neighbours by <code>skycell_border_pixels = 100</code> (per the Roman skymap reference file), so the unique core of each 5000×5000 skycell is <code>[100, 4900]²</code>. We inject sources inside <code>[200, 4800]²</code> — a 200-pixel margin that puts every source 100 pixels inside the unique core, with room to spare for PSF wings and drizzle kernels.</p>
+<p>With 210 sources in a 4600×4600 pix injection area at 0.055″/pix, mean nearest-neighbour separation is ~17″, well above the ~5–10″ blending threshold, so no rejection sampling is needed.</p>
+<div id="19ec1f03" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -393,7 +393,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="schema" class="level2">
 <h2 class="anchored" data-anchor-id="schema">Schema</h2>
 <p>The on-disk parquet format matches the existing <code>catalogs/sources.parquet</code> column convention (see <code>docs/data_model_reference.md</code>) so romanisim can ingest it without any adapter:</p>
-<div id="04beea11" class="cell" data-execution_count="4">
+<div id="81d36261" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
@@ -474,7 +474,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>A sample row from the 11119 <strong>stars</strong> catalog (<code>type = PSF</code>):</p>
-<div id="7c6ff64a" class="cell" data-execution_count="5">
+<div id="da99eb52" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
 
@@ -489,11 +489,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">ra</th>
-<td>359.636278</td>
+<td>359.637203</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">dec</th>
-<td>-17.366202</td>
+<td>-17.367702</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">type</th>
@@ -529,11 +529,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">pix_x</th>
-<td>3776.119141</td>
+<td>3834.124512</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">pix_y</th>
-<td>341.663147</td>
+<td>243.556915</td>
 </tr>
 </tbody>
 </table>
@@ -542,7 +542,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>A sample row from the 11119 <strong>galaxies</strong> catalog (<code>type = SER</code>, <code>n = 1</code>, <code>half_light_radius = 0.275″</code>) at the <em>same</em> source index — note identical <code>ra</code>, <code>dec</code>, <code>F158</code>, <code>mag</code>:</p>
-<div id="496e1930" class="cell" data-execution_count="6">
+<div id="f0206227" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 
@@ -557,11 +557,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">ra</th>
-<td>359.636278</td>
+<td>359.637203</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">dec</th>
-<td>-17.366202</td>
+<td>-17.367702</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">type</th>
@@ -597,11 +597,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">pix_x</th>
-<td>3776.119141</td>
+<td>3834.124512</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">pix_y</th>
-<td>341.663147</td>
+<td>243.556915</td>
 </tr>
 </tbody>
 </table>
@@ -674,7 +674,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">9</th>
-<td>pixel positions inside the 300-px injection bo...</td>
+<td>pixel positions inside the 200-px injection bo...</td>
 <td>True</td>
 </tr>
 </tbody>
@@ -1202,12 +1202,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>Skycells overlap their neighbours by <span class="in">`skycell_border_pixels = 100`</span></span>
 <span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>(per the Roman skymap reference file), so the unique core of each</span>
 <span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>5000×5000 skycell is <span class="in">`[100, 4900]²`</span>. We inject sources inside</span>
-<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="in">`[300, 4700]²`</span> — a 300-pixel margin that puts every source at least</span>
-<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>200 pixels *inside* the unique core, giving slack for drizzle kernels,</span>
-<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>PSF wings, and mosaic weight-map edge effects.</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="in">`[200, 4800]²`</span> — a 200-pixel margin that puts every source 100 pixels</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>inside the unique core, with room to spare for PSF wings and drizzle</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>kernels.</span>
 <span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>With 210 sources in a 4400×4400 pix injection area at 0.055″/pix, mean</span>
-<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>nearest-neighbour separation is ~16″, well above the ~5–10″ blending</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>With 210 sources in a 4600×4600 pix injection area at 0.055″/pix, mean</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>nearest-neighbour separation is ~17″, well above the ~5–10″ blending</span>
 <span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>threshold, so no rejection sampling is needed.</span>
 <span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
@@ -1302,9 +1302,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((gal_11119[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"SER"</span>).<span class="bu">all</span>()</span>
 <span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> np.allclose(gal_11119[<span class="st">"n"</span>], <span class="fl">1.0</span>)</span>
 <span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> np.allclose(gal_11119[<span class="st">"half_light_radius"</span>], <span class="fl">0.275</span>))),</span>
-<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pixel positions inside the 300-px injection boundary"</span>,</span>
-<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"pix_x"</span>].between(<span class="dv">300</span>, <span class="dv">4700</span>)).<span class="bu">all</span>()</span>
-<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (stars_11119[<span class="st">"pix_y"</span>].between(<span class="dv">300</span>, <span class="dv">4700</span>)).<span class="bu">all</span>())),</span>
+<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pixel positions inside the 200-px injection boundary"</span>,</span>
+<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"pix_x"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
+<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (stars_11119[<span class="st">"pix_y"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>())),</span>
 <span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>]</span>
 <span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(checks, columns<span class="op">=</span>[<span class="st">"check"</span>, <span class="st">"pass"</span>])</span>
 <span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
