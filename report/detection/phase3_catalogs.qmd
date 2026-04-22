@@ -41,14 +41,19 @@ The stars catalog sets `type="PSF"` (PSF-only).
 Instead of a regular grid (which would correlate magnitude with pixel
 column and could interact with SCA boundaries or PSF variations), we
 use a **2-D Sobol low-discrepancy sequence** inside the skycell's
-unique core (`[200, 4800]²` of the 5000×5000 pixel shape — 200 px
-margin, well clear of the skycell-overlap band and of PSF wings). The
-magnitude assignment is a separate seeded shuffle, so every mag bin's
-10 sources are scattered across the full skycell area — no systematic
-mag-vs-position correlation.
+unique core. The magnitude assignment is a separate seeded shuffle,
+so every mag bin's 10 sources are scattered across the full skycell
+area — no systematic mag-vs-position correlation.
 
-With 210 sources in a 4600×4600 pix core at 0.055″/pix, mean
-nearest-neighbour separation is ~17″, well above the ~5–10″ blending
+Skycells overlap their neighbours by `skycell_border_pixels = 100`
+(per the Roman skymap reference file), so the unique core of each
+5000×5000 skycell is `[100, 4900]²`. We inject sources inside
+`[300, 4700]²` — a 300-pixel margin that puts every source at least
+200 pixels *inside* the unique core, giving slack for drizzle kernels,
+PSF wings, and mosaic weight-map edge effects.
+
+With 210 sources in a 4400×4400 pix injection area at 0.055″/pix, mean
+nearest-neighbour separation is ~16″, well above the ~5–10″ blending
 threshold, so no rejection sampling is needed.
 
 ```{python}
@@ -85,11 +90,25 @@ schema_rows = [(f.name, str(f.type)) for f in t.schema]
 pd.DataFrame(schema_rows, columns=["column", "dtype"])
 ```
 
-A sample row (first in the 11119 stars catalog):
+A sample row from the 11119 **stars** catalog (`type = PSF`):
 
 ```{python}
 #| echo: false
-t.slice(0, 1).to_pandas().T.rename(columns={0: "value"})
+import numpy as np
+rng = np.random.default_rng(17)
+k = int(rng.integers(0, t.num_rows))
+t.slice(k, 1).to_pandas().T.rename(columns={0: "value"})
+```
+
+A sample row from the 11119 **galaxies** catalog
+(`type = SER`, `n = 1`, `half_light_radius = 0.275″`) at the *same*
+source index — note identical `ra`, `dec`, `F158`, `mag`:
+
+```{python}
+#| echo: false
+gpath = REPO / INDEX.iloc[-1]["galaxies_path"]
+gt = pq.read_table(gpath)
+gt.slice(k, 1).to_pandas().T.rename(columns={0: "value"})
 ```
 
 ## Self-checks
@@ -129,9 +148,9 @@ checks = [
      bool((gal_11119["type"] == "SER").all()
           and np.allclose(gal_11119["n"], 1.0)
           and np.allclose(gal_11119["half_light_radius"], 0.275))),
-    ("pixel positions inside margin core",
-     bool((stars_11119["pix_x"].between(200, 4800)).all()
-          and (stars_11119["pix_y"].between(200, 4800)).all())),
+    ("pixel positions inside the 300-px injection boundary",
+     bool((stars_11119["pix_x"].between(300, 4700)).all()
+          and (stars_11119["pix_y"].between(300, 4700)).all())),
 ]
 pd.DataFrame(checks, columns=["check", "pass"])
 ```

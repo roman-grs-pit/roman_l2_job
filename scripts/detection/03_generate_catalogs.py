@@ -54,10 +54,12 @@ SKYCELLS_IN = REPO / "catalogs/detection/selected_skycells.ecsv"
 OUT_CAT = REPO / "catalogs/detection/catalogs"
 OUT_PLOTS = REPO / "output/detection/phase3"
 
-# 5000 × 5000 pixel skycells overlap adjacent skycells by ~100 pix; a
-# 200-pixel margin keeps injected sources in the unique core and leaves
-# plenty of room for PSF wings before the edge.
-MARGIN_PIX = 200
+# 5000 × 5000 pixel skycells overlap adjacent skycells by
+# `skycell_border_pixels = 100` on each side (so the unique core is
+# [100, 4900]²). A 300-pixel margin puts us 200 pixels *inside* the
+# unique core, giving slack for drizzle kernels, PSF wings, and
+# mosaic weight-map edge effects.
+MARGIN_PIX = 300
 
 # Source grid: 21 mag bins × 10 sources = 210 per skycell per type
 MAG_MIN, MAG_MAX, MAG_STEP = 23.0, 25.0, 0.1
@@ -159,12 +161,19 @@ def qa_plot(skycell_idx: int, skycell_name: str, stars_df: pd.DataFrame,
     ax.set_ylim(0, 5000)
     ax.grid(True, alpha=0.3)
     ax.set_title(f"{skycell_name} (idx {skycell_idx}) — Sobol layout")
-    # Draw core region
+    # Draw the 100-px skycell-overlap border (dotted) and the
+    # injection boundary (dashed)
+    ax.plot([100, 4900, 4900, 100, 100],
+            [100, 100, 4900, 4900, 100],
+            ls=":", color="k", lw=0.8, alpha=0.4,
+            label="unique core edge (100 px border)")
     ax.plot([MARGIN_PIX, 5000 - MARGIN_PIX, 5000 - MARGIN_PIX,
              MARGIN_PIX, MARGIN_PIX],
             [MARGIN_PIX, MARGIN_PIX, 5000 - MARGIN_PIX,
              5000 - MARGIN_PIX, MARGIN_PIX],
-            ls="--", color="k", lw=0.8, alpha=0.5)
+            ls="--", color="k", lw=0.8, alpha=0.6,
+            label=f"injection boundary ({MARGIN_PIX} px margin)")
+    ax.legend(loc="lower left", fontsize=7)
     fig.colorbar(sc, ax=ax, label="F158 magnitude")
 
     # Right: per-mag-bin position scatter to show uniform coverage per bin
