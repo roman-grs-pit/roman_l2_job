@@ -48,12 +48,12 @@ area — no systematic mag-vs-position correlation.
 Skycells overlap their neighbours by `skycell_border_pixels = 100`
 (per the Roman skymap reference file), so the unique core of each
 5000×5000 skycell is `[100, 4900]²`. We inject sources inside
-`[300, 4700]²` — a 300-pixel margin that puts every source at least
-200 pixels *inside* the unique core, giving slack for drizzle kernels,
-PSF wings, and mosaic weight-map edge effects.
+`[200, 4800]²` — a 200-pixel margin that puts every source 100 pixels
+inside the unique core, with room to spare for PSF wings and drizzle
+kernels.
 
-With 210 sources in a 4400×4400 pix injection area at 0.055″/pix, mean
-nearest-neighbour separation is ~16″, well above the ~5–10″ blending
+With 210 sources in a 4600×4600 pix injection area at 0.055″/pix, mean
+nearest-neighbour separation is ~17″, well above the ~5–10″ blending
 threshold, so no rejection sampling is needed.
 
 ```{python}
@@ -148,9 +148,9 @@ checks = [
      bool((gal_11119["type"] == "SER").all()
           and np.allclose(gal_11119["n"], 1.0)
           and np.allclose(gal_11119["half_light_radius"], 0.275))),
-    ("pixel positions inside the 300-px injection boundary",
-     bool((stars_11119["pix_x"].between(300, 4700)).all()
-          and (stars_11119["pix_y"].between(300, 4700)).all())),
+    ("pixel positions inside the 200-px injection boundary",
+     bool((stars_11119["pix_x"].between(200, 4800)).all()
+          and (stars_11119["pix_y"].between(200, 4800)).all())),
 ]
 pd.DataFrame(checks, columns=["check", "pass"])
 ```

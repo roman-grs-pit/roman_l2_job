@@ -56,10 +56,9 @@ OUT_PLOTS = REPO / "output/detection/phase3"
 
 # 5000 × 5000 pixel skycells overlap adjacent skycells by
 # `skycell_border_pixels = 100` on each side (so the unique core is
-# [100, 4900]²). A 300-pixel margin puts us 200 pixels *inside* the
-# unique core, giving slack for drizzle kernels, PSF wings, and
-# mosaic weight-map edge effects.
-MARGIN_PIX = 300
+# [100, 4900]²). A 200-pixel margin puts us 100 pixels *inside* the
+# unique core, with room to spare for PSF wings and drizzle kernels.
+MARGIN_PIX = 200
 
 # Source grid: 21 mag bins × 10 sources = 210 per skycell per type
 MAG_MIN, MAG_MAX, MAG_STEP = 23.0, 25.0, 0.1
