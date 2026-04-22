@@ -1,0 +1,156 @@
+---
+title: "Phase 3 — truth-catalog generation"
+subtitle: "Matched stars + galaxies, Sobol-distributed, per selected skycell"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from astropy.table import Table
+
+REPO = Path("../..").resolve()
+SKYCELLS = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
+                      format="ascii.ecsv").to_pandas()
+INDEX = Table.read(REPO / "catalogs/detection/catalogs_index.ecsv",
+                   format="ascii.ecsv").to_pandas()
+```
+
+## What Phase 3 does
+
+For each skycell selected in [Phase 2](phase2_skycells.qmd), generate
+**two matched truth catalogs** — one of point sources, one of galaxies
+— at identical RA/Dec and F158 magnitudes. The matched design lets us
+compare detection efficiency point-for-point between stars and
+galaxies of the same brightness at the same sky position, which is the
+core science question of the study.
+
+Each catalog holds **210 sources = 21 magnitude bins × 10 sources per
+bin**, magnitudes running 23.0–25.0 in 0.1-mag steps. Fluxes are stored
+as maggies in the `F158` column (`= 10^(-mag/2.5)`) — the unit romanisim
+expects.
+
+The galaxy catalog sets `type="SER"` with Sersic `n=1`,
+`half_light_radius = 0.275"`, `pa=0`, `ba=1` (circular exponential).
+The stars catalog sets `type="PSF"` (PSF-only).
+
+## Placement — Sobol quasi-random
+
+Instead of a regular grid (which would correlate magnitude with pixel
+column and could interact with SCA boundaries or PSF variations), we
+use a **2-D Sobol low-discrepancy sequence** inside the skycell's
+unique core (`[200, 4800]²` of the 5000×5000 pixel shape — 200 px
+margin, well clear of the skycell-overlap band and of PSF wings). The
+magnitude assignment is a separate seeded shuffle, so every mag bin's
+10 sources are scattered across the full skycell area — no systematic
+mag-vs-position correlation.
+
+With 210 sources in a 4600×4600 pix core at 0.055″/pix, mean
+nearest-neighbour separation is ~17″, well above the ~5–10″ blending
+threshold, so no rejection sampling is needed.
+
+```{python}
+#| echo: false
+#| fig-cap: "Pair 11119 skycell 000m18x58y45 source layout. LEFT: all 210 Sobol-distributed stars coloured by F158 magnitude; the dashed rectangle is the 200-pixel core boundary. RIGHT: same points re-rendered to highlight per-mag-bin coverage — notice each magnitude bin still samples the whole skycell."
+from IPython.display import Image, display
+display(Image(filename=str(
+    REPO / "output/detection/phase3/grid_000m18x58y45.png")))
+```
+
+## Catalog index
+
+```{python}
+#| echo: false
+#| tbl-cap: "One row per skycell catalog pair. Each Phase-4 L2 sim reads the combined stars+galaxies file for its pair's skycell; the per-source `type` column tells romanisim which is which."
+INDEX[["PAIR_ID", "skycell_name", "skycell_idx",
+       "n_stars", "n_galaxies", "mag_min", "mag_max",
+       "stars_path", "galaxies_path"]]
+```
+
+## Schema
+
+The on-disk parquet format matches the existing `catalogs/sources.parquet`
+column convention (see `docs/data_model_reference.md`) so romanisim
+can ingest it without any adapter:
+
+```{python}
+#| echo: false
+import pyarrow.parquet as pq
+# Show the first row of the 11119 stars catalog
+path = REPO / INDEX.iloc[-1]["stars_path"]
+t = pq.read_table(path)
+schema_rows = [(f.name, str(f.type)) for f in t.schema]
+pd.DataFrame(schema_rows, columns=["column", "dtype"])
+```
+
+A sample row (first in the 11119 stars catalog):
+
+```{python}
+#| echo: false
+t.slice(0, 1).to_pandas().T.rename(columns={0: "value"})
+```
+
+## Self-checks
+
+```{python}
+#| echo: false
+#| tbl-cap: "End-of-phase assertions."
+stars_11119 = Table.read(
+    REPO / "catalogs/detection/catalogs/skycell_000m18x58y45_stars.parquet"
+).to_pandas()
+gal_11119 = Table.read(
+    REPO / "catalogs/detection/catalogs/skycell_000m18x58y45_galaxies.parquet"
+).to_pandas()
+
+checks = [
+    ("5 catalog pairs written (1 per selected skycell)",  len(INDEX) == 5),
+    ("210 sources in every catalog",
+     bool((INDEX["n_stars"] == 210).all() and
+          (INDEX["n_galaxies"] == 210).all())),
+    ("21 distinct magnitudes × 10 each = 210",
+     len(stars_11119["mag"].unique()) == 21 and
+     bool((stars_11119["mag"].value_counts() == 10).all())),
+    ("mag range [23.0, 25.0]",
+     (np.isclose(stars_11119["mag"].min(), 23.0)
+      and np.isclose(stars_11119["mag"].max(), 25.0))),
+    ("stars and galaxies share identical positions",
+     bool(np.allclose(stars_11119["ra"].values, gal_11119["ra"].values)
+          and np.allclose(stars_11119["dec"].values, gal_11119["dec"].values))),
+    ("stars and galaxies share identical magnitudes",
+     bool(np.allclose(stars_11119["mag"].values, gal_11119["mag"].values))),
+    ("F158 = 10^(-mag/2.5)",
+     bool(np.allclose(stars_11119["F158"].values,
+                      10.0 ** (-stars_11119["mag"].values / 2.5)))),
+    ("stars all type PSF",
+     bool((stars_11119["type"] == "PSF").all())),
+    ("galaxies all type SER with n=1, r=0.275",
+     bool((gal_11119["type"] == "SER").all()
+          and np.allclose(gal_11119["n"], 1.0)
+          and np.allclose(gal_11119["half_light_radius"], 0.275))),
+    ("pixel positions inside margin core",
+     bool((stars_11119["pix_x"].between(200, 4800)).all()
+          and (stars_11119["pix_y"].between(200, 4800)).all())),
+]
+pd.DataFrame(checks, columns=["check", "pass"])
+```
+
+## Reproducing
+
+```bash
+pixi run python scripts/detection/03_generate_catalogs.py
+# Or, for the single-skycell validation on pair 11119:
+pixi run python scripts/detection/03_generate_catalogs.py --only-pair 11119
+```
+
+Writes per-skycell parquet files under
+`catalogs/detection/catalogs/skycell_<name>_{stars,galaxies}.parquet`
+plus a `catalogs_index.ecsv` summary and a `grid_<name>.png` QA plot
+per skycell.
+
+## Checkpoint
+
+Phase 3 deliverable. Pair 11119 is the validation case — next step is
+Phase 4a: generate its 14 L2 files, coadd to a single L3 mosaic, and
+verify depth/coverage/image quality before scaling.

@@ -46,8 +46,9 @@ version control. A pointer file will be added when Phase 4 starts.
 
 ## Status
 
-Phases 1 and 2 complete. Phase 3 (source-catalog generation) pending
-a storage-location decision with the user.
+Phases 1-3 complete. Phase 4a (single-skycell L2 + L3 validation on
+pair 11119) next.
 
 - [Phase 1 — pointing selection](phase1_pointings.qmd)
 - [Phase 2 — skycell / SCA overlap](phase2_skycells.qmd)
+- [Phase 3 — truth-catalog generation](phase3_catalogs.qmd)

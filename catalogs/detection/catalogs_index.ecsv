@@ -1,0 +1,19 @@
+# %ECSV 1.0
+# ---
+# datatype:
+# - {name: PAIR_ID, datatype: int64}
+# - {name: skycell_idx, datatype: int64}
+# - {name: skycell_name, datatype: string}
+# - {name: n_stars, datatype: int64}
+# - {name: n_galaxies, datatype: int64}
+# - {name: mag_min, datatype: float64}
+# - {name: mag_max, datatype: float64}
+# - {name: stars_path, datatype: string}
+# - {name: galaxies_path, datatype: string}
+# schema: astropy-2.0
+PAIR_ID skycell_idx skycell_name n_stars n_galaxies mag_min mag_max stars_path galaxies_path
+2525 4140867 021m03x67y41 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_021m03x67y41_stars.parquet catalogs/detection/catalogs/skycell_021m03x67y41_galaxies.parquet
+2550 6197861 021m34x43y45 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_021m34x43y45_stars.parquet catalogs/detection/catalogs/skycell_021m34x43y45_galaxies.parquet
+3316 5172636 028m18x58y37 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_028m18x58y37_stars.parquet catalogs/detection/catalogs/skycell_028m18x58y37_galaxies.parquet
+10101 5355994 350m18x59y45 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_350m18x59y45_stars.parquet catalogs/detection/catalogs/skycell_350m18x59y45_galaxies.parquet
+11119 5156876 000m18x58y45 210 210 23.0 25.00000000000003 catalogs/detection/catalogs/skycell_000m18x58y45_stars.parquet catalogs/detection/catalogs/skycell_000m18x58y45_galaxies.parquet

@@ -35,6 +35,8 @@ website:
             text: Phase 1 — pointings
           - href: detection/phase2_skycells.qmd
             text: Phase 2 — skycells
+          - href: detection/phase3_catalogs.qmd
+            text: Phase 3 — catalogs
 
 format:
   html:
