@@ -59,20 +59,40 @@ ELONG_MAX = 115.0
 YEAR = 2026
 N_PAIRS = 5  # number of pairs to select
 MA_TABLE = 1007  # 107.52 s MA table — canonical HLWAS imaging cadence
+BANDPASS = "F158"
 
-# Main-survey RA/Dec box the selection is drawn from. RA wraps through 0°,
-# so we express it as two segments [RA_MIN_A, 360] ∪ [0, RA_MAX_B].
-# The box is chosen to sit squarely inside the HLWAS F158 footprint, away
-# from its RA/Dec edges, so every candidate pair is in a well-covered
-# part of the survey.
+# Pixel scale for converting e/arcsec²/s → e/pix/s (Roman WFI native).
+WFI_PIXEL_SCALE_ARCSEC = 0.11
+
+# Main-survey RA/Dec box for the interior-pool "spread in RA" picks.
+# RA wraps through 0°, expressed as [RA_MIN_A, 360] ∪ [0, RA_MAX_B].
+# Anchors (see `ANCHORS`) can live outside this box to broaden the
+# ecliptic-latitude coverage of the final selection.
 RA_MIN_A = 330.0
 RA_MAX_B = 50.0
 DEC_MIN = -25.0
 DEC_MAX = -10.0
 
+# Two anchor specs: each is a target (RA, Dec) plus a permissive window.
+# The selector picks the candidate in each window closest to the target.
+# These sit above/below the main box to reach lower/higher ecliptic
+# latitude than the Dec-interior picks can.
+ANCHORS = [
+    # Southern edge: Dec ≈ -35
+    {"name": "south",
+     "ra_target": 20.0, "dec_target": -35.0,
+     "ra_lo": 10.0, "ra_hi": 30.0,
+     "dec_lo": -40.0, "dec_hi": -30.0},
+    # Northern edge: Dec ≈ -2
+    {"name": "north",
+     "ra_target": 20.0, "dec_target": -2.0,
+     "ra_lo": 10.0, "ra_hi": 30.0,
+     "dec_lo": -5.0, "dec_hi": 0.0},
+]
+
 # "Interior" check: a pair is considered interior to the survey if there
 # are at least INTERIOR_MIN F158 exposures within INTERIOR_RADIUS_DEG of
-# its (wrap-aware) centre. This filters phantom centres and edge pairs.
+# its (wrap-aware) centre. Filters phantom centres and near-edge pairs.
 INTERIOR_RADIUS_DEG = 2.0
 INTERIOR_MIN = 200
 
@@ -95,9 +115,10 @@ def load_pair_candidates() -> tuple[pd.DataFrame, pd.DataFrame]:
     """Return (pair-visit rows, raw F158 rows).
 
     Uses a wrap-aware mean for the visit centre. Restricts to
-    PASS=(15,16) F158 pairs with MA_TABLE_NUMBER=1007 that sit inside
-    the (RA, Dec) box, and only keeps pairs that are interior to the
-    survey (≥ INTERIOR_MIN F158 exposures within INTERIOR_RADIUS_DEG).
+    PASS=(15,16) F158 pairs with MA_TABLE_NUMBER=MA_TABLE. No RA/Dec
+    box is applied here — selection windows are enforced at the pick
+    stage. The interior filter (≥ INTERIOR_MIN F158 exposures within
+    INTERIOR_RADIUS_DEG) is applied in `apply_interior_filter`.
     """
     t = Table.read(HLWAS, format="ascii.ecsv")
     df = t[t["BANDPASS"] == "F158"].to_pandas()
@@ -127,9 +148,6 @@ def load_pair_candidates() -> tuple[pd.DataFrame, pd.DataFrame]:
     pairs = pairs.set_index(["ra_r", "dec_r"]).loc[wanted_pos].reset_index()
     # Canonical MA table
     pairs = pairs[pairs["MA_TABLE_NUMBER"] == MA_TABLE]
-    # (RA, Dec) box
-    pairs = pairs[(pairs["DEC"] >= DEC_MIN) & (pairs["DEC"] <= DEC_MAX)]
-    pairs = pairs[_in_ra_box(pairs["RA"])]
     # Drop positions where one visit survived but not both
     ok = pairs.groupby(["ra_r", "dec_r"]).size() == 2
     pairs = pairs.set_index(["ra_r", "dec_r"]).loc[ok[ok].index].reset_index()
@@ -210,33 +228,96 @@ def windows(curve: pd.DataFrame, minimum: float = ELONG_MIN,
     return runs
 
 
-def select_pair_sample(pair_centers: pd.DataFrame, n: int) -> pd.DataFrame:
-    """Pick `n` pairs evenly spread across the (wrap-aware) RA axis.
+def _pick_closest(df: pd.DataFrame, ra_target: float,
+                  dec_target: float) -> pd.Series:
+    """From `df`, pick the row minimising great-circle distance to the
+    target position. Falls back to Euclidean since windows are narrow."""
+    dra = np.minimum(np.abs(df["RA"] - ra_target),
+                     360.0 - np.abs(df["RA"] - ra_target))
+    ddec = np.abs(df["DEC"] - dec_target)
+    cos_dec = np.cos(np.deg2rad(dec_target))
+    d2 = (dra * cos_dec) ** 2 + ddec ** 2
+    return df.iloc[int(np.argmin(d2.values))]
 
-    Strategy: map RA through the box [RA_MIN_A, 360] ∪ [0, RA_MAX_B]
-    onto a linear 0-to-(RA_MAX_B + 360 - RA_MIN_A) axis, bin into n
-    equal-count bins, and in each bin pick the candidate at the bin's
-    median Dec. This gives roughly even RA coverage with mild Dec
-    diversity per slice. Ties broken deterministically by PAIR_ID.
+
+def select_pair_sample(pair_centers: pd.DataFrame, n: int) -> pd.DataFrame:
+    """Pick n pairs: two anchors (edge Dec), then n-2 RA-spread picks in
+    the main box at median Dec.
+
+    The two anchors come from ANCHORS — a southern (Dec ≈ -35) and a
+    northern (Dec ≈ -2) position at RA ≈ 20°, to give the final
+    selection ecliptic-latitude diversity beyond the main-box Dec
+    range. The remaining n-2 picks are drawn from the interior pool
+    inside the main RA/Dec box, binned evenly along the wrap-aware
+    RA axis; in each bin we take the median-Dec candidate.
     """
     pc = pair_centers.copy()
-    # Linearise RA across the wrap (anchor 0 at RA_MIN_A)
-    pc["RA_LIN"] = np.where(
-        pc["RA"] >= RA_MIN_A,
-        pc["RA"] - RA_MIN_A,
-        pc["RA"] + (360.0 - RA_MIN_A),
+
+    picked_ids = []
+    picked_rows = []
+
+    # Anchors
+    for anchor in ANCHORS:
+        in_ra = (pc["RA"] >= anchor["ra_lo"]) & (pc["RA"] <= anchor["ra_hi"])
+        in_dec = (pc["DEC"] >= anchor["dec_lo"]) & (pc["DEC"] <= anchor["dec_hi"])
+        window = pc[in_ra & in_dec & ~pc["PAIR_ID"].isin(picked_ids)]
+        if window.empty:
+            raise SystemExit(
+                f"No candidate in anchor window {anchor['name']}: "
+                f"RA [{anchor['ra_lo']}, {anchor['ra_hi']}], "
+                f"Dec [{anchor['dec_lo']}, {anchor['dec_hi']}]"
+            )
+        row = _pick_closest(window, anchor["ra_target"], anchor["dec_target"])
+        picked_rows.append(row); picked_ids.append(int(row["PAIR_ID"]))
+
+    # Remaining: RA-spread in main box at median Dec
+    remaining = n - len(picked_rows)
+    in_box = (
+        ((pc["RA"] >= RA_MIN_A) | (pc["RA"] <= RA_MAX_B))
+        & (pc["DEC"] >= DEC_MIN) & (pc["DEC"] <= DEC_MAX)
+        & ~pc["PAIR_ID"].isin(picked_ids)
     )
-    pc = pc.sort_values(["RA_LIN", "PAIR_ID"]).reset_index(drop=True)
-    bin_idx = np.linspace(0, len(pc), n + 1).astype(int)
-    picked = []
-    for i in range(n):
-        cand = pc.iloc[bin_idx[i]:bin_idx[i + 1]]
+    box = pc[in_box].copy()
+    box["RA_LIN"] = np.where(
+        box["RA"] >= RA_MIN_A,
+        box["RA"] - RA_MIN_A,
+        box["RA"] + (360.0 - RA_MIN_A),
+    )
+    box = box.sort_values(["RA_LIN", "PAIR_ID"]).reset_index(drop=True)
+    bin_idx = np.linspace(0, len(box), remaining + 1).astype(int)
+    for i in range(remaining):
+        cand = box.iloc[bin_idx[i]:bin_idx[i + 1]]
         if cand.empty:
             continue
         mid_dec = cand["DEC"].median()
         row = cand.iloc[(cand["DEC"] - mid_dec).abs().values.argmin()]
-        picked.append(row)
-    return pd.DataFrame(picked).reset_index(drop=True)
+        picked_rows.append(row); picked_ids.append(int(row["PAIR_ID"]))
+
+    return pd.DataFrame(picked_rows).reset_index(drop=True)
+
+
+def sky_level_per_pix_e_per_s(ra_deg: float, dec_deg: float,
+                              date_iso: str) -> float:
+    """Return the romanisim-predicted F158 sky level in e⁻/pix/s at the
+    given (RA, Dec, date). Uses `galsim.roman.getSkyLevel`, scales by
+    stray-light fraction (as romanisim.image does at line ~699), adds
+    the F158 thermal background, and multiplies by the WFI pixel area.
+    """
+    import galsim
+    import galsim.roman as roman
+    import romanisim.bandpass
+
+    bp_name = romanisim.bandpass.roman2galsim_bandpass[BANDPASS]
+    bp = roman.getBandpasses(AB_zeropoint=True)[bp_name]
+    c = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg)
+    world = galsim.CelestialCoord(
+        c.ra.rad * galsim.radians, c.dec.rad * galsim.radians)
+    sky = roman.getSkyLevel(bp, world_pos=world,
+                            date=Time(date_iso).datetime, exptime=1)
+    sky *= (1.0 + roman.stray_light_fraction)
+    sky_per_pix = sky * WFI_PIXEL_SCALE_ARCSEC ** 2
+    sky_per_pix += roman.thermal_backgrounds[bp_name]
+    return float(sky_per_pix)
 
 
 def main():
@@ -250,8 +331,7 @@ def main():
 
     print("Loading HLWAS pair candidates…")
     pairs, f158 = load_pair_candidates()
-    print(f"  {pairs['PAIR_ID'].nunique()} PASS=(15,16) F158 pairs "
-          f"inside the RA/Dec box")
+    print(f"  {pairs['PAIR_ID'].nunique()} PASS=(15,16) F158 pairs (global)")
     pairs = apply_interior_filter(pairs, f158)
     print(f"  {pairs['PAIR_ID'].nunique()} remain after the interior filter "
           f"(>= {INTERIOR_MIN} F158 exposures within {INTERIOR_RADIUS_DEG}°)")
@@ -283,18 +363,21 @@ def main():
     print(f"Selecting {args.n_pairs} well-spread pairs…")
     selected = select_pair_sample(centers, n=args.n_pairs)
 
-    # For each selected pair, compute the exact elongation curve and pick a date
+    # For each selected pair, compute the exact elongation curve, pick a
+    # date, and predict the romanisim-F158 sky level at that date.
     sel_rows = []
     for _, row in selected.iterrows():
         curve = solar_elongation_curve(row["RA"], row["DEC"], year=args.year)
         date_iso, elong_deg = choose_date(curve)
         wins = windows(curve)
+        sky_e_pix_s = sky_level_per_pix_e_per_s(row["RA"], row["DEC"], date_iso)
         sel_rows.append({
             "PAIR_ID": int(row["PAIR_ID"]),
             "RA": row["RA"], "DEC": row["DEC"], "PA": row["PA"],
             "ECL_LON_DEG": row["ECL_LON_DEG"], "ECL_LAT_DEG": row["ECL_LAT_DEG"],
             "SIM_DATE": date_iso,
             "SOLAR_ELONG_DEG": elong_deg,
+            "SKY_E_PER_PIX_PER_S": sky_e_pix_s,
             "WINDOWS_DOY": ";".join(f"{a}-{b}" for a, b in wins),
         })
     selected_full = pd.DataFrame(sel_rows).sort_values("PAIR_ID").reset_index(drop=True)
@@ -332,8 +415,11 @@ def main():
     full_f158 = t[t["BANDPASS"] == "F158"].to_pandas()
     keys = ["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"]
     # Merge to get all 3 dithers per selected visit
+    sky_map = selected_full.set_index("PAIR_ID")["SKY_E_PER_PIX_PER_S"]
+    selected_visits["SKY_E_PER_PIX_PER_S"] = selected_visits["PAIR_ID"].map(sky_map)
     want = selected_visits[["PAIR_ID", "PASS", "SEGMENT", "OBSERVATION", "VISIT",
                             "SIM_DATE", "SOLAR_ELONG_DEG",
+                            "SKY_E_PER_PIX_PER_S",
                             "ECL_LON_DEG", "ECL_LAT_DEG"]]
     pointings = full_f158.merge(want, on=["PASS", "SEGMENT", "OBSERVATION", "VISIT"])
     # PLAN is a merge dup key — we only merged on the 4-key, but if PLAN differs,
@@ -392,12 +478,20 @@ def main():
                    color="tab:red", edgecolor="k", lw=0.6, zorder=5)
         ax.annotate(f" {int(prow['PAIR_ID'])}",
                     (prow["RA"], prow["DEC"]), fontsize=9)
-    # Draw the selection-box boundary (RA wraps)
-    box_ra_edges = [RA_MIN_A, 360.0, 0.0, RA_MAX_B]
+    # Main box (RA wraps)
     for ra_lo, ra_hi in [(RA_MIN_A, 360.0), (0.0, RA_MAX_B)]:
         ax.plot([ra_lo, ra_hi, ra_hi, ra_lo, ra_lo],
                 [DEC_MIN, DEC_MIN, DEC_MAX, DEC_MAX, DEC_MIN],
-                color="k", ls="--", lw=1.0, alpha=0.6)
+                color="k", ls="--", lw=1.0, alpha=0.6,
+                label="main RA-spread box" if ra_lo == RA_MIN_A else None)
+    # Anchor windows
+    for i, anchor in enumerate(ANCHORS):
+        ax.plot([anchor["ra_lo"], anchor["ra_hi"], anchor["ra_hi"],
+                 anchor["ra_lo"], anchor["ra_lo"]],
+                [anchor["dec_lo"], anchor["dec_lo"], anchor["dec_hi"],
+                 anchor["dec_hi"], anchor["dec_lo"]],
+                color="tab:orange", ls=":", lw=1.0,
+                label="anchor window" if i == 0 else None)
     ax.set_xlabel("RA (deg)")
     ax.set_ylabel("Dec (deg)")
     ax.set_xlim(360, 0)
