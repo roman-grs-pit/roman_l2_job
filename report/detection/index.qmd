@@ -1,0 +1,51 @@
+---
+title: "L3 detection-efficiency study"
+subtitle: "Measuring romancal SourceCatalogStep recovery on simulated Roman L3 mosaics"
+---
+
+## What this is
+
+A reproducible pipeline to measure the detection efficiency of the Roman
+L3 (`MosaicPipeline`) + `SourceCatalogStep` stack as a function of:
+
+- sky position (multiple pointing groups at different ecliptic
+  latitudes → different zodiacal backgrounds),
+- source type (point sources vs exponential-profile galaxies,
+  matched in position and magnitude),
+- source magnitude (F158, 23.0–25.0 in 0.1-mag bins),
+- `SourceCatalogStep` parameters (primarily `kernel_fwhm`).
+
+The workflow is five phases with a user checkpoint at the end of each:
+
+1. **Pointing selection** — pick a set of HLWAS F158 re-observed pairs
+   spread across the sky, each with a well-defined solar-elongation
+   window.
+2. **Skycell / SCA overlap analysis** — find which skycells the pair
+   geometries reach mosaic depth 6, and enumerate the (pointing, SCA)
+   pairs that need to be simulated.
+3. **Source catalog generation** — build matched star/galaxy truth
+   catalogs on a grid inside each target skycell.
+4. **L2 + L3 simulation** — run `romanisim` for each required
+   (pointing, SCA) combination, build the skycell associations, and
+   coadd with `MosaicPipeline`.
+5. **Source detection + efficiency analysis** — run `SourceCatalogStep`
+   at default parameters (5a), then sweep `kernel_fwhm` (5b) and
+   optionally `snr_threshold` / `npixels` (5c). Compare recovered
+   catalogs against the Phase-3 truth.
+
+This sits alongside the existing [Full run](../full/design.qmd) report
+and reuses the same `roman_l2_job` pixi environment, CRDS cache, and
+STPSF data.
+
+## Data locations
+
+Code, configs, and selection artefacts live in this repo. The bulk L2
+and L3 binary products — which will be the dominant cost once Phase 4
+runs — will live under `output/detection/` on the host, outside of
+version control. A pointer file will be added when Phase 4 starts.
+
+## Status
+
+Phase 1 complete. Phase 2 (skycell / SCA overlap) pending.
+
+- [Phase 1 — pointing selection](phase1_pointings.qmd)

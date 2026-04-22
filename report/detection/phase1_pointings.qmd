@@ -1,0 +1,234 @@
+---
+title: "Phase 1 — pointing selection"
+subtitle: "Five HLWAS F158 re-observed pairs spanning the survey footprint"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import warnings
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from astropy.coordinates import SkyCoord, get_sun
+from astropy.coordinates.errors import NonRotationTransformationWarning
+from astropy.table import Table
+from astropy.time import Time
+import astropy.units as u
+
+warnings.filterwarnings("ignore", category=NonRotationTransformationWarning)
+
+REPO = Path("../..").resolve()
+# PAIRS: one row per PAIR_ID (5 rows). POINTINGS: one row per dithered
+# exposure (30 rows = 5 pairs × 2 visits × 3 dithers).
+PAIRS = Table.read(REPO / "catalogs/detection/selected_pairs.ecsv",
+                   format="ascii.ecsv").to_pandas()
+POINTINGS = Table.read(REPO / "catalogs/detection/selected_pointings.ecsv",
+                       format="ascii.ecsv").to_pandas()
+YEAR = int(PAIRS["SIM_DATE"].iloc[0][:4])
+ELONG_MIN, ELONG_MAX = 90.0, 115.0
+```
+
+## Input and filters
+
+The candidate pool is `catalogs/HLWAS.sim.ecsv` — the simulated Roman
+High-Latitude Wide-Area Survey pointing list. We apply these filters
+to arrive at the selection pool:
+
+1. `BANDPASS == "F158"`.
+2. Exactly two visits share identical `(RA, DEC, PA)` at 10⁻⁵ deg
+   precision — these are the survey-design re-observations.
+3. The two visits are from `PASS = 15` and `PASS = 16` — the dominant
+   revisit mode in HLWAS.
+4. `MA_TABLE_NUMBER == 1007` (the 107.52 s F158 imaging cadence; this
+   is the only MA table used by the (15,16) re-observations).
+5. `DEC < 0°` to stay in the main body of the HLWAS survey (the
+   footprint thins above Dec ≈ 0 before truncating at Dec ≈ +2°).
+
+After filtering, every visit has exactly 3 dithered exposures, PA is
+uniform within a pair (both visits share a roll), and the nominal RA/Dec
+centres are pairwise identical. Each pair therefore gives **6 dithered
+exposures at one (RA, Dec, PA) with two different observation dates**.
+
+```{python}
+#| echo: false
+#| tbl-cap: "Funnel from the full HLWAS table down to the candidate pool for selection."
+t = Table.read(REPO / "catalogs/HLWAS.sim.ecsv", format="ascii.ecsv")
+f158 = t[t["BANDPASS"] == "F158"].to_pandas()
+vg = f158.groupby(["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"])
+centers = vg[["RA", "DEC"]].mean().reset_index()
+centers["ra_r"] = centers["RA"].round(5); centers["dec_r"] = centers["DEC"].round(5)
+pos_sizes = centers.groupby(["ra_r", "dec_r"]).size()
+pair_idx = pos_sizes[pos_sizes == 2].index
+pair_pass = (centers.set_index(["ra_r", "dec_r"]).loc[pair_idx]
+             .reset_index()
+             .groupby(["ra_r", "dec_r"])["PASS"]
+             .apply(lambda s: tuple(sorted(s.tolist()))))
+n_1516 = int((pair_pass == (15, 16)).sum())
+
+pairs_1516 = centers.set_index(["ra_r", "dec_r"]).loc[
+    pair_pass[pair_pass == (15, 16)].index].reset_index()
+pairs_1516_lo = pairs_1516[pairs_1516["DEC"] < 0]
+pos_ok = pairs_1516_lo.groupby(["ra_r", "dec_r"]).size() == 2
+n_dec_lt_0 = int(pos_ok.sum())
+
+funnel = pd.DataFrame([
+    ("HLWAS.sim.ecsv — all rows",               len(t)),
+    ("F158 rows",                               len(f158)),
+    ("F158 visits (3-dither groups)",           len(vg)),
+    ("positions with exactly 2 visits",         len(pair_idx)),
+    ("… of which PASS pair = (15, 16)",         n_1516),
+    ("… and DEC < 0° (main survey body)",       n_dec_lt_0),
+], columns=["filter step", "count"])
+funnel
+```
+
+## Solar-elongation window
+
+Each selected pair is simulated on a date where the solar elongation of
+the field is in **[90°, 115°]**, as close to 90° as possible — minimum
+elongation drives maximum zodiacal brightness, which makes the recovery
+test conservative (hardest detection), while staying inside Roman's
+viewable-zone constraint. The chosen date minimises `(elong − 90°)`
+while staying inside the window.
+
+```{python}
+#| echo: false
+#| fig-cap: "Solar elongation vs day of year 2026 for the five selected pairs. Grey band = [90°, 115°]; filled dot = the chosen simulation date (closest to 90° inside the window). Each pair has two windows per year; we pick the first-hit day for reproducibility."
+start = Time(f"{YEAR}-01-01T00:00:00", scale="utc")
+doys = np.arange(0, 366)
+times = start + doys * u.day
+sun = get_sun(times)
+
+fig, ax = plt.subplots(figsize=(10, 5))
+cmap = plt.get_cmap("tab10")
+for i, prow in PAIRS.iterrows():
+    tgt = SkyCoord(ra=prow["RA"] * u.deg, dec=prow["DEC"] * u.deg)
+    elong = sun.separation(tgt).deg
+    ax.plot(doys, elong, color=cmap(i % 10),
+            label=f"pair {int(prow['PAIR_ID'])} "
+                  f"(RA={prow['RA']:.1f}°, Dec={prow['DEC']:.1f}°, "
+                  f"ecl_lat={prow['ECL_LAT_DEG']:+.1f}°)")
+    if prow["SIM_DATE"]:
+        d = (Time(prow["SIM_DATE"]) - start).jd
+        ax.plot(d, prow["SOLAR_ELONG_DEG"], "o", color=cmap(i % 10),
+                markersize=10, markeredgecolor="k")
+ax.axhspan(ELONG_MIN, ELONG_MAX, color="k", alpha=0.08,
+           label=f"[{ELONG_MIN:.0f}°, {ELONG_MAX:.0f}°]")
+ax.axhline(ELONG_MIN, color="k", ls="--", lw=0.7)
+ax.axhline(ELONG_MAX, color="k", ls="--", lw=0.7)
+ax.set_xlabel(f"Day of year {YEAR}")
+ax.set_ylabel("Solar elongation (deg)")
+ax.set_ylim(0, 180)
+ax.legend(fontsize=8, loc="upper right")
+ax.grid(True, alpha=0.3)
+plt.show()
+```
+
+## The selection
+
+Five pairs were chosen by greedy spreading: bin candidates into 5 bins
+of ecliptic latitude (primary driver of zodiacal background), then
+within each bin pick the pair whose RA is furthest from the
+already-chosen pairs.
+
+```{python}
+#| echo: false
+#| tbl-cap: "The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. WINDOWS_DOY lists all 2026 day-of-year ranges where the field's solar elongation is inside [90°, 115°]."
+PAIRS[["PAIR_ID", "RA", "DEC", "PA", "ECL_LON_DEG", "ECL_LAT_DEG",
+        "SIM_DATE", "SOLAR_ELONG_DEG", "WINDOWS_DOY"]].style.format(
+    {"RA": "{:.3f}", "DEC": "{:.3f}", "PA": "{:.1f}",
+     "ECL_LON_DEG": "{:.2f}", "ECL_LAT_DEG": "{:+.2f}",
+     "SOLAR_ELONG_DEG": "{:.2f}"})
+```
+
+The set spans RA from 17.7° to 336.7° and ecliptic latitude from −63°
+(near the southern ecliptic pole — minimum zodi) to +12° (on the
+ecliptic — maximum zodi in this sample). That gives a useful range of
+sky conditions for the recovery study.
+
+## Sky distribution
+
+```{python}
+#| echo: false
+#| fig-cap: "All PASS=(15,16) F158 pairs with Dec < 0 (grey dots), with the five selected pairs marked (red stars, annotated by PAIR_ID). Pair IDs are the integer rank of the pair within the unique-(RA,Dec) set — they identify a specific row in catalogs/detection/selected_pairs.ecsv."
+# Recompute candidate centres for the figure
+vg = f158.groupby(["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"])
+centres_all = vg[["RA", "DEC"]].mean().reset_index()
+centres_all["ra_r"] = centres_all["RA"].round(5)
+centres_all["dec_r"] = centres_all["DEC"].round(5)
+cand = centres_all.set_index(["ra_r", "dec_r"]).loc[
+    pair_pass[pair_pass == (15, 16)].index].reset_index()
+cand = cand[cand["DEC"] < 0]
+cand_pair_centres = cand.groupby(["ra_r", "dec_r"])[["RA", "DEC"]].first()
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.scatter(cand_pair_centres["RA"], cand_pair_centres["DEC"],
+           s=2, color="lightgray",
+           label=f"{len(cand_pair_centres)} (15,16) pairs, Dec < 0")
+for _, prow in PAIRS.iterrows():
+    ax.scatter(prow["RA"], prow["DEC"], s=120, marker="*",
+               color="tab:red", edgecolor="k", lw=0.5, zorder=5)
+    ax.annotate(f" {int(prow['PAIR_ID'])}",
+                (prow["RA"], prow["DEC"]), fontsize=10)
+ax.set_xlabel("RA (deg)")
+ax.set_ylabel("Dec (deg)")
+ax.invert_xaxis()
+ax.grid(True, alpha=0.3)
+ax.legend(loc="lower right")
+plt.show()
+```
+
+## The pointing-level file
+
+`catalogs/detection/selected_pointings.ecsv` is the artefact Phase 2
+consumes. It has one row per *dithered exposure* — 5 pairs × 2 visits ×
+3 dithers = 30 rows.
+
+```{python}
+#| echo: false
+#| tbl-cap: "The 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to `romanisim-make-image`."
+POINTINGS[["PAIR_ID", "PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE",
+           "RA", "DEC", "PA", "SIM_DATE", "SOLAR_ELONG_DEG"]]
+```
+
+## Self-checks
+
+```{python}
+#| echo: false
+#| tbl-cap: "End-of-phase assertions on the selection output."
+visits = POINTINGS.drop_duplicates(
+    ["PAIR_ID", "PASS", "SEGMENT", "OBSERVATION", "VISIT"])
+checks = [
+    ("5 pairs selected",                       len(PAIRS) == 5),
+    ("10 visits (2 per pair)",                 len(visits) == 10),
+    ("30 pointings (3 dithers per visit)",     len(POINTINGS) == 30),
+    ("all pointings Dec < 0",                  bool((POINTINGS["DEC"] < 0).all())),
+    ("all MA_TABLE_NUMBER = 1007",
+     bool((POINTINGS["MA_TABLE_NUMBER"] == 1007).all())),
+    ("all elongations in [90, 115]",
+     bool(PAIRS["SOLAR_ELONG_DEG"].between(ELONG_MIN, ELONG_MAX).all())),
+    ("pair centres pairwise distinct",
+     PAIRS[["RA", "DEC"]].round(3).drop_duplicates().shape[0] == 5),
+    ("both visits of a pair share (RA,Dec,PA) at nominal centres",
+     bool(visits.groupby("PAIR_ID")[["RA", "DEC", "PA"]]
+            .nunique().eq(1).all(axis=None))),
+]
+pd.DataFrame(checks, columns=["check", "pass"])
+```
+
+## Reproducing
+
+```bash
+pixi run python scripts/detection/01_select_pointings.py
+```
+
+Writes `catalogs/detection/selected_pairs.ecsv` (pair-level, 10 rows),
+`catalogs/detection/selected_pointings.ecsv` (per-dither, 30 rows — the
+Phase 2 input), and the two diagnostic PNGs under
+`output/detection/phase1/`.
+
+## Checkpoint
+
+Phase 1 deliverable — ready for user review before starting Phase 2
+(skycell / SCA overlap analysis, no new simulations).

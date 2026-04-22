@@ -27,6 +27,12 @@ website:
             text: Results
           - href: full/discussion.qmd
             text: Discussion
+      - section: "Detection efficiency"
+        contents:
+          - href: detection/index.qmd
+            text: Overview
+          - href: detection/phase1_pointings.qmd
+            text: Phase 1 — pointings
 
 format:
   html:
