@@ -32,18 +32,26 @@ ELONG_MIN, ELONG_MAX = 90.0, 115.0
 ## Input and filters
 
 The candidate pool is `catalogs/HLWAS.sim.ecsv` — the simulated Roman
-High-Latitude Wide-Area Survey pointing list. We apply these filters
-to arrive at the selection pool:
+High-Latitude Wide-Area Survey pointing list. We apply these filters to
+arrive at the selection pool:
 
 1. `BANDPASS == "F158"`.
-2. Exactly two visits share identical `(RA, DEC, PA)` at 10⁻⁵ deg
-   precision — these are the survey-design re-observations.
+2. Exactly two visits share identical (RA, Dec, PA) at 10⁻⁵ deg
+   precision — these are the survey-design re-observations. Visit
+   centres are computed with a **circular mean over the 3 dither RAs**
+   (important near RA = 0°/360°: a linear mean would place a dither
+   triplet straddling the wrap at a phantom RA ≈ 120°/240°).
 3. The two visits are from `PASS = 15` and `PASS = 16` — the dominant
    revisit mode in HLWAS.
-4. `MA_TABLE_NUMBER == 1007` (the 107.52 s F158 imaging cadence; this
-   is the only MA table used by the (15,16) re-observations).
-5. `DEC < 0°` to stay in the main body of the HLWAS survey (the
-   footprint thins above Dec ≈ 0 before truncating at Dec ≈ +2°).
+4. `MA_TABLE_NUMBER == 1007` (the 107.52 s F158 imaging cadence; the
+   only MA table used by the (15,16) re-observations).
+5. **Main-survey box:** `RA ∈ [330°, 360°] ∪ [0°, 50°]` and
+   `Dec ∈ [−25°, −10°]`. The HLWAS F158 footprint is a single connected
+   strip running through RA = 0° with hard RA and Dec edges; the box
+   is chosen to sit well inside that strip.
+6. **Interior check:** at least 200 F158 exposures sit within 2° of the
+   pair centre. This drops the remaining near-edge pairs (e.g. along
+   the southern Dec = −25° cut).
 
 After filtering, every visit has exactly 3 dithered exposures, PA is
 uniform within a pair (both visits share a roll), and the nominal RA/Dec
@@ -53,32 +61,70 @@ exposures at one (RA, Dec, PA) with two different observation dates**.
 ```{python}
 #| echo: false
 #| tbl-cap: "Funnel from the full HLWAS table down to the candidate pool for selection."
+import sys
+sys.path.insert(0, str(REPO / "scripts/detection"))
+from importlib import import_module
+_mod = import_module("01_select_pointings")  # reuse circular-mean helper
+
+RA_MIN_A, RA_MAX_B = _mod.RA_MIN_A, _mod.RA_MAX_B
+DEC_MIN, DEC_MAX = _mod.DEC_MIN, _mod.DEC_MAX
+INTERIOR_MIN, INTERIOR_R = _mod.INTERIOR_MIN, _mod.INTERIOR_RADIUS_DEG
+
 t = Table.read(REPO / "catalogs/HLWAS.sim.ecsv", format="ascii.ecsv")
 f158 = t[t["BANDPASS"] == "F158"].to_pandas()
-vg = f158.groupby(["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"])
-centers = vg[["RA", "DEC"]].mean().reset_index()
-centers["ra_r"] = centers["RA"].round(5); centers["dec_r"] = centers["DEC"].round(5)
-pos_sizes = centers.groupby(["ra_r", "dec_r"]).size()
+vkey = ["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"]
+vg = f158.groupby(vkey)
+# Wrap-aware visit centres
+centres_raw = vg["DEC"].mean().reset_index(name="DEC")
+centres_raw["RA"] = vg["RA"].apply(
+    lambda s: _mod._circular_mean_deg(s.to_numpy())).values
+centres_raw["ra_r"] = centres_raw["RA"].round(5)
+centres_raw["dec_r"] = centres_raw["DEC"].round(5)
+pos_sizes = centres_raw.groupby(["ra_r", "dec_r"]).size()
 pair_idx = pos_sizes[pos_sizes == 2].index
-pair_pass = (centers.set_index(["ra_r", "dec_r"]).loc[pair_idx]
-             .reset_index()
-             .groupby(["ra_r", "dec_r"])["PASS"]
+pair_pass = (centres_raw.set_index(["ra_r", "dec_r"]).loc[pair_idx]
+             .reset_index().groupby(["ra_r", "dec_r"])["PASS"]
              .apply(lambda s: tuple(sorted(s.tolist()))))
 n_1516 = int((pair_pass == (15, 16)).sum())
 
-pairs_1516 = centers.set_index(["ra_r", "dec_r"]).loc[
+pairs_1516 = centres_raw.set_index(["ra_r", "dec_r"]).loc[
     pair_pass[pair_pass == (15, 16)].index].reset_index()
-pairs_1516_lo = pairs_1516[pairs_1516["DEC"] < 0]
-pos_ok = pairs_1516_lo.groupby(["ra_r", "dec_r"]).size() == 2
-n_dec_lt_0 = int(pos_ok.sum())
+# MA table filter (requires merge with raw metadata)
+vfirst = vg[["MA_TABLE_NUMBER"]].first().reset_index()
+pairs_1516 = pairs_1516.merge(vfirst, on=vkey)
+pairs_ma = pairs_1516[pairs_1516["MA_TABLE_NUMBER"] == 1007]
+n_ma = int((pairs_ma.groupby(["ra_r", "dec_r"]).size() == 2).sum())
+
+# Main-survey box
+in_ra = (pairs_ma["RA"] >= RA_MIN_A) | (pairs_ma["RA"] <= RA_MAX_B)
+in_dec = (pairs_ma["DEC"] >= DEC_MIN) & (pairs_ma["DEC"] <= DEC_MAX)
+pairs_box = pairs_ma[in_ra & in_dec]
+pairs_box = pairs_box.groupby(["ra_r", "dec_r"]).filter(lambda g: len(g) == 2)
+n_box = pairs_box.groupby(["ra_r", "dec_r"]).ngroups
+
+# Load the final result to report the interior-filtered count
+n_final = Table.read(
+    REPO / "catalogs/detection/selected_pairs.ecsv",
+    format="ascii.ecsv").to_pandas().shape[0]  # = N selected
+
+n_interior = len(PAIRS)  # 5 selected — but we want the pool size
+# Reconstruct the pool size by calling the script helper:
+pairs_pool, _ = _mod.load_pair_candidates()
+pairs_pool = _mod.apply_interior_filter(pairs_pool, f158)
+n_interior_pool = pairs_pool["PAIR_ID"].nunique()
 
 funnel = pd.DataFrame([
-    ("HLWAS.sim.ecsv — all rows",               len(t)),
-    ("F158 rows",                               len(f158)),
-    ("F158 visits (3-dither groups)",           len(vg)),
-    ("positions with exactly 2 visits",         len(pair_idx)),
-    ("… of which PASS pair = (15, 16)",         n_1516),
-    ("… and DEC < 0° (main survey body)",       n_dec_lt_0),
+    ("HLWAS.sim.ecsv — all rows",                        len(t)),
+    ("F158 rows",                                         len(f158)),
+    ("F158 visits (3-dither groups)",                    len(vg)),
+    ("positions with exactly 2 visits",                  len(pair_idx)),
+    ("… of which PASS pair = (15, 16)",                  n_1516),
+    ("… and MA_TABLE_NUMBER = 1007",                     n_ma),
+    (f"… inside RA ∈ [{RA_MIN_A:.0f}°, 360°] ∪ [0°, "
+     f"{RA_MAX_B:.0f}°], Dec ∈ [{DEC_MIN:+.0f}°, {DEC_MAX:+.0f}°]",   n_box),
+    (f"… interior (≥ {INTERIOR_MIN} F158 exps within "
+     f"{INTERIOR_R:.0f}° of centre)",                    n_interior_pool),
+    (f"… selected ({n_final} picks)",                    n_final),
 ], columns=["filter step", "count"])
 funnel
 ```
@@ -127,10 +173,9 @@ plt.show()
 
 ## The selection
 
-Five pairs were chosen by greedy spreading: bin candidates into 5 bins
-of ecliptic latitude (primary driver of zodiacal background), then
-within each bin pick the pair whose RA is furthest from the
-already-chosen pairs.
+Five pairs were chosen by binning the interior-filtered pool into 5
+equal-count bins along the (wrap-aware) RA axis of the selection box
+and picking the median-Dec pair in each bin.
 
 ```{python}
 #| echo: false
@@ -142,40 +187,38 @@ PAIRS[["PAIR_ID", "RA", "DEC", "PA", "ECL_LON_DEG", "ECL_LAT_DEG",
      "SOLAR_ELONG_DEG": "{:.2f}"})
 ```
 
-The set spans RA from 17.7° to 336.7° and ecliptic latitude from −63°
-(near the southern ecliptic pole — minimum zodi) to +12° (on the
-ecliptic — maximum zodi in this sample). That gives a useful range of
-sky conditions for the recovery study.
+The set spans the main-survey RA box from 332.5° across the wrap to
+42.1°, with ecliptic latitudes from about −32° to −6°. Within a tight
+Dec ≈ −17° slice, this gives a mild range of zodiacal conditions while
+keeping the field well inside the HLWAS footprint at every pick.
 
 ## Sky distribution
 
 ```{python}
 #| echo: false
-#| fig-cap: "All PASS=(15,16) F158 pairs with Dec < 0 (grey dots), with the five selected pairs marked (red stars, annotated by PAIR_ID). Pair IDs are the integer rank of the pair within the unique-(RA,Dec) set — they identify a specific row in catalogs/detection/selected_pairs.ecsv."
-# Recompute candidate centres for the figure
-vg = f158.groupby(["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"])
-centres_all = vg[["RA", "DEC"]].mean().reset_index()
-centres_all["ra_r"] = centres_all["RA"].round(5)
-centres_all["dec_r"] = centres_all["DEC"].round(5)
-cand = centres_all.set_index(["ra_r", "dec_r"]).loc[
-    pair_pass[pair_pass == (15, 16)].index].reset_index()
-cand = cand[cand["DEC"] < 0]
-cand_pair_centres = cand.groupby(["ra_r", "dec_r"])[["RA", "DEC"]].first()
+#| fig-cap: "HLWAS F158 exposures (grey cloud), (15,16) interior pairs that pass all filters (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed rectangle = the main-survey selection box. The HLWAS F158 footprint is a connected strip through RA = 0° with hard edges; the box sits well inside it."
+pool_centres = pairs_pool.groupby("PAIR_ID")[["RA", "DEC"]].first()
 
-fig, ax = plt.subplots(figsize=(10, 6))
-ax.scatter(cand_pair_centres["RA"], cand_pair_centres["DEC"],
-           s=2, color="lightgray",
-           label=f"{len(cand_pair_centres)} (15,16) pairs, Dec < 0")
+fig, ax = plt.subplots(figsize=(11, 6))
+ax.scatter(f158["RA"], f158["DEC"], s=0.5, color="lightgray", alpha=0.5,
+           label=f"{len(f158):,} HLWAS F158 exposures (all sky)")
+ax.scatter(pool_centres["RA"], pool_centres["DEC"], s=6, color="tab:blue",
+           alpha=0.5,
+           label=f"{len(pool_centres)} (15,16) interior pairs in box")
 for _, prow in PAIRS.iterrows():
-    ax.scatter(prow["RA"], prow["DEC"], s=120, marker="*",
-               color="tab:red", edgecolor="k", lw=0.5, zorder=5)
+    ax.scatter(prow["RA"], prow["DEC"], s=140, marker="*",
+               color="tab:red", edgecolor="k", lw=0.6, zorder=5)
     ax.annotate(f" {int(prow['PAIR_ID'])}",
                 (prow["RA"], prow["DEC"]), fontsize=10)
+for ra_lo, ra_hi in [(RA_MIN_A, 360.0), (0.0, RA_MAX_B)]:
+    ax.plot([ra_lo, ra_hi, ra_hi, ra_lo, ra_lo],
+            [DEC_MIN, DEC_MIN, DEC_MAX, DEC_MAX, DEC_MIN],
+            color="k", ls="--", lw=1.0, alpha=0.6)
 ax.set_xlabel("RA (deg)")
 ax.set_ylabel("Dec (deg)")
-ax.invert_xaxis()
+ax.set_xlim(360, 0)
 ax.grid(True, alpha=0.3)
-ax.legend(loc="lower right")
+ax.legend(loc="lower right", markerscale=2)
 plt.show()
 ```
 
@@ -203,7 +246,10 @@ checks = [
     ("5 pairs selected",                       len(PAIRS) == 5),
     ("10 visits (2 per pair)",                 len(visits) == 10),
     ("30 pointings (3 dithers per visit)",     len(POINTINGS) == 30),
-    ("all pointings Dec < 0",                  bool((POINTINGS["DEC"] < 0).all())),
+    ("all pair centres in Dec box",
+     bool(PAIRS["DEC"].between(DEC_MIN, DEC_MAX).all())),
+    ("all pair centres in RA box",
+     bool(((PAIRS["RA"] >= RA_MIN_A) | (PAIRS["RA"] <= RA_MAX_B)).all())),
     ("all MA_TABLE_NUMBER = 1007",
      bool((POINTINGS["MA_TABLE_NUMBER"] == 1007).all())),
     ("all elongations in [90, 115]",

@@ -59,17 +59,56 @@ ELONG_MAX = 115.0
 YEAR = 2026
 N_PAIRS = 5  # number of pairs to select
 MA_TABLE = 1007  # 107.52 s MA table — canonical HLWAS imaging cadence
-DEC_MAX = 0.0  # stay in the main body of the HLWAS survey
+
+# Main-survey RA/Dec box the selection is drawn from. RA wraps through 0°,
+# so we express it as two segments [RA_MIN_A, 360] ∪ [0, RA_MAX_B].
+# The box is chosen to sit squarely inside the HLWAS F158 footprint, away
+# from its RA/Dec edges, so every candidate pair is in a well-covered
+# part of the survey.
+RA_MIN_A = 330.0
+RA_MAX_B = 50.0
+DEC_MIN = -25.0
+DEC_MAX = -10.0
+
+# "Interior" check: a pair is considered interior to the survey if there
+# are at least INTERIOR_MIN F158 exposures within INTERIOR_RADIUS_DEG of
+# its (wrap-aware) centre. This filters phantom centres and edge pairs.
+INTERIOR_RADIUS_DEG = 2.0
+INTERIOR_MIN = 200
 
 
-def load_pair_candidates() -> pd.DataFrame:
-    """Return one row per visit for all PASS=(15,16) F158 pairs."""
+def _circular_mean_deg(angles_deg: np.ndarray) -> float:
+    """Wrap-aware mean of angles in degrees in [0, 360)."""
+    rad = np.deg2rad(angles_deg)
+    x = np.cos(rad).mean()
+    y = np.sin(rad).mean()
+    return (np.rad2deg(np.arctan2(y, x)) + 360.0) % 360.0
+
+
+def _in_ra_box(ra_deg: np.ndarray | pd.Series) -> np.ndarray:
+    """True where RA is inside [RA_MIN_A, 360] ∪ [0, RA_MAX_B]."""
+    ra = np.asarray(ra_deg)
+    return (ra >= RA_MIN_A) | (ra <= RA_MAX_B)
+
+
+def load_pair_candidates() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return (pair-visit rows, raw F158 rows).
+
+    Uses a wrap-aware mean for the visit centre. Restricts to
+    PASS=(15,16) F158 pairs with MA_TABLE_NUMBER=1007 that sit inside
+    the (RA, Dec) box, and only keeps pairs that are interior to the
+    survey (≥ INTERIOR_MIN F158 exposures within INTERIOR_RADIUS_DEG).
+    """
     t = Table.read(HLWAS, format="ascii.ecsv")
     df = t[t["BANDPASS"] == "F158"].to_pandas()
     vkey = ["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"]
+    # Wrap-aware visit centre (RA via circular mean; Dec is linear)
     vg = df.groupby(vkey)
-    # Visit center = mean of the 3 dither positions
-    centers = vg[["RA", "DEC", "PA"]].mean().reset_index()
+    centers = vg["DEC"].mean().reset_index(name="DEC")
+    centers["RA"] = vg["RA"].apply(
+        lambda s: _circular_mean_deg(s.to_numpy())
+    ).values
+    centers["PA"] = vg["PA"].first().values
     meta = vg.first().reset_index()[
         vkey + ["MA_TABLE_NUMBER", "EXPOSURE_TIME", "TARGET_NAME"]
     ]
@@ -86,19 +125,47 @@ def load_pair_candidates() -> pd.DataFrame:
     )
     wanted_pos = pair_pass[pair_pass == (15, 16)].index
     pairs = pairs.set_index(["ra_r", "dec_r"]).loc[wanted_pos].reset_index()
-    # Restrict to the canonical HLWAS imaging MA table and to the main
-    # survey body (south of the Dec~+2 edge).
+    # Canonical MA table
     pairs = pairs[pairs["MA_TABLE_NUMBER"] == MA_TABLE]
-    pairs = pairs[pairs["DEC"] < DEC_MAX]
-    # Drop any positions where the Dec filter removed one visit but kept
-    # the other (shouldn't happen since a pair shares Dec, but belt+braces):
+    # (RA, Dec) box
+    pairs = pairs[(pairs["DEC"] >= DEC_MIN) & (pairs["DEC"] <= DEC_MAX)]
+    pairs = pairs[_in_ra_box(pairs["RA"])]
+    # Drop positions where one visit survived but not both
     ok = pairs.groupby(["ra_r", "dec_r"]).size() == 2
     pairs = pairs.set_index(["ra_r", "dec_r"]).loc[ok[ok].index].reset_index()
-    # Numeric PAIR_ID = integer rank over unique (ra_r, dec_r)
+    # Numeric PAIR_ID = integer rank over unique (ra_r, dec_r) within
+    # the surviving set (so IDs are stable across reruns at a given
+    # config but not across config changes)
     unique_pos = pairs[["ra_r", "dec_r"]].drop_duplicates().reset_index(drop=True)
     unique_pos["PAIR_ID"] = unique_pos.index.astype(int)
     pairs = pairs.merge(unique_pos, on=["ra_r", "dec_r"])
-    return pairs
+    return pairs, df
+
+
+def apply_interior_filter(pairs: pd.DataFrame, f158: pd.DataFrame) -> pd.DataFrame:
+    """Drop pairs whose centres sit too close to the survey boundary.
+
+    Criterion: the number of F158 exposures within INTERIOR_RADIUS_DEG
+    of the (wrap-aware) pair centre must be at least INTERIOR_MIN.
+    """
+    centres = pairs.groupby("PAIR_ID")[["RA", "DEC"]].first()
+    ra0 = centres["RA"].to_numpy()
+    dec0 = centres["DEC"].to_numpy()
+    ra = f158["RA"].to_numpy()
+    dec = f158["DEC"].to_numpy()
+    # Small-angle Euclidean with RA wrap — OK within the box since
+    # |dec| < 25° and radii are ~2°.
+    cos_dec = np.cos(np.deg2rad(dec0))
+    counts = np.zeros(len(centres), dtype=int)
+    for i in range(len(centres)):
+        dra = np.abs(ra - ra0[i])
+        dra = np.minimum(dra, 360.0 - dra)
+        ddec = np.abs(dec - dec0[i])
+        near = (dra * cos_dec[i]) ** 2 + ddec ** 2 < INTERIOR_RADIUS_DEG ** 2
+        counts[i] = int(near.sum())
+    centres["n_f158_within_r"] = counts
+    keep = centres[centres["n_f158_within_r"] >= INTERIOR_MIN].index
+    return pairs[pairs["PAIR_ID"].isin(keep)].reset_index(drop=True)
 
 
 def solar_elongation_curve(ra_deg: float, dec_deg: float, year: int = YEAR) -> pd.DataFrame:
@@ -143,39 +210,32 @@ def windows(curve: pd.DataFrame, minimum: float = ELONG_MIN,
     return runs
 
 
-def select_pair_sample(pair_centers: pd.DataFrame, n: int,
-                       rng_seed: int = 20260422) -> pd.DataFrame:
-    """Pick `n` pairs that span ecliptic latitude then RA.
+def select_pair_sample(pair_centers: pd.DataFrame, n: int) -> pd.DataFrame:
+    """Pick `n` pairs evenly spread across the (wrap-aware) RA axis.
 
-    Strategy: sort by ecliptic latitude (the main driver of zodi
-    background), split into n roughly equal-count bins, and within each
-    bin pick the pair whose RA is most extreme relative to already-chosen
-    pairs (greedy max-min-separation in RA after lat binning).
+    Strategy: map RA through the box [RA_MIN_A, 360] ∪ [0, RA_MAX_B]
+    onto a linear 0-to-(RA_MAX_B + 360 - RA_MIN_A) axis, bin into n
+    equal-count bins, and in each bin pick the candidate at the bin's
+    median Dec. This gives roughly even RA coverage with mild Dec
+    diversity per slice. Ties broken deterministically by PAIR_ID.
     """
-    rng = np.random.default_rng(rng_seed)
-    pc = pair_centers.copy().sort_values("ECL_LAT_DEG").reset_index(drop=True)
-    # Latitude bins — equal count
+    pc = pair_centers.copy()
+    # Linearise RA across the wrap (anchor 0 at RA_MIN_A)
+    pc["RA_LIN"] = np.where(
+        pc["RA"] >= RA_MIN_A,
+        pc["RA"] - RA_MIN_A,
+        pc["RA"] + (360.0 - RA_MIN_A),
+    )
+    pc = pc.sort_values(["RA_LIN", "PAIR_ID"]).reset_index(drop=True)
     bin_idx = np.linspace(0, len(pc), n + 1).astype(int)
     picked = []
     for i in range(n):
         cand = pc.iloc[bin_idx[i]:bin_idx[i + 1]]
         if cand.empty:
             continue
-        if not picked:
-            # Pick the median-RA candidate in the bin
-            ra_sorted = cand.sort_values("RA")
-            picked.append(ra_sorted.iloc[len(ra_sorted) // 2])
-        else:
-            # Maximise angular RA separation from already-picked pairs
-            ras_picked = np.array([p["RA"] for p in picked])
-            def dra(row):
-                dr = np.minimum(
-                    np.abs(row["RA"] - ras_picked),
-                    360.0 - np.abs(row["RA"] - ras_picked),
-                )
-                return dr.min()
-            cand = cand.assign(dra=cand.apply(dra, axis=1))
-            picked.append(cand.sort_values("dra", ascending=False).iloc[0])
+        mid_dec = cand["DEC"].median()
+        row = cand.iloc[(cand["DEC"] - mid_dec).abs().values.argmin()]
+        picked.append(row)
     return pd.DataFrame(picked).reset_index(drop=True)
 
 
@@ -189,8 +249,12 @@ def main():
     OUT_PLOTS.mkdir(parents=True, exist_ok=True)
 
     print("Loading HLWAS pair candidates…")
-    pairs = load_pair_candidates()
-    print(f"  {pairs['PAIR_ID'].nunique()} PASS=(15,16) F158 pairs")
+    pairs, f158 = load_pair_candidates()
+    print(f"  {pairs['PAIR_ID'].nunique()} PASS=(15,16) F158 pairs "
+          f"inside the RA/Dec box")
+    pairs = apply_interior_filter(pairs, f158)
+    print(f"  {pairs['PAIR_ID'].nunique()} remain after the interior filter "
+          f"(>= {INTERIOR_MIN} F158 exposures within {INTERIOR_RADIUS_DEG}°)")
 
     # Pair-level centers (identical for both visits), with ecliptic lat/lon
     centers = pairs.groupby("PAIR_ID").agg(
@@ -316,22 +380,30 @@ def main():
     fig.savefig(OUT_PLOTS / "elongation_windows.png", dpi=140)
     plt.close(fig)
 
-    # Sky map — all candidates (grey) + selected (red)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.scatter(centers["RA"], centers["DEC"], s=2, color="lightgray",
-               label=f"{len(centers)} (15,16) pairs with valid date window")
+    # Sky map — show the full HLWAS F158 cloud + our selection box + picks
+    fig, ax = plt.subplots(figsize=(11, 6))
+    ax.scatter(f158["RA"], f158["DEC"], s=0.5, color="lightgray", alpha=0.5,
+               label=f"{len(f158):,} HLWAS F158 exposures (all)")
+    ax.scatter(centers["RA"], centers["DEC"], s=6, color="tab:blue",
+               label=f"{len(centers)} (15,16) interior pairs in selection box",
+               alpha=0.5)
     for _, prow in selected_full.iterrows():
-        ax.scatter(prow["RA"], prow["DEC"], s=90, marker="*",
-                   color="tab:red", edgecolor="k", lw=0.5, zorder=5)
+        ax.scatter(prow["RA"], prow["DEC"], s=140, marker="*",
+                   color="tab:red", edgecolor="k", lw=0.6, zorder=5)
         ax.annotate(f" {int(prow['PAIR_ID'])}",
-                    (prow["RA"], prow["DEC"]),
-                    fontsize=9)
+                    (prow["RA"], prow["DEC"]), fontsize=9)
+    # Draw the selection-box boundary (RA wraps)
+    box_ra_edges = [RA_MIN_A, 360.0, 0.0, RA_MAX_B]
+    for ra_lo, ra_hi in [(RA_MIN_A, 360.0), (0.0, RA_MAX_B)]:
+        ax.plot([ra_lo, ra_hi, ra_hi, ra_lo, ra_lo],
+                [DEC_MIN, DEC_MIN, DEC_MAX, DEC_MAX, DEC_MIN],
+                color="k", ls="--", lw=1.0, alpha=0.6)
     ax.set_xlabel("RA (deg)")
     ax.set_ylabel("Dec (deg)")
-    ax.invert_xaxis()
+    ax.set_xlim(360, 0)
     ax.grid(True, alpha=0.3)
-    ax.legend(loc="lower right")
-    ax.set_title(f"HLWAS F158 (15,16) pairs — {args.n_pairs} selected")
+    ax.legend(loc="lower right", markerscale=2)
+    ax.set_title(f"HLWAS F158 — {args.n_pairs} selected pairs inside main-survey box")
     fig.tight_layout()
     fig.savefig(OUT_PLOTS / "sky_map.png", dpi=140)
     plt.close(fig)
