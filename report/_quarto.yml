@@ -41,6 +41,8 @@ website:
             text: Phase 4a — validation
           - href: detection/phase5a_detection.qmd
             text: Phase 5a — detection baseline
+          - href: detection/phase5b_kernel_sweep.qmd
+            text: Phase 5b — kernel sweep
 
 format:
   html:

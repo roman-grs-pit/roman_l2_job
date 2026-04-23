@@ -46,14 +46,14 @@ version control. A pointer file will be added when Phase 4 starts.
 
 ## Status
 
-Phases 1-5a are complete for pair 11119. Efficiency baseline
-established — 50% completeness at F158 mag 25.4 (stars) / 24.6
-(galaxies). Ready for either Phase 5b (`kernel_fwhm` sweep on the
-existing mosaic) or the skycell-driven Phase 1-2 refactor + Phase 4b
-scale-up to 5–25 skycells.
+Phases 1-5b are complete for pair 11119. Baseline: 50% completeness at
+F158 mag 25.4 (stars) / 24.6 (galaxies). Kernel sweep confirms default
+`kernel_fwhm=2` is near-optimal for both source types; wider kernels
+hurt. Next: skycell-driven refactor + Phase 4b scale-up.
 
 - [Phase 1 — pointing selection](phase1_pointings.qmd)
 - [Phase 2 — skycell / SCA overlap](phase2_skycells.qmd)
 - [Phase 3 — truth-catalog generation](phase3_catalogs.qmd)
 - [Phase 4a — L2 + L3 validation](phase4a_validation.qmd)
 - [Phase 5a — detection baseline](phase5a_detection.qmd)
+- [Phase 5b — kernel_fwhm sweep](phase5b_kernel_sweep.qmd)

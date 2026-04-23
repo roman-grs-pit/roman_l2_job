@@ -1,0 +1,104 @@
+---
+title: "Phase 5b — kernel_fwhm sweep"
+subtitle: "Does a wider matched filter help detect extended sources?"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+from astropy.table import Table
+REPO = Path("../..").resolve()
+```
+
+## What Phase 5b does
+
+Rerun `SourceCatalogStep` on the Phase-4a mosaic with
+`kernel_fwhm ∈ {2.0, 3.0, 5.0, 7.0}` pix, keeping the other
+parameters at the defaults (`snr_threshold=3.0`, `npixels=25`,
+`deblend=False`). Reuses the same L3 mosaic and truth catalog — so
+the sweep is ~3 minutes of wall time, no new sims.
+
+The research question: does raising `kernel_fwhm` help detect extended
+sources (galaxies) by better matching their surface-brightness profile?
+The expectation going in was **yes, widen the kernel for galaxies**.
+
+## Results — pair 11119 / skycell 000m18x60y42
+
+```{python}
+#| echo: false
+#| tbl-cap: "Sweep summary. n_recovered = total distinct sources found; m50/m90 = F158 magnitude at 50%/90% completeness, linearly interpolated from the per-bin efficiency curves."
+summary = pd.read_csv(REPO / "output/detection/phase5b/sweep_summary_pair_11119.csv")
+summary
+```
+
+```{python}
+#| echo: false
+#| fig-cap: "Detection-efficiency curves at four `kernel_fwhm` values. LEFT: stars (PSF). RIGHT: galaxies (Sersic n=1, r_h=0.275″). Dotted guides at 50% and 90% completeness. Wider kernels strictly worsen completeness for both source types."
+from IPython.display import Image, display
+display(Image(filename=str(REPO / "output/detection/phase5b/sweep_pair_11119.png")))
+```
+
+## The expectation didn't pan out
+
+The original hypothesis was that a wider kernel should help extended
+sources because the matched-filter SNR is maximised when the kernel
+matches the source profile. For our Sersic-n=1 galaxies with
+`r_eff = 0.275″` (= 5 mosaic pix at 0.055″/pix), an optimal kernel
+should have been ~5 pix. Empirically it is not:
+
+| kernel_fwhm | stars m50% | galaxies m50% | n_recovered |
+|---|---|---|---|
+| 2.0 | **25.40** | **24.65** | 282 |
+| 3.0 | **25.48** | 24.59 | 282 |
+| 5.0 | 25.37 | 24.44 | 265 |
+| 7.0 | 25.04 | 24.38 | 237 |
+
+The best kernel for *stars* is `kernel_fwhm = 3.0` (m50 = 25.48;
+marginal improvement over 2.0). The best kernel for *galaxies* is
+`kernel_fwhm = 2.0` — the same as the default matched to the PSF.
+Widening to 7 pix loses ~0.27 mag for galaxies and ~0.36 mag for
+stars, plus 45 fewer detections total (282 → 237).
+
+### Why the matched-filter intuition misfires here
+
+Three effects work against the wider kernel:
+
+1. **Peak smoothing**: convolving a source with a kernel wider than the
+   source's intrinsic scale lowers the peak amplitude. For our 0.275″
+   galaxies — essentially "PSF plus a small Gaussian tail" at the 0.055″
+   mosaic scale — the peak is still PSF-dominated, and a 7-pixel kernel
+   cuts the peak by a factor of ~3.
+2. **Noise integration**: a wider kernel integrates noise from more
+   pixels. The convolved sigma drops as ~1/kernel_fwhm, but the peak
+   drops faster for sources smaller than the kernel — so peak/sigma
+   falls, not rises.
+3. **Blending**: at `kernel_fwhm = 7`, close-neighbour pairs (which
+   our Sobol layout has at the few-arcsec level) start merging into
+   single detections. That's the 282 → 237 drop.
+
+### What would make wider kernels win
+
+Larger-r_eff galaxies — maybe r_eff ≥ 1″ (≈ 18 mosaic pix) — would have
+their peak broadened enough that a wider kernel recovers more flux than
+it smooths away. Those are bigger than typical survey galaxies at the
+depth-10 HLWAS magnitude range, so for the detection study as spec'd,
+**the default `kernel_fwhm = 2.0` is already near-optimal**.
+
+### False positives
+
+All four kernels give **0 false positives** within 0.3″ of any truth
+source. The sweep does not trade completeness against spurious
+detections — wider kernels just lose real detections, without gaining
+false ones. Caveats: our truth-source density is high enough that a
+random "false positive" has ~20% chance of being within 0.3″ of a
+real truth source by chance; the absolute floor on FP rate at this
+truth density is therefore not well-measured here. A scale-up with
+lower truth density or a sparse-field run would firm up this number.
+
+## Checkpoint
+
+Phase 5b complete. Default parameters are near-optimal — no kernel
+re-tune needed before Phase 4b. The question "does kernel_fwhm help"
+now has an empirical answer (no, for our galaxy size), with a clear
+mechanism (peak smoothing > noise reduction for sub-kernel sources).
