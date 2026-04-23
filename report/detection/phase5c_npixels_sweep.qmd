@@ -1,0 +1,82 @@
+---
+title: "Phase 5c — npixels sweep"
+subtitle: "The size-above-threshold floor is the binding constraint for point sources"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import pandas as pd
+REPO = Path("../..").resolve()
+```
+
+## What Phase 5c does
+
+Rerun `SourceCatalogStep` on the same Phase-4a mosaic with
+`npixels ∈ {9, 16, 25}`, keeping `kernel_fwhm = 2.0` (near-optimal
+from [Phase 5b](phase5b_kernel_sweep.qmd)) and the other defaults.
+`npixels` is the minimum *connected pixels above threshold* required
+to register as a detection — 25 is the MosaicPipeline default.
+
+## Results
+
+```{python}
+#| echo: false
+#| tbl-cap: "npixels sweep summary at kernel_fwhm=2."
+summary = pd.read_csv(REPO / "output/detection/phase5c/sweep_summary_pair_11119.csv")
+summary
+```
+
+```{python}
+#| echo: false
+#| fig-cap: "LEFT: star detection efficiency vs input F158 mag, for npixels 9/16/25. RIGHT: same for galaxies. Default (yellow, npixels=25) is strictly worse than the lower values at every magnitude. At npixels=9, stars remain at 100% completeness out to mag 26 (the limit of our injection grid)."
+from IPython.display import Image, display
+display(Image(filename=str(REPO / "output/detection/phase5c/sweep_pair_11119.png")))
+```
+
+## Stars see a huge benefit, galaxies much smaller
+
+| npixels | stars m50% | Δ vs default | galaxies m50% | Δ vs default | FP rate |
+|---|---|---|---|---|---|
+| 9 | ≥26.0 (saturates above mag range) | ≥ +0.6 | 24.88 | +0.23 | 1.4% |
+| 16 | 25.89 | +0.49 | 24.87 | +0.22 | 0.3% |
+| **25 (default)** | **25.40** | — | **24.65** | — | 0.0% |
+
+The default `npixels=25` is the binding constraint for *point sources*
+at our depth. A Roman F158 PSF on a 0.055″ drizzled mosaic has FWHM
+~2.7 pix. After `kernel_fwhm=2` convolution the core extends over ~15
+pixels above 3σ at mag 23, shrinking to ~20-25 at mag 25, and dropping
+below 25 for fainter stars — so the 25-pixel floor simply cuts off
+the faint-end tail.
+
+Galaxies (Sersic n=1, r_eff=0.275″) have intrinsic brightness profiles
+that spread over more pixels at any magnitude, so `npixels=25` is
+already well below the typical galaxy footprint — dropping it only
+gains a little.
+
+## False-positive caveat
+
+At npixels=9 we see 5 FPs out of 345 (1.4%), up from 0 at npixels=25.
+Our truth density is ~0.4 sources per arcsec² (420 in a ~1000 arcsec²
+skycell core), so a random position has ~3% chance of being within
+0.3″ of a real truth source by chance. Some of those 5 "FPs" may
+therefore be genuine noise peaks, some may be truth matches lost in
+attribution. At npixels=16 we see 1 FP (0.3%) — comfortably below
+that chance-coincidence rate, so likely a real false detection.
+
+## Takeaway for the detection study
+
+For the depth-10 HLWAS mosaics this study produces, **npixels is the
+binding parameter, not kernel_fwhm**. The "kernel_fwhm helps extended
+sources" design assumption misses the real optimization axis.
+
+Recommendation for Phase 4b/5 at scale: use
+**`kernel_fwhm=2`, `npixels=16`** — gains 0.5 mag star depth / 0.2
+mag galaxy depth with only 0.3% FP rate, a marginal cost. Dropping
+to `npixels=9` gains a little more but adds ambiguity at the FP floor.
+
+## Checkpoint
+
+Parameter studies on the single validation mosaic complete. Default
+`kernel_fwhm=2` stays; npixels moves from 25 to 16. Ready for the
+skycell-driven Phase 1-2 refactor and Phase 4b scale-up.

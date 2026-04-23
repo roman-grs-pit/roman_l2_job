@@ -57,3 +57,4 @@ hurt. Next: skycell-driven refactor + Phase 4b scale-up.
 - [Phase 4a — L2 + L3 validation](phase4a_validation.qmd)
 - [Phase 5a — detection baseline](phase5a_detection.qmd)
 - [Phase 5b — kernel_fwhm sweep](phase5b_kernel_sweep.qmd)
+- [Phase 5c — npixels sweep](phase5c_npixels_sweep.qmd)
