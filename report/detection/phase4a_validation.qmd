@@ -19,18 +19,18 @@ Concretely, for pair 11119 (skycell 000m18x60y42):
 
 1. Build a combined truth catalog (stars + galaxies merged in one
    parquet — romanisim ingests both via the per-row `type` column).
-2. Emit 6 `romanisim-make-image` commands (`output/detection/sims_11119.script`),
-   one per (pointing, SCA) pair from the corrected Phase 2, each with a
-   deterministic CRC32-of-basename seed so every dither draws an
-   independent noise realisation.
-3. Run the sims 4-way parallel (~11 min). Output L2s in
+2. Emit 22 `romanisim-make-image` commands from the corrected +
+   HLWAS-expanded Phase 2 list (see below), each with a deterministic
+   CRC32-of-basename seed so every dither draws an independent noise
+   realisation.
+3. Run the sims 4-way parallel (~34 min). Output L2s in
    `output/detection/l2/` (~200 MB each).
-4. Run `skycell_asn --product-type full` on the 6 L2s — target skycell
-   gets all 6 members.
-5. Run `MosaicPipeline` → 502 MB coadd for x60y42.
+4. Run `skycell_asn --product-type full` on the 22 L2s — target skycell
+   gets all 22 members.
+5. Run `MosaicPipeline` → 503 MB coadd for x60y42.
 6. Inspect depth, weight, image, truth-to-image correspondence.
 
-Wall time for pair 11119: **~15 min end-to-end** (11 min sims + 3 min
+Wall time for pair 11119: **~40 min end-to-end** (34 min sims + 3 min
 mosaic + <1 min validate).
 
 ## Phase 2 WCS fix (applied before this run)
@@ -48,34 +48,37 @@ received contributions from 4 of the 6 pointings at sim time.
 code path `romanisim-make-image --usecrds` takes. After the fix,
 Phase-2 predictions and `skycell_asn` agree on every skycell.
 
-## Per-pixel depth vs "design depth" — a coverage-geometry note
+## Per-pixel depth — the pair alone isn't enough; expand to HLWAS
 
-The corrected Phase 2 picks skycell **000m18x60y42** for pair 11119
-with `n_pointings = 6` and `n_sca_events = 6` — 6 pointings, one SCA
-per pointing (SCAs 1, 4, 7 across the three dithers × two passes).
+The first corrected run simulated only the pair's 6 pointings. That
+gave `n_pointings = 6` on x60y42 but **per-pixel depth of just 4**:
+HLWAS dithers shift ~7-12′ between exposures — larger than the 4.6′
+skycell — so the three dithers put three different SCAs over
+*different regions* of the skycell, not the same pixels. Most interior
+pixels get covered by only 2 of the 3 dithers (× 2 passes = depth 4).
 
-The mosaic depth map shows **max depth 4, median interior depth 4**,
-not 6. This is not a bug — it's the HLWAS dither geometry:
+Fix: at Phase 2's end, sweep *all* of HLWAS F158 for any pointing
+within 0.6° of the selected skycell and keep (pointing, SCA) pairs
+that overlap (via the CRDS-backed WCS). For pair 11119's skycell the
+expansion adds **16 more L2 files** from nearby visits 9, 10, and 12
+(and their pass-16 revisits) on top of the original 6 dithers from
+visit 11. All expanded sims use the pair's SIM_DATE so zodi stays
+fixed across the mosaic — we get HLWAS-like depth at a single date.
 
-- The three dithers in a visit shift the telescope by ~7-12′ each,
-  larger than a 4.6′ skycell.
-- So the "SCA that covers a given skycell" differs between dithers.
-  For pair 11119 at x60y42: exp 1 covers the skycell via SCA 1,
-  exp 2 via SCA 4, exp 3 via SCA 7 — but those three SCAs cover
-  *different regions* within the skycell, not the same pixels.
-- Most interior pixels are covered by two dithers (SCA 1 + SCA 4),
-  not three, giving per-pixel depth 2 × 2 passes = **4**. A thin
-  southern strip has only SCA 7 → depth 2.
+With 22 L2 files the mosaic depth map reaches **max 12, median interior
+10**:
 
-This matches the full-run observation
-([memory](../full/design.qmd#data-volume-and-wall-time)): "44% pixels
-at depth 2, 20% at 6, 1% at 8". For pair 11119's single skycell the
-distribution is tighter — ~95 % of pixels at depth 4, ~5 % at depth 2
-at the southern edge.
+| depth tier | fraction of skycell |
+|---|---|
+| depth 10-12 (core) | ~55% |
+| depth 8 | ~30% |
+| depth 4-6 (edge bands) | ~12% |
+| depth 0-2 (corners) | ~3% |
 
-Selection criterion is therefore `n_pointings` (primary) then
-`n_sca_events == n_pointings` (prefer no SCA straddling) — produces
-the cleanest uniform coverage, not the highest per-pixel number.
+This matches what the full-run measured for its design-depth skycells
+(median ~6, max ~8 there because the full-run budget included the
+pair only, not neighbours). Our detection study gets deeper because
+we pull in every HLWAS visit whose SCAs overlap the target skycell.
 
 ## Mosaic diagnostics
 
@@ -89,11 +92,11 @@ display(Image(filename=str(REPO / "output/detection/phase4a/validate_pair_11119.
 | quantity | value |
 |---|---|
 | image shape | 5000 × 5000 |
-| sigma-clipped median | 0.356 MJy/sr |
-| sigma-clipped sigma | 0.021 MJy/sr |
-| weight map median | 1115 (arb. units) |
-| depth map max / median (interior) | 4 / 4 |
-| L2 files in asn | 6 |
+| sigma-clipped median | 0.332 MJy/sr |
+| sigma-clipped sigma | 0.012 MJy/sr |
+| weight map median | 3733 (arb. units) |
+| depth map max / median (interior) | 12 / 10 |
+| L2 files in asn | 22 |
 
 Sigma-clipped median 0.356 MJy/sr is consistent with Phase-1's
 `galsim.getSkyLevel` prediction of 0.96 e⁻/pix/s for this pair at its

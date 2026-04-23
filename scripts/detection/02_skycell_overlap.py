@@ -63,8 +63,18 @@ from romancal.skycell.skymap import SKYMAP, SkyCells
 
 REPO = Path(__file__).resolve().parents[2]
 POINTINGS_IN = REPO / "catalogs/detection/selected_pointings.ecsv"
+HLWAS_ECSV = REPO / "catalogs/HLWAS.sim.ecsv"
 OUT_CAT = REPO / "catalogs/detection"
 OUT_PLOTS = REPO / "output/detection/phase2"
+
+# Coarse HLWAS search radius around each selected skycell. Roman WFI
+# footprint is ~0.4° across (outer SCAs sit ~0.2° from the boresight),
+# so any pointing whose nominal (RA, Dec) is within ~0.5° could still
+# have an outer SCA touch a skycell at the centre. Use 0.6° as a safety
+# margin. Every candidate is then checked against the CRDS-accurate
+# per-SCA WCS via `find_skycell_matches`, so the coarse filter does
+# not need to be tight.
+HLWAS_EXPAND_RADIUS_DEG = 0.6
 
 
 def sca_sky_corners(wcs,
@@ -199,6 +209,97 @@ def aggregate_to_pointing_level(sca_table: pd.DataFrame,
             "pointing_scas": ";".join(f"{pi}:{sca}" for pi, sca in pointing_scas),
         })
     return pd.DataFrame(rows)
+
+
+def _hlwas_nearby_pointings(skycell_ra: float, skycell_dec: float,
+                            hlwas: pd.DataFrame,
+                            radius_deg: float = HLWAS_EXPAND_RADIUS_DEG
+                            ) -> pd.DataFrame:
+    """Return HLWAS F158 exposure rows within `radius_deg` of a skycell."""
+    dra = np.minimum(np.abs(hlwas["RA"] - skycell_ra),
+                     360.0 - np.abs(hlwas["RA"] - skycell_ra))
+    within = ((dra * np.cos(np.deg2rad(skycell_dec))) < radius_deg) \
+             & (np.abs(hlwas["DEC"] - skycell_dec) < radius_deg)
+    return hlwas[within].copy()
+
+
+def _expand_one_skycell(args):
+    """Worker: given a target skycell + candidate HLWAS exposures, return
+    every (exposure, SCA) whose CRDS WCS footprint overlaps the skycell."""
+    skycell_idx, skycell_name, cand_rows, sim_date, pair_id = args
+    out = []
+    date = Time(sim_date)
+    for _, row in cand_rows.iterrows():
+        for sca in range(1, 19):
+            wcs = _build_sca_wcs_crds(row["RA"], row["DEC"], row["PA"],
+                                       date, sca)
+            corners = sca_sky_corners(wcs)
+            matches = find_skycell_matches([tuple(r) for r in corners])
+            if skycell_idx in matches:
+                out.append({
+                    "PAIR_ID": int(pair_id),
+                    "PASS": int(row["PASS"]),
+                    "SEGMENT": int(row["SEGMENT"]),
+                    "OBSERVATION": int(row["OBSERVATION"]),
+                    "VISIT": int(row["VISIT"]),
+                    "EXPOSURE": int(row["EXPOSURE"]),
+                    "SCA": int(sca),
+                    "RA": float(row["RA"]),
+                    "DEC": float(row["DEC"]),
+                    "PA": float(row["PA"]),
+                    "SIM_DATE": sim_date,
+                    "skycell_idx": int(skycell_idx),
+                    "skycell_name": skycell_name,
+                })
+    return out
+
+
+def expand_to_full_hlwas(selected: pd.DataFrame, workers: int = 4
+                          ) -> pd.DataFrame:
+    """For each selected skycell, find *every* HLWAS F158 (pointing, SCA)
+    that actually overlaps it — not just the pair's 6 dithers. All
+    additional sims use the pair's chosen SIM_DATE so zodi stays fixed
+    across the mosaic.
+
+    Returns a DataFrame with one row per (pointing, SCA) to simulate,
+    carrying RA/Dec/PA/SIM_DATE directly so no further merge is needed.
+    """
+    import multiprocessing as mp
+    import time as _t
+
+    hlwas = Table.read(HLWAS_ECSV, format="ascii.ecsv").to_pandas()
+    hlwas = hlwas[hlwas["BANDPASS"] == "F158"].copy()
+
+    pair_date = {}
+    pair_pts = Table.read(POINTINGS_IN, format="ascii.ecsv").to_pandas()
+    for pid, g in pair_pts.groupby("PAIR_ID"):
+        pair_date[int(pid)] = str(g["SIM_DATE"].iloc[0])
+
+    tasks = []
+    for _, s in selected.iterrows():
+        pid = int(s["PAIR_ID"])
+        cand = _hlwas_nearby_pointings(s["skycell_ra"], s["skycell_dec"],
+                                        hlwas)
+        tasks.append((int(s["skycell_idx"]), str(s["skycell_name"]),
+                      cand, pair_date[pid], pid))
+        print(f"  pair {pid} skycell {s['skycell_name']}: "
+              f"{len(cand)} candidate HLWAS exposures")
+
+    print(f"\nExpanding selection to full HLWAS within "
+          f"{HLWAS_EXPAND_RADIUS_DEG}° of each skycell…")
+
+    t0 = _t.time()
+    with mp.get_context("fork").Pool(processes=workers) as pool:
+        rows = []
+        for i, out in enumerate(
+                pool.imap_unordered(_expand_one_skycell, tasks), 1):
+            rows.extend(out)
+            print(f"  [{i}/{len(tasks)}] +{len(out)} (pointing, SCA) rows; "
+                  f"total {_t.time()-t0:.1f}s", flush=True)
+    df = pd.DataFrame(rows).drop_duplicates(
+        ["PAIR_ID", "PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE", "SCA"]
+    ).reset_index(drop=True)
+    return df
 
 
 def enrich_with_skycell_meta(pt_table: pd.DataFrame) -> pd.DataFrame:
@@ -416,31 +517,24 @@ def main():
                     "skycell_ra", "skycell_dec",
                     "n_pointings", "n_sca_events"]].to_string(index=False))
 
-    # Per-selected-skycell list of (pointing, SCA) pairs to simulate
-    need_sim_rows = []
-    for _, s in selected.iterrows():
-        sub = sca_table[
-            (sca_table["PAIR_ID"] == s["PAIR_ID"])
-            & (sca_table["skycell_idx"] == s["skycell_idx"])
-        ]
-        # Dedup (POINTING_IDX, SCA) — a single L2 file per combo
-        dedup = sub[["PAIR_ID", "POINTING_IDX", "PASS", "VISIT",
-                     "EXPOSURE", "SCA"]].drop_duplicates()
-        dedup["skycell_idx"] = int(s["skycell_idx"])
-        dedup["skycell_name"] = s["skycell_name"]
-        need_sim_rows.append(dedup)
-    need_sim = pd.concat(need_sim_rows).reset_index(drop=True)
-    Table.from_pandas(need_sim).write(
-        OUT_CAT / "pointings_sca_to_simulate.ecsv",
-        format="ascii.ecsv", overwrite=True
-    )
+    # Expand from "pair's 6 pointings" to "every HLWAS pointing that
+    # overlaps the selected skycell". All additional pointings are
+    # simulated at the pair's chosen SIM_DATE so zodi stays fixed.
+    sim_ecsv = OUT_CAT / "pointings_sca_to_simulate.ecsv"
+    if args.plots_only and sim_ecsv.exists():
+        print(f"\n(plots-only: keeping existing {sim_ecsv.relative_to(REPO)})")
+        need_sim = Table.read(sim_ecsv, format="ascii.ecsv").to_pandas()
+    else:
+        need_sim = expand_to_full_hlwas(selected)
+        Table.from_pandas(need_sim).write(sim_ecsv, format="ascii.ecsv",
+                                           overwrite=True)
 
-    # L2-count summary
-    n_distinct_l2 = need_sim.drop_duplicates(["POINTING_IDX", "SCA"]).shape[0]
+    # L2-count summary — row uniqueness key is (PASS, SEGMENT, OBS, VISIT, EXP, SCA)
+    dedup_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE", "SCA"]
     print(f"\nL2 files to simulate: "
-          f"{n_distinct_l2} (from {len(need_sim)} rows after dedup)")
+          f"{need_sim.drop_duplicates(dedup_key).shape[0]}")
     by_pair = need_sim.groupby("PAIR_ID").apply(
-        lambda g: g.drop_duplicates(["POINTING_IDX", "SCA"]).shape[0],
+        lambda g: g.drop_duplicates(dedup_key).shape[0],
         include_groups=False,
     )
     print("  per-pair counts:")

@@ -45,6 +45,24 @@ the 30 pointings from [Phase 1](phase1_pointings.qmd), we:
 From the 540 `(pointing, SCA) → skycell(s)` triples we build two
 aggregate tables and pick one depth-6 skycell per pair for Phase 3/4.
 
+### Expansion step — back to full HLWAS
+
+The pair's 6 pointings alone only reach *nominal* depth 6 on the
+selected skycell, but the 3 dithers in a visit shift the telescope
+by ~7-12′ (larger than a 4.6′ skycell). So per-pixel depth from the
+pair alone tops out at ~4. To recover the full HLWAS depth,
+we then **sweep the entire HLWAS F158 pointing list for every
+pointing whose centre lies within 0.6° of the selected skycell**
+(Roman WFI outer SCAs reach ~0.2° from the boresight; 0.6° is a
+comfortable margin). For each candidate we compute all 18 SCA
+footprints via the CRDS-backed WCS and keep any (pointing, SCA)
+pair that overlaps the target skycell.
+
+All the expanded sims use the pair's chosen SIM_DATE so the
+zodiacal background stays fixed across the mosaic. The expansion
+lifts the number of L2 sims from 6 to ~20 per pair and the
+per-pixel mosaic depth from 4 to 10-12.
+
 ::: {.callout-note collapse="true"}
 ## WCS-model note — why CRDS over galsim
 
@@ -115,23 +133,25 @@ footprint overlaps the skycell:
 
 ```{python}
 #| echo: false
-#| tbl-cap: "L2 file count per pair (distinct `(POINTING_IDX, SCA)` combinations after dedup)."
-l2_counts = (NEED_SIM
-             .drop_duplicates(["PAIR_ID", "POINTING_IDX", "SCA"])
+#| tbl-cap: "L2 files to simulate per pair after the HLWAS expansion. `n_visits` is the number of distinct HLWAS visits contributing; `n_l2_files` is the (visit × exposure × SCA) count."
+dedup_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE", "SCA"]
+visits_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT"]
+_ns = NEED_SIM.drop_duplicates(["PAIR_ID"] + dedup_key)
+l2_counts = (_ns
              .groupby("PAIR_ID").size().reset_index(name="n_l2_files"))
-l2_counts["n_pointings"] = NEED_SIM.groupby("PAIR_ID")["POINTING_IDX"].nunique().values
-l2_counts["scas_per_pointing_mean"] = (l2_counts["n_l2_files"] /
-                                       l2_counts["n_pointings"]).round(2)
+l2_counts["n_visits"] = (_ns.drop_duplicates(["PAIR_ID"] + visits_key)
+                             .groupby("PAIR_ID").size().values)
+l2_counts["scas_per_visit_mean"] = (l2_counts["n_l2_files"] /
+                                     l2_counts["n_visits"]).round(2)
 l2_counts
 ```
 
 ```{python}
 #| echo: false
-#| tbl-cap: "The full per-skycell list of L2 files Phase 4 will produce (one row per `(pointing, SCA)` pair per selected skycell)."
-NEED_SIM[["PAIR_ID", "skycell_idx", "skycell_name",
-          "POINTING_IDX", "PASS", "VISIT", "EXPOSURE",
-          "SCA"]].sort_values(
-    ["PAIR_ID", "POINTING_IDX", "SCA"]).reset_index(drop=True)
+#| tbl-cap: "First 40 rows of the per-skycell L2 list. The full HLWAS expansion can add dozens of (visit × exposure × SCA) combinations beyond the pair's 6 nominal dithers."
+NEED_SIM[["PAIR_ID", "skycell_name", "PASS", "SEGMENT", "VISIT",
+          "EXPOSURE", "SCA", "RA", "DEC"]].sort_values(
+    ["PAIR_ID", "PASS", "VISIT", "EXPOSURE", "SCA"]).head(40).reset_index(drop=True)
 ```
 
 ## Self-checks
@@ -141,16 +161,16 @@ NEED_SIM[["PAIR_ID", "skycell_idx", "skycell_name",
 #| tbl-cap: "End-of-phase assertions on the overlap output."
 checks = [
     ("5 skycells selected (one per pair)",        len(SELECTED) == 5),
-    ("every selected skycell has depth 6",
+    ("every selected skycell has n_pointings == 6",
      bool((SELECTED["n_pointings"] == 6).all())),
     ("every pair has exactly one selected skycell",
      SELECTED["PAIR_ID"].nunique() == SELECTED.shape[0]),
     ("every pointing appears in the SCA table",
      SCA_TABLE["POINTING_IDX"].nunique() == len(POINTINGS)),
-    ("all selected skycells have ≥ 6 distinct L2 contributions",
-     bool((SELECTED["n_sca_events"] >= 6).all())),
     ("n_sca_events ≥ n_pointings for every (pair, skycell)",
      bool((PT_TABLE["n_sca_events"] >= PT_TABLE["n_pointings"]).all())),
+    ("expansion adds at least as many L2s as the pair contributes",
+     bool((l2_counts["n_l2_files"] >= 6).all())),
 ]
 pd.DataFrame(checks, columns=["check", "pass"])
 ```

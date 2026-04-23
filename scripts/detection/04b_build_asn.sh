@@ -24,20 +24,26 @@ L2_DIR="output/detection/l2"
 ASN_DIR="output/detection/asn"
 mkdir -p "$ASN_DIR"
 
-# Pick the L2 files matching this pair's (PASS, SEGMENT, VISIT).
-SEGMENT=$(pixi run python -c "
+# Collect all L2 files that pointings_sca_to_simulate.ecsv enumerates
+# for this pair (Phase 2 expansion picks up every HLWAS pointing whose
+# SCA overlaps the selected skycell — not just the pair's 6 dithers).
+CAL_LIST=$(pixi run python -c "
+from pathlib import Path
 from astropy.table import Table
-t = Table.read('catalogs/detection/selected_pointings.ecsv', format='ascii.ecsv').to_pandas()
-print(int(t[t['PAIR_ID']==$PAIR]['SEGMENT'].iloc[0]))
+L2 = Path('$L2_DIR').resolve()
+t = Table.read('catalogs/detection/pointings_sca_to_simulate.ecsv', format='ascii.ecsv').to_pandas()
+r = t[t['PAIR_ID']==$PAIR]
+for _, row in r.iterrows():
+    fname = (f\"r00001010115{int(row['PASS']):01d}\"
+             if int(row['PASS']) in (15, 16) else None)
+    # proper: reconstruct the canonical L2 filename
+    pass_ = int(row['PASS']); seg = int(row['SEGMENT'])
+    obs = int(row['OBSERVATION']); vis = int(row['VISIT'])
+    exp = int(row['EXPOSURE']); sca = int(row['SCA'])
+    fname = (f'r00001010{pass_:02d}{seg:03d}{obs:03d}{vis:03d}_'
+             f'{exp:04d}_wfi{sca:02d}_f158_cal.asdf')
+    print(L2 / fname)
 ")
-VISIT=$(pixi run python -c "
-from astropy.table import Table
-t = Table.read('catalogs/detection/selected_pointings.ecsv', format='ascii.ecsv').to_pandas()
-print(int(t[t['PAIR_ID']==$PAIR]['VISIT'].iloc[0]))
-")
-printf -v PAT 'r000010101[56]%03d001%03d_*_wfi*_f158_cal.asdf' "$SEGMENT" "$VISIT"
-# Collect matching L2 files into an absolute-path list
-CAL_LIST=$(ls "$L2_DIR"/$PAT 2>/dev/null | xargs -I{} readlink -f {} | sort -u)
 if [ -z "$CAL_LIST" ]; then
     echo "no L2 files matching pair $PAIR in $L2_DIR"; exit 1
 fi

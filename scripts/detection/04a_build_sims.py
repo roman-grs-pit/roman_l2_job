@@ -88,44 +88,16 @@ def main():
     print(f"  wrote combined catalog: {combined_path.relative_to(REPO)} "
           f"({len(combined)} sources)")
 
-    # --- pointings (per-dither RA/Dec/PA) ---
-    pointings = Table.read(
-        REPO / "catalogs/detection/selected_pointings.ecsv",
-        format="ascii.ecsv"
-    ).to_pandas()
-    pointings = pointings[pointings["PAIR_ID"] == args.pair].copy()
-    # Merge per-dither RA/Dec/PA/date onto the (pointing, SCA) list
-    key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE"]
-    pts_sim = pts_sim.merge(
-        pointings[key + ["RA", "DEC", "PA", "SIM_DATE", "PLAN"]],
-        on=[c for c in key if c in pts_sim.columns] +
-           [c for c in ["PASS", "VISIT", "EXPOSURE"] if c not in key],
-        how="left",
-    )
-    # Fallback explicit merge on the keys we actually have in pts_sim
-    pts_sim = pts_sim[[c for c in pts_sim.columns if not c.endswith("_y")]]
-    pts_sim.columns = [c.rstrip("_x") if c.endswith("_x") else c
-                       for c in pts_sim.columns]
-    # Reconstruct SEGMENT/OBSERVATION from a full merge if missing
-    if "SEGMENT" not in pts_sim.columns or pts_sim["SEGMENT"].isna().any():
-        pts_sim = pts_sim.drop(columns=[c for c in ["SEGMENT", "OBSERVATION",
-                                                      "RA", "DEC", "PA",
-                                                      "SIM_DATE", "PLAN"]
-                                         if c in pts_sim.columns], errors="ignore")
-        pts_sim = pts_sim.merge(
-            pointings[["PASS", "VISIT", "EXPOSURE", "SEGMENT", "OBSERVATION",
-                       "RA", "DEC", "PA", "SIM_DATE", "PLAN"]],
-            on=["PASS", "VISIT", "EXPOSURE"], how="left",
-        )
+    # --- emit sims.script ---
+    # pointings_sca_to_simulate.ecsv carries RA/DEC/PA/SIM_DATE directly
+    # (from Phase 2's HLWAS expansion), so no merge needed here.
     if pts_sim["RA"].isna().any():
         bad = pts_sim[pts_sim["RA"].isna()]
-        raise SystemExit(f"Missing RA/Dec for {len(bad)} rows after merge:\n{bad}")
-
-    # --- emit sims.script ---
+        raise SystemExit(f"Missing RA/Dec for {len(bad)} rows:\n{bad}")
     script_path = REPO / f"output/detection/sims_{args.pair}.script"
     lines = []
     for _, r in pts_sim.sort_values(
-            ["POINTING_IDX", "SCA"]).iterrows():
+            ["PASS", "SEGMENT", "VISIT", "EXPOSURE", "SCA"]).iterrows():
         fname = canonical_l2_filename(r)
         l2 = L2_DIR / fname
         log = LOG_DIR / f"{fname}.log"
