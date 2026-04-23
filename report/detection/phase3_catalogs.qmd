@@ -21,14 +21,14 @@ INDEX = Table.read(REPO / "catalogs/detection/catalogs_index.ecsv",
 ## What Phase 3 does
 
 For each skycell selected in [Phase 2](phase2_skycells.qmd), generate
-**two matched truth catalogs** — one of point sources, one of galaxies
-— at identical RA/Dec and F158 magnitudes. The matched design lets us
-compare detection efficiency point-for-point between stars and
-galaxies of the same brightness at the same sky position, which is the
-core science question of the study.
+**two truth catalogs** — one of point sources, one of galaxies — at
+**disjoint** positions across the skycell. Stars and galaxies sit at
+different RA/Dec so that detection sees them as separate sources; the
+two catalogs share an identical magnitude distribution, so their
+efficiency curves can be overlaid directly.
 
 Each catalog holds **210 sources = 21 magnitude bins × 10 sources per
-bin**, magnitudes running 23.0–25.0 in 0.1-mag steps. Fluxes are stored
+bin**, magnitudes running 23.0–26.0 in 0.15-mag steps. Fluxes are stored
 as maggies in the `F158` column (`= 10^(-mag/2.5)`) — the unit romanisim
 expects.
 
@@ -52,16 +52,19 @@ Skycells overlap their neighbours by `skycell_border_pixels = 100`
 inside the unique core, with room to spare for PSF wings and drizzle
 kernels.
 
-With 210 sources in a 4600×4600 pix injection area at 0.055″/pix, mean
-nearest-neighbour separation is ~17″, well above the ~5–10″ blending
-threshold, so no rejection sampling is needed.
+420 Sobol points are generated per skycell; the first 210 become the
+stars catalog, the second 210 the galaxies catalog. With the full
+420 spread over a 4600×4600 pix injection area at 0.055″/pix, mean
+nearest-neighbour separation is ~6″, with a small tail down to ~3″ —
+well above the PSF FWHM (~0.15″) and the galaxy half-light radius
+(0.275″), so detection sees all sources individually.
 
 ```{python}
 #| echo: false
-#| fig-cap: "Pair 11119 skycell 000m18x58y45 source layout. LEFT: all 210 Sobol-distributed stars coloured by F158 magnitude; the dashed rectangle is the 200-pixel core boundary. RIGHT: same points re-rendered to highlight per-mag-bin coverage — notice each magnitude bin still samples the whole skycell."
+#| fig-cap: "Pair 11119 skycell 000m18x60y42 source layout. LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."
 from IPython.display import Image, display
 display(Image(filename=str(
-    REPO / "output/detection/phase3/grid_000m18x58y45.png")))
+    REPO / "output/detection/phase3/grid_000m18x60y42.png")))
 ```
 
 ## Catalog index
@@ -101,8 +104,8 @@ t.slice(k, 1).to_pandas().T.rename(columns={0: "value"})
 ```
 
 A sample row from the 11119 **galaxies** catalog
-(`type = SER`, `n = 1`, `half_light_radius = 0.275″`) at the *same*
-source index — note identical `ra`, `dec`, `F158`, `mag`:
+(`type = SER`, `n = 1`, `half_light_radius = 0.275″`) — different
+position, same magnitude distribution:
 
 ```{python}
 #| echo: false
@@ -117,10 +120,10 @@ gt.slice(k, 1).to_pandas().T.rename(columns={0: "value"})
 #| echo: false
 #| tbl-cap: "End-of-phase assertions."
 stars_11119 = Table.read(
-    REPO / "catalogs/detection/catalogs/skycell_000m18x58y45_stars.parquet"
+    REPO / "catalogs/detection/catalogs/skycell_000m18x60y42_stars.parquet"
 ).to_pandas()
 gal_11119 = Table.read(
-    REPO / "catalogs/detection/catalogs/skycell_000m18x58y45_galaxies.parquet"
+    REPO / "catalogs/detection/catalogs/skycell_000m18x60y42_galaxies.parquet"
 ).to_pandas()
 
 checks = [
@@ -128,17 +131,17 @@ checks = [
     ("210 sources in every catalog",
      bool((INDEX["n_stars"] == 210).all() and
           (INDEX["n_galaxies"] == 210).all())),
-    ("21 distinct magnitudes × 10 each = 210",
+    ("21 distinct magnitudes × 10 each = 210 (per type)",
      len(stars_11119["mag"].unique()) == 21 and
      bool((stars_11119["mag"].value_counts() == 10).all())),
-    ("mag range [23.0, 25.0]",
+    ("mag range [23.0, 26.0]",
      (np.isclose(stars_11119["mag"].min(), 23.0)
-      and np.isclose(stars_11119["mag"].max(), 25.0))),
-    ("stars and galaxies share identical positions",
-     bool(np.allclose(stars_11119["ra"].values, gal_11119["ra"].values)
-          and np.allclose(stars_11119["dec"].values, gal_11119["dec"].values))),
-    ("stars and galaxies share identical magnitudes",
-     bool(np.allclose(stars_11119["mag"].values, gal_11119["mag"].values))),
+      and np.isclose(stars_11119["mag"].max(), 26.0))),
+    ("stars and galaxies have disjoint positions",
+     bool(len(set(zip(stars_11119["ra"].round(7), stars_11119["dec"].round(7)))
+               & set(zip(gal_11119["ra"].round(7), gal_11119["dec"].round(7)))) == 0)),
+    ("stars and galaxies share identical magnitude set",
+     bool(np.allclose(sorted(stars_11119["mag"]), sorted(gal_11119["mag"])))),
     ("F158 = 10^(-mag/2.5)",
      bool(np.allclose(stars_11119["F158"].values,
                       10.0 ** (-stars_11119["mag"].values / 2.5)))),
@@ -150,7 +153,9 @@ checks = [
           and np.allclose(gal_11119["half_light_radius"], 0.275))),
     ("pixel positions inside the 200-px injection boundary",
      bool((stars_11119["pix_x"].between(200, 4800)).all()
-          and (stars_11119["pix_y"].between(200, 4800)).all())),
+          and (stars_11119["pix_y"].between(200, 4800)).all()
+          and (gal_11119["pix_x"].between(200, 4800)).all()
+          and (gal_11119["pix_y"].between(200, 4800)).all())),
 ]
 pd.DataFrame(checks, columns=["check", "pass"])
 ```

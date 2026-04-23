@@ -60,8 +60,11 @@ OUT_PLOTS = REPO / "output/detection/phase3"
 # unique core, with room to spare for PSF wings and drizzle kernels.
 MARGIN_PIX = 200
 
-# Source grid: 21 mag bins × 10 sources = 210 per skycell per type
-MAG_MIN, MAG_MAX, MAG_STEP = 23.0, 25.0, 0.1
+# Source grid: 21 mag bins × 10 sources per type = 210 stars + 210 galaxies.
+# Positions are **disjoint** between stars and galaxies (420 Sobol points
+# total, split in half), so detection sees them as separate sources.
+MAG_MIN, MAG_MAX = 23.0, 26.0
+N_MAG_BINS = 21
 SOURCES_PER_MAG = 10
 BANDPASS_COL = "F158"
 
@@ -75,8 +78,7 @@ RNG_SEED = 20260422
 
 
 def build_mag_array() -> np.ndarray:
-    mags = np.arange(MAG_MIN, MAG_MAX + 0.5 * MAG_STEP, MAG_STEP)
-    assert len(mags) == 21, f"expected 21 bins, got {len(mags)}"
+    mags = np.linspace(MAG_MIN, MAG_MAX, N_MAG_BINS)
     return np.repeat(mags, SOURCES_PER_MAG)
 
 
@@ -94,45 +96,63 @@ def sobol_pixel_positions(nx: int, ny: int, n: int, seed: int,
 
 def catalog_for_skycell(skycell_idx: int, skycell_name: str,
                         rng_seed: int) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Build (stars_df, galaxies_df) for one skycell."""
+    """Build (stars_df, galaxies_df) for one skycell with disjoint
+    positions. Generates 2 × 210 = 420 Sobol positions; the first half
+    are stars, the second half are galaxies. Each type's 210 positions
+    get its own seeded magnitude shuffle."""
     cells = SkyCells([skycell_idx])
     wcs = cells.wcs[0]
     nx, ny = cells.pixel_shape  # (5000, 5000)
 
-    n_total = 21 * SOURCES_PER_MAG  # 210
+    n_per_type = N_MAG_BINS * SOURCES_PER_MAG  # 210
+    n_total = 2 * n_per_type  # 420 disjoint positions
     pix = sobol_pixel_positions(nx, ny, n_total, seed=rng_seed)
-    # WCS convention: (x, y) → (ra, dec) in deg
-    ra, dec = wcs(pix[:, 0], pix[:, 1])
-    ra = np.asarray(ra); dec = np.asarray(dec)
+    pix_stars = pix[:n_per_type]
+    pix_gals = pix[n_per_type:]
 
-    rng = np.random.default_rng(rng_seed + 1)
-    mags = build_mag_array()
-    order = rng.permutation(n_total)
-    mags = mags[order]  # shuffled magnitudes
-    flux_maggies = np.power(10.0, -mags / 2.5)
+    ra_s, dec_s = wcs(pix_stars[:, 0], pix_stars[:, 1])
+    ra_g, dec_g = wcs(pix_gals[:, 0], pix_gals[:, 1])
+    ra_s = np.asarray(ra_s); dec_s = np.asarray(dec_s)
+    ra_g = np.asarray(ra_g); dec_g = np.asarray(dec_g)
+
+    rng_s = np.random.default_rng(rng_seed + 1)
+    rng_g = np.random.default_rng(rng_seed + 2)
+    mags_base = build_mag_array()
+    mags_s = mags_base[rng_s.permutation(n_per_type)]
+    mags_g = mags_base[rng_g.permutation(n_per_type)]
+    flux_s = np.power(10.0, -mags_s / 2.5)
+    flux_g = np.power(10.0, -mags_g / 2.5)
 
     stars = pd.DataFrame({
-        "ra": ra,
-        "dec": dec,
-        "type": ["PSF"] * n_total,
-        "n": np.zeros(n_total, dtype=np.float32),
-        "half_light_radius": np.zeros(n_total, dtype=np.float32),
-        "pa": np.zeros(n_total, dtype=np.float32),
-        "ba": np.ones(n_total, dtype=np.float32),
-        BANDPASS_COL: flux_maggies,
-        "mag": mags,  # tracked for our own bookkeeping
-        "src_index": np.arange(n_total, dtype=np.int32),
-        "pix_x": pix[:, 0].astype(np.float32),
-        "pix_y": pix[:, 1].astype(np.float32),
+        "ra": ra_s,
+        "dec": dec_s,
+        "type": ["PSF"] * n_per_type,
+        "n": np.zeros(n_per_type, dtype=np.float32),
+        "half_light_radius": np.zeros(n_per_type, dtype=np.float32),
+        "pa": np.zeros(n_per_type, dtype=np.float32),
+        "ba": np.ones(n_per_type, dtype=np.float32),
+        BANDPASS_COL: flux_s,
+        "mag": mags_s,
+        "src_index": np.arange(n_per_type, dtype=np.int32),
+        "pix_x": pix_stars[:, 0].astype(np.float32),
+        "pix_y": pix_stars[:, 1].astype(np.float32),
     })
 
-    galaxies = stars.copy()
-    galaxies["type"] = "SER"
-    galaxies["n"] = np.full(n_total, GAL_N, dtype=np.float32)
-    galaxies["half_light_radius"] = np.full(n_total, GAL_REFF_ARCSEC,
-                                             dtype=np.float32)
-    galaxies["pa"] = np.full(n_total, GAL_PA, dtype=np.float32)
-    galaxies["ba"] = np.full(n_total, GAL_BA, dtype=np.float32)
+    galaxies = pd.DataFrame({
+        "ra": ra_g,
+        "dec": dec_g,
+        "type": ["SER"] * n_per_type,
+        "n": np.full(n_per_type, GAL_N, dtype=np.float32),
+        "half_light_radius": np.full(n_per_type, GAL_REFF_ARCSEC,
+                                       dtype=np.float32),
+        "pa": np.full(n_per_type, GAL_PA, dtype=np.float32),
+        "ba": np.full(n_per_type, GAL_BA, dtype=np.float32),
+        BANDPASS_COL: flux_g,
+        "mag": mags_g,
+        "src_index": np.arange(n_per_type, dtype=np.int32) + n_per_type,
+        "pix_x": pix_gals[:, 0].astype(np.float32),
+        "pix_y": pix_gals[:, 1].astype(np.float32),
+    })
 
     return stars, galaxies
 
@@ -144,24 +164,21 @@ def write_parquet(df: pd.DataFrame, path: Path) -> None:
     t.write(path, overwrite=True)
 
 
-def qa_plot(skycell_idx: int, skycell_name: str, stars_df: pd.DataFrame,
+def qa_plot(skycell_idx: int, skycell_name: str,
+            stars_df: pd.DataFrame, galaxies_df: pd.DataFrame,
             out_path: Path) -> None:
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Left: pixel layout, coloured by magnitude
     ax = axes[0]
-    sc = ax.scatter(stars_df["pix_x"], stars_df["pix_y"],
-                    c=stars_df["mag"], cmap="viridis", s=20, edgecolor="k", lw=0.2)
-    ax.set_xlabel("pixel x")
-    ax.set_ylabel("pixel y")
-    ax.set_aspect("equal")
-    ax.set_xlim(0, 5000)
-    ax.set_ylim(0, 5000)
-    ax.grid(True, alpha=0.3)
-    ax.set_title(f"{skycell_name} (idx {skycell_idx}) — Sobol layout")
-    # Draw the 100-px skycell-overlap border (dotted) and the
-    # injection boundary (dashed)
+    ss = ax.scatter(stars_df["pix_x"], stars_df["pix_y"],
+                    c=stars_df["mag"], cmap="viridis", vmin=MAG_MIN, vmax=MAG_MAX,
+                    s=30, edgecolor="k", lw=0.2, marker="o",
+                    label=f"{len(stars_df)} stars (PSF)")
+    ax.scatter(galaxies_df["pix_x"], galaxies_df["pix_y"],
+                c=galaxies_df["mag"], cmap="viridis", vmin=MAG_MIN, vmax=MAG_MAX,
+                s=30, edgecolor="k", lw=0.2, marker="s",
+                label=f"{len(galaxies_df)} galaxies (SER)")
     ax.plot([100, 4900, 4900, 100, 100],
             [100, 100, 4900, 4900, 100],
             ls=":", color="k", lw=0.8, alpha=0.4,
@@ -172,25 +189,29 @@ def qa_plot(skycell_idx: int, skycell_name: str, stars_df: pd.DataFrame,
              5000 - MARGIN_PIX, MARGIN_PIX],
             ls="--", color="k", lw=0.8, alpha=0.6,
             label=f"injection boundary ({MARGIN_PIX} px margin)")
-    ax.legend(loc="lower left", fontsize=7)
-    fig.colorbar(sc, ax=ax, label="F158 magnitude")
-
-    # Right: per-mag-bin position scatter to show uniform coverage per bin
-    ax = axes[1]
-    bins = np.round(stars_df["mag"].unique(), 2)
-    cmap = plt.get_cmap("viridis")
-    for mag in bins:
-        sub = stars_df[np.isclose(stars_df["mag"], mag)]
-        ax.scatter(sub["pix_x"], sub["pix_y"], s=36,
-                   color=cmap((mag - MAG_MIN) / (MAG_MAX - MAG_MIN)),
-                   edgecolor="k", lw=0.3, alpha=0.9)
-    ax.set_xlabel("pixel x")
-    ax.set_ylabel("pixel y")
-    ax.set_aspect("equal")
-    ax.set_xlim(0, 5000)
-    ax.set_ylim(0, 5000)
+    ax.set_xlabel("pixel x"); ax.set_ylabel("pixel y")
+    ax.set_aspect("equal"); ax.set_xlim(0, 5000); ax.set_ylim(0, 5000)
     ax.grid(True, alpha=0.3)
-    ax.set_title("per-magnitude bin coverage (same colouring)")
+    ax.legend(loc="lower left", fontsize=7)
+    ax.set_title(f"{skycell_name} (idx {skycell_idx}) — disjoint Sobol layout")
+    fig.colorbar(ss, ax=ax, label="F158 magnitude")
+
+    ax = axes[1]
+    combined = pd.concat([stars_df, galaxies_df])
+    # Histogram of nearest-neighbour separations
+    from scipy.spatial import cKDTree
+    xy = combined[["pix_x", "pix_y"]].to_numpy()
+    tree = cKDTree(xy)
+    dists, _ = tree.query(xy, k=2)
+    nn = dists[:, 1]
+    ax.hist(nn * 0.055, bins=40, color="tab:blue", alpha=0.8)
+    ax.set_xlabel("nearest-neighbour separation (arcsec)")
+    ax.set_ylabel("# sources")
+    ax.axvline(5, color="tab:red", ls="--", lw=1, label="~5″ blending floor")
+    ax.legend()
+    ax.set_title("Nearest-neighbour separations (all 420 sources)")
+    ax.grid(alpha=0.3)
+
     fig.tight_layout()
     fig.savefig(out_path, dpi=140)
     plt.close(fig)
@@ -222,7 +243,7 @@ def main():
         gal_path = OUT_CAT / f"skycell_{name}_galaxies.parquet"
         write_parquet(stars, stars_path)
         write_parquet(galaxies, gal_path)
-        qa_plot(idx, name, stars,
+        qa_plot(idx, name, stars, galaxies,
                 OUT_PLOTS / f"grid_{name}.png")
         summary.append({
             "PAIR_ID": int(row["PAIR_ID"]),

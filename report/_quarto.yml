@@ -39,6 +39,8 @@ website:
             text: Phase 3 — catalogs
           - href: detection/phase4a_validation.qmd
             text: Phase 4a — validation
+          - href: detection/phase5a_detection.qmd
+            text: Phase 5a — detection baseline
 
 format:
   html:

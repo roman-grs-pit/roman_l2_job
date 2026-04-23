@@ -1,0 +1,114 @@
+---
+title: "Phase 5a — source detection + efficiency baseline"
+subtitle: "Default SourceCatalogStep run on pair 11119's mosaic; star/galaxy completeness curves"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+from astropy.table import Table
+REPO = Path("../..").resolve()
+```
+
+## What Phase 5a does
+
+Phase 5a runs source detection on the Phase-4a mosaic and measures
+per-magnitude detection efficiency vs the Phase-3 truth catalog. It
+establishes the baseline (default `SourceCatalogStep` parameters)
+before the `kernel_fwhm` sweep of Phase 5b.
+
+Pipeline:
+
+1. Read the MosaicPipeline side-effect catalog (`*_cat.parquet`) —
+   equivalent to running `SourceCatalogStep` standalone with default
+   parameters (`kernel_fwhm=2.0`, `snr_threshold=3.0`, `npixels=25`,
+   `deblend=False`).
+2. Crossmatch stars truth and galaxies truth separately against the
+   recovered catalog via `astropy.match_coordinates_sky`, cross-match
+   radius 0.3″.
+3. Binned efficiency = fraction of truth sources in each magnitude bin
+   with a recovered match inside the radius.
+4. Count "false positives" = recovered sources with no truth within the
+   crossmatch radius.
+
+## Results — pair 11119 / skycell 000m18x60y42
+
+```{python}
+#| echo: false
+summary = pd.read_csv(REPO / "output/detection/phase5a/summary_pair_11119.csv")
+summary
+```
+
+```{python}
+#| echo: false
+#| fig-cap: "LEFT: detection efficiency vs F158 input magnitude. Blue = stars (PSF), red = galaxies (circular exponential, n=1, r_h=0.275″). Horizontal dotted guides at 50% and 90%. RIGHT: recovered catalog positions (black x) overlaid on truth stars (blue circles) and galaxies (red squares). Recovery is perfect in both position and count down to each type's completeness knee."
+from IPython.display import Image, display
+display(Image(filename=str(REPO / "output/detection/phase5a/efficiency_pair_11119.png")))
+```
+
+Key numbers:
+
+| quantity | stars (PSF) | galaxies (SER n=1, r=0.275″) |
+|---|---|---|
+| 90% completeness magnitude | 25.25 | 24.53 |
+| 50% completeness magnitude | 25.40 | 24.65 |
+
+The galaxy curve turns over ~0.75 mag shallower than the star curve —
+expected because a Sersic profile spreads the flux of a fixed total
+magnitude over several arcsec², lowering the peak SNR in the detection
+kernel. The default `kernel_fwhm=2.0` pix (≈0.11″) is matched to the
+F158 PSF, which under-weights galaxies; Phase 5b sweeps the kernel to
+explicitly study this.
+
+**False positives: 0/282 within 0.3″.** Every recovered source sits
+inside the crossmatch radius of at least one truth source. This is
+partly by design (truth covers the skycell densely) and partly a
+quality check on the pipeline — no spurious detections.
+
+## Why the galaxies hit an earlier wall
+
+- The F158 PSF FWHM is ~0.11″ at the detector plane; a circular
+  exponential galaxy with `r_eff = 0.275″` extends to ≥2× that.
+- SourceCatalogStep convolves the image with a Gaussian of
+  `kernel_fwhm = 2.0` pix (≈0.11″) and applies `snr_threshold = 3`
+  to the convolved image. The convolution essentially integrates flux
+  under a PSF-matched kernel. For point sources this kernel is
+  matched-filter-optimal; for resolved sources it loses up to ~50%
+  of the signal because flux outside the PSF radius is not weighted.
+- Raising `kernel_fwhm` to ~5-7 pix would better match the galaxy
+  surface-brightness profile and push the galaxy completeness curve
+  ~0.3-0.5 mag deeper, at the cost of slightly higher false-positive
+  rates and blending.
+
+Phase 5b will quantify that tradeoff.
+
+## Comparison to the full run's depth
+
+The full-run mosaic (`configs/full.yaml`, 6 pair-only visits at target
+RA 10°, Dec 0°) measured Kron-based 50% completeness at F158 mag 23.95
+across all depth levels, and 24.05 at the design depth ≥ 6 — shallower
+than our 24.65 (galaxies) / 25.40 (stars) here. The gap comes from
+two effects:
+
+1. **Depth**: our pair 11119 mosaic reaches per-pixel depth ~10 (after
+   the Phase 2 HLWAS expansion), the full-run design-depth skycells
+   only reach depth 6. Moving from depth 6 to 10 is sqrt(10/6) = 1.29×
+   better SNR, ≈ 0.28 mag depth gain.
+2. **Detection method**: the full-run's `mag_50pct` uses a Kron-like
+   aperture metric based on detected flux; we use a position-based
+   "was a source found" criterion. The latter is more forgiving for
+   faint extended sources.
+
+Both contribute plausibly to our ~0.5-1 mag deeper result.
+
+## Checkpoint
+
+Phase 5a criteria met: pipeline works end-to-end, clean efficiency
+curves, physically-sensible star-vs-galaxy offset, zero false
+positives at default parameters. Ready for either:
+
+- **Phase 4b** — scale to all 5 (or 25) skycells (after the proposed
+  skycell-driven refactor of Phases 1-2).
+- **Phase 5b** — `kernel_fwhm ∈ {2, 3, 5, 7}` sweep on the current
+  mosaic, cheaper (just reruns `SourceCatalogStep`).
