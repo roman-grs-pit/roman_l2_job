@@ -60,3 +60,4 @@ mosaics + Phase 5a/b/c per mosaic).
 - [Phase 5a — detection baseline (pair 11119)](phase5a_detection.qmd)
 - [Phase 5b — kernel_fwhm sweep (pair 11119)](phase5b_kernel_sweep.qmd)
 - [Phase 5c — npixels sweep (pair 11119)](phase5c_npixels_sweep.qmd)
+- [Phase 6 — cross-mosaic summary (10 skycells)](phase6_summary.qmd) ← new

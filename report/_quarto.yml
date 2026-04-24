@@ -45,6 +45,8 @@ website:
             text: Phase 5b — kernel sweep
           - href: detection/phase5c_npixels_sweep.qmd
             text: Phase 5c — npixels sweep
+          - href: detection/phase6_summary.qmd
+            text: Phase 6 — 12-skycell summary
 
 format:
   html:

@@ -1,0 +1,4 @@
+npixels,n_recovered,n_false_positive,fp_rate,mag_50pct_stars,mag_50pct_galaxies,mag_90pct_stars,mag_90pct_galaxies
+9,338,2,0.005917159763313609,,24.77,,24.65
+16,308,0,0.0,25.775,24.714285714285715,25.6,24.5
+25,265,0,0.0,25.212500000000002,24.65,25.025,24.3875

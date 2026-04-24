@@ -1,0 +1,5 @@
+kernel_fwhm,n_recovered,n_false_positive,fp_rate,mag_50pct_stars,mag_50pct_galaxies,mag_90pct_stars,mag_90pct_galaxies
+2.0,50,4,0.08,23.15,,,
+3.0,59,13,0.22033898305084745,23.75,,,
+5.0,61,19,0.3114754098360656,23.75,,,
+7.0,55,16,0.2909090909090909,23.75,,,

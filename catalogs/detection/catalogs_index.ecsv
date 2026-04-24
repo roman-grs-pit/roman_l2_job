@@ -12,8 +12,15 @@
 # - {name: galaxies_path, datatype: string}
 # schema: astropy-2.0
 PAIR_ID skycell_idx skycell_name n_stars n_galaxies mag_min mag_max stars_path galaxies_path
-2525 4140671 021m03x63y41 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_021m03x63y41_stars.parquet catalogs/detection/catalogs/skycell_021m03x63y41_galaxies.parquet
-2550 6197746 021m34x40y47 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_021m34x40y47_stars.parquet catalogs/detection/catalogs/skycell_021m34x40y47_galaxies.parquet
-3316 5172492 028m18x55y34 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_028m18x55y34_stars.parquet catalogs/detection/catalogs/skycell_028m18x55y34_galaxies.parquet
-10101 5355902 350m18x57y47 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_350m18x57y47_stars.parquet catalogs/detection/catalogs/skycell_350m18x57y47_galaxies.parquet
-11119 5156967 000m18x60y42 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_000m18x60y42_stars.parquet catalogs/detection/catalogs/skycell_000m18x60y42_galaxies.parquet
+1 5811902 066m27x60y41 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_066m27x60y41_stars.parquet catalogs/detection/catalogs/skycell_066m27x60y41_galaxies.parquet
+2 7195881 063m53x47y43 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_063m53x47y43_stars.parquet catalogs/detection/catalogs/skycell_063m53x47y43_galaxies.parquet
+3 5807007 059m27x38y48 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_059m27x38y48_stars.parquet catalogs/detection/catalogs/skycell_059m27x38y48_galaxies.parquet
+4 7026338 065m50x70y32 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_065m50x70y32_stars.parquet catalogs/detection/catalogs/skycell_065m50x70y32_galaxies.parquet
+5 4364979 048m06x64y42 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_048m06x64y42_stars.parquet catalogs/detection/catalogs/skycell_048m06x64y42_galaxies.parquet
+6 5377188 028m21x46y37 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_028m21x46y37_stars.parquet catalogs/detection/catalogs/skycell_028m21x46y37_galaxies.parquet
+7 5366375 007m21x69y69 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_007m21x69y69_stars.parquet catalogs/detection/catalogs/skycell_007m21x69y69_galaxies.parquet
+8 6169176 329m31x72y34 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_329m31x72y34_stars.parquet catalogs/detection/catalogs/skycell_329m31x72y34_galaxies.parquet
+9 4734569 350m09x36y30 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_350m09x36y30_stars.parquet catalogs/detection/catalogs/skycell_350m09x36y30_galaxies.parquet
+10 4522592 329m06x42y29 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_329m06x42y29_stars.parquet catalogs/detection/catalogs/skycell_329m06x42y29_galaxies.parquet
+11 3929958 017p00x68y28 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_017p00x68y28_stars.parquet catalogs/detection/catalogs/skycell_017p00x68y28_galaxies.parquet
+12 5754018 325m24x50y57 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_325m24x50y57_stars.parquet catalogs/detection/catalogs/skycell_325m24x50y57_galaxies.parquet

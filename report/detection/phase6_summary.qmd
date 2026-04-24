@@ -1,0 +1,85 @@
+---
+title: "Phase 6 — cross-mosaic summary"
+subtitle: "Detection efficiency vs zodi × coverage × parameter choice across 10 skycells"
+---
+
+```{python}
+#| echo: false
+from pathlib import Path
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
+from astropy.table import Table
+REPO = Path("../..").resolve()
+ALL = pd.read_csv(REPO / "output/detection/phase6/all_pairs.csv")
+```
+
+## What Phase 6 does
+
+Roll up per-mosaic Phase 5 results from the skycell-driven Phase 4b
+run (10 mosaics, 12 originally selected skycells less 2 in an HLWAS
+coverage gap). For each mosaic we have:
+
+- Mosaic median interior depth (from the coadd context array).
+- Baseline detection efficiency (default `SourceCatalogStep` params).
+- Kernel sweep (`kernel_fwhm` 2 / 3 / 5 / 7) and npixels sweep
+  (`npixels` 9 / 16 / 25).
+
+Plus Phase-1 metadata: ecliptic latitude, zodi band, romanisim sky
+prediction.
+
+## Per-pair summary
+
+```{python}
+#| echo: false
+#| tbl-cap: "One row per mosaic. Depth is the median per-pixel depth in the interior. `mag_50_*_default` is the 50% completeness magnitude at `SourceCatalogStep` defaults; `*_n16` is the same at `npixels=16`."
+ALL[["PAIR_ID", "skycell_name", "zodi_bin", "coverage_bin",
+     "ECL_LAT_DEG", "SKY_E_PER_PIX_PER_S", "depth_median",
+     "mag_50_stars_default", "mag_50_gals_default",
+     "mag_50_stars_n16", "mag_50_gals_n16"]]
+```
+
+## 50%-completeness vs mosaic depth
+
+```{python}
+#| echo: false
+#| fig-cap: "Mag at 50% star completeness (LEFT) and galaxy completeness (RIGHT) against median per-pixel mosaic depth. Points are colour-coded by zodi bin. Clear monotonic trend: deeper mosaics reach fainter magnitudes. Zero-depth mosaics have only ~2 L2 files each and most pixels lack any image coverage — they sit ~1-2 mag shallower than depth-10 skycells."
+from IPython.display import Image, display
+display(Image(filename=str(REPO / "output/detection/phase6/mag50_vs_depth.png")))
+```
+
+## Parameter sweep — does it hold up across depths?
+
+```{python}
+#| echo: false
+#| fig-cap: "Δmag_50 relative to default SourceCatalogStep settings. LEFT: stars — `npixels=16` gives +0.5 mag at every depth (universal win; larger at lower depth). `kernel_fwhm=3` is marginal everywhere. RIGHT: galaxies — `npixels=16` gains +0.05-0.15 mag; `kernel_fwhm=3` is zero or slightly negative. Phase 5c's finding from pair 11119 generalises across all depths and all zodi bands."
+display(Image(filename=str(REPO / "output/detection/phase6/param_sweep_summary.png")))
+```
+
+## Default-parameter efficiency curves overlaid
+
+```{python}
+#| echo: false
+#| fig-cap: "All 10 mosaics' default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off."
+display(Image(filename=str(REPO / "output/detection/phase6/baseline_all.png")))
+```
+
+## Takeaways
+
+1. **`npixels=16` is a universal win** (+0.5 mag star completeness,
+   +0.1 mag galaxy) at every depth and zodi band tested. The
+   per-mosaic cost is zero — it just re-runs `SourceCatalogStep`.
+2. **Depth drives completeness** much more than zodi. In the depth
+   ≥6 regime, zodi variation contributes ~0.1-0.3 mag; the depth
+   spread from 0 → 10 contributes ~2 mag.
+3. **The `kernel_fwhm=2` default is correct** across the board. Wider
+   kernels hurt at high depth (blending), break even at low depth.
+4. **Depth-0 ("coverage gap") skycells** give very noisy curves — not
+   useful for characterising the HLWAS-nominal detection regime.
+   Worth redesigning Phase 1 to pick "low coverage" at 1-3 exposures
+   within 0.25° (rather than ≤0) so the low-depth tier still has
+   partial mosaic coverage.
+
+## Checkpoint
+
+Phase 6 deliverable. The skycell-driven design works end-to-end at
+12-skycell scale. Parameter recommendations from pair 11119
+(Phase 5c) generalise to the full sample.
