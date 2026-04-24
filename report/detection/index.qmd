@@ -46,18 +46,18 @@ version control. A pointer file will be added when Phase 4 starts.
 
 ## Status
 
-Phase 1 rewritten for the skycell-driven design: 12 skycells picked
-in a `(zodi × coverage)` matrix. Phase 2 expansion ran on all 12;
-10 have ≥ 2 overlapping L2 files and will mosaic (pairs 9 and 10 in
-the `high_zodi × low_coverage` cell got 0 overlap — documented in
-Phase 1). Phase 4b orchestrator running now (~124 L2 sims + 10
-mosaics + Phase 5a/b/c per mosaic).
+Phase 1 picks 12 target skycells in a `(zodi × coverage)` matrix.
+Phase 2 expands each to the full HLWAS F158 pointings that overlap;
+10 of 12 yield non-empty L2 sets (pairs 9 and 10 sit in an HLWAS
+coverage gap near the ecliptic). Phase 3 generates matched
+stars+galaxies truth catalogs. Phase 4 simulates the L2s, coadds each
+skycell into an L3 mosaic, and runs `SourceCatalogStep` at defaults
+plus `kernel_fwhm` and `npixels` sweeps. Phase 6 rolls up the
+per-mosaic results into cross-skycell plots.
 
-- [Phase 1 — skycell selection](phase1_pointings.qmd) ← rewritten for matrix
-- [Phase 2 — HLWAS expansion](phase2_skycells.qmd) ← expansion-only
+- [Phase 1 — skycell selection](phase1_pointings.qmd)
+- [Phase 2 — HLWAS expansion](phase2_skycells.qmd)
 - [Phase 3 — truth-catalog generation](phase3_catalogs.qmd)
-- [Phase 4a — L2 + L3 validation (pair 11119)](phase4a_validation.qmd) ← historical single-skycell validation
-- [Phase 5a — detection baseline (pair 11119)](phase5a_detection.qmd)
-- [Phase 5b — kernel_fwhm sweep (pair 11119)](phase5b_kernel_sweep.qmd)
-- [Phase 5c — npixels sweep (pair 11119)](phase5c_npixels_sweep.qmd)
-- [Phase 6 — cross-mosaic summary (10 skycells)](phase6_summary.qmd) ← new
+- [Phase 5b — kernel_fwhm sweep (case study)](phase5b_kernel_sweep.qmd)
+- [Phase 5c — npixels sweep (case study)](phase5c_npixels_sweep.qmd)
+- [Phase 6 — full-scale summary (10 skycells)](phase6_summary.qmd)

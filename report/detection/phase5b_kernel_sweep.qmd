@@ -1,7 +1,16 @@
 ---
-title: "Phase 5b — kernel_fwhm sweep"
+title: "Phase 5b — kernel_fwhm sweep (single-skycell case study)"
 subtitle: "Does a wider matched filter help detect extended sources?"
 ---
+
+::: {.callout-note}
+This page presents the kernel sweep on a single historical validation
+skycell (pair 11119, x60y42, depth 10). The same sweep was then run
+on all 10 mosaics in Phase 4b — see the [Phase 6 summary](phase6_summary.qmd)
+for the cross-mosaic aggregate. The mechanisms discussed here
+(peak smoothing vs noise integration) generalise; the numbers below
+are one datapoint.
+:::
 
 ```{python}
 #| echo: false

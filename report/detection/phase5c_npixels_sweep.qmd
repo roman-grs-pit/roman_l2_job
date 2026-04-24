@@ -1,7 +1,14 @@
 ---
-title: "Phase 5c — npixels sweep"
+title: "Phase 5c — npixels sweep (single-skycell case study)"
 subtitle: "The size-above-threshold floor is the binding constraint for point sources"
 ---
+
+::: {.callout-note}
+Same scope note as [Phase 5b](phase5b_kernel_sweep.qmd): this page
+shows the npixels sweep on one validation skycell. The Phase 6
+summary confirms the finding across all 10 mosaics (npixels=16
+gives +0.5 mag for stars at every depth).
+:::
 
 ```{python}
 #| echo: false
