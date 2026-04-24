@@ -1,310 +1,101 @@
 ---
-title: "Phase 1 — pointing selection"
-subtitle: "Five HLWAS F158 re-observed pairs spanning the survey footprint"
+title: "Phase 1 — skycell selection"
+subtitle: "12 target skycells in a (zodi × coverage) matrix across the HLWAS F158 footprint"
 ---
 
 ```{python}
 #| echo: false
 from pathlib import Path
-import warnings
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from astropy.coordinates import SkyCoord, get_sun
-from astropy.coordinates.errors import NonRotationTransformationWarning
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
 from astropy.table import Table
-from astropy.time import Time
-import astropy.units as u
-
-warnings.filterwarnings("ignore", category=NonRotationTransformationWarning)
-
 REPO = Path("../..").resolve()
-# PAIRS: one row per PAIR_ID (5 rows). POINTINGS: one row per dithered
-# exposure (30 rows = 5 pairs × 2 visits × 3 dithers).
-PAIRS = Table.read(REPO / "catalogs/detection/selected_pairs.ecsv",
-                   format="ascii.ecsv").to_pandas()
-POINTINGS = Table.read(REPO / "catalogs/detection/selected_pointings.ecsv",
-                       format="ascii.ecsv").to_pandas()
-YEAR = int(PAIRS["SIM_DATE"].iloc[0][:4])
-ELONG_MIN, ELONG_MAX = 90.0, 115.0
+SKY = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
+                 format="ascii.ecsv").to_pandas()
 ```
 
-## Input and filters
+## What Phase 1 does
 
-The candidate pool is `catalogs/HLWAS.sim.ecsv` — the simulated Roman
-High-Latitude Wide-Area Survey pointing list. We apply these filters to
-arrive at the selection pool:
+Pick *N* target skycells inside the HLWAS F158 Wide-Field2 footprint,
+stratified by:
 
-1. `BANDPASS == "F158"`.
-2. Exactly two visits share identical (RA, Dec, PA) at 10⁻⁵ deg
-   precision — these are the survey-design re-observations. Visit
-   centres are computed with a **circular mean over the 3 dither RAs**
-   (important near RA = 0°/360°: a linear mean would place a dither
-   triplet straddling the wrap at a phantom RA ≈ 120°/240°).
-3. The two visits are from `PASS = 15` and `PASS = 16` — the dominant
-   revisit mode in HLWAS.
-4. `MA_TABLE_NUMBER == 1007` (the 107.52 s F158 imaging cadence; the
-   only MA table used by the (15,16) re-observations).
-5. **Interior check:** at least 200 F158 exposures sit within 2° of the
-   pair centre. Drops phantom centres and near-edge pairs.
+- **Ecliptic latitude** (proxy for zodiacal background). Bands:
+  |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between
+  bands ensure cross-bin picks aren't at adjacent |ecl_lat|.
+- **Local HLWAS coverage density** (proxy for mosaic depth):
+  `count_0p25` = # HLWAS F158 exposures whose centre lies within
+  0.25° of the skycell centre. "High" = ≥ 75th percentile; "low" =
+  ≤ 25th percentile, across HLWAS-interior candidates.
 
-Selection then picks from this pool:
+Target: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12
+skycells. A 5° great-circle minimum separation is enforced between
+any two picks so different cells don't accidentally land on top of
+each other.
 
-- **Two anchors**: at `RA ∈ [10°, 30°]`, one at `Dec ≈ −35°` and one at
-  `Dec ≈ −2°`. These sit above/below the main survey body and give the
-  final selection a broader ecliptic-latitude range than any single
-  Dec slice can.
-- **Three RA-spread picks** from the main box `RA ∈ [330°, 360°] ∪ [0°, 50°]`,
-  `Dec ∈ [−25°, −10°]`: bin the interior-pool pairs in this box into 3
-  equal-count bins along the wrap-aware RA axis, and in each bin take
-  the median-Dec candidate.
+Per skycell, we also compute the sim date that minimises solar
+elongation inside [90°, 115°] in 2026 — the "hardest-zodi" day within
+Roman's pointing constraint for that field.
 
-After filtering, every visit has exactly 3 dithered exposures, PA is
-uniform within a pair (both visits share a roll), and the nominal RA/Dec
-centres are pairwise identical. Each pair therefore gives **6 dithered
-exposures at one (RA, Dec, PA) with two different observation dates**.
+## The 12 selected skycells
 
 ```{python}
 #| echo: false
-#| tbl-cap: "Funnel from the full HLWAS table down to the candidate pool for selection."
-import sys
-sys.path.insert(0, str(REPO / "scripts/detection"))
-from importlib import import_module
-_mod = import_module("01_select_pointings")
-
-RA_MIN_A, RA_MAX_B = _mod.RA_MIN_A, _mod.RA_MAX_B
-DEC_MIN, DEC_MAX = _mod.DEC_MIN, _mod.DEC_MAX
-INTERIOR_MIN, INTERIOR_R = _mod.INTERIOR_MIN, _mod.INTERIOR_RADIUS_DEG
-ANCHORS = _mod.ANCHORS
-
-t = Table.read(REPO / "catalogs/HLWAS.sim.ecsv", format="ascii.ecsv")
-f158 = t[t["BANDPASS"] == "F158"].to_pandas()
-vkey = ["PLAN", "PASS", "SEGMENT", "OBSERVATION", "VISIT"]
-vg = f158.groupby(vkey)
-
-# Replay the selection pipeline to report pool sizes
-pairs_pool, _ = _mod.load_pair_candidates()
-n_global = pairs_pool["PAIR_ID"].nunique()
-pairs_pool = _mod.apply_interior_filter(pairs_pool, f158)
-n_interior = pairs_pool["PAIR_ID"].nunique()
-
-funnel = pd.DataFrame([
-    ("HLWAS.sim.ecsv — all rows",                           len(t)),
-    ("F158 rows",                                            len(f158)),
-    ("F158 visits (3-dither groups)",                       len(vg)),
-    ("PASS=(15,16) F158 pairs, MA_TABLE_NUMBER=1007",       n_global),
-    (f"… interior (≥ {INTERIOR_MIN} F158 exps within "
-     f"{INTERIOR_R:.0f}° of centre)",                        n_interior),
-    ("selected pairs (2 anchors + 3 RA-spread)",            len(PAIRS)),
-], columns=["filter step", "count"])
-funnel
+#| tbl-cap: "Selected skycells. `count_0p25` is the # HLWAS F158 exposures within 0.25° of the skycell centre — the selection metric. `SKY_E_PER_PIX_PER_S` is romanisim's predicted F158 zodi at SIM_DATE."
+SKY[["PAIR_ID", "skycell_name", "skycell_ra", "skycell_dec",
+     "ECL_LAT_DEG", "zodi_bin", "coverage_bin", "count_0p25",
+     "SIM_DATE", "SOLAR_ELONG_DEG", "SKY_E_PER_PIX_PER_S"]].style.format({
+    "skycell_ra": "{:.3f}", "skycell_dec": "{:.3f}",
+    "ECL_LAT_DEG": "{:+.2f}", "SOLAR_ELONG_DEG": "{:.2f}",
+    "SKY_E_PER_PIX_PER_S": "{:.3f}",
+})
 ```
 
-## Solar-elongation window
-
-Each selected pair is simulated on a date where the solar elongation of
-the field is in **[90°, 115°]**, as close to 90° as possible — minimum
-elongation drives maximum zodiacal brightness, which makes the recovery
-test conservative (hardest detection), while staying inside Roman's
-viewable-zone constraint. The chosen date minimises `(elong − 90°)`
-while staying inside the window.
+## Selection matrix
 
 ```{python}
 #| echo: false
-#| fig-cap: "Solar elongation vs day of year 2026 for the five selected pairs. Grey band = [90°, 115°]; filled dot = the chosen simulation date (closest to 90° inside the window). Each pair has two windows per year; we pick the first-hit day for reproducibility."
-start = Time(f"{YEAR}-01-01T00:00:00", scale="utc")
-doys = np.arange(0, 366)
-times = start + doys * u.day
-sun = get_sun(times)
-
-fig, ax = plt.subplots(figsize=(10, 5))
-cmap = plt.get_cmap("tab10")
-for i, prow in PAIRS.iterrows():
-    tgt = SkyCoord(ra=prow["RA"] * u.deg, dec=prow["DEC"] * u.deg)
-    elong = sun.separation(tgt).deg
-    ax.plot(doys, elong, color=cmap(i % 10),
-            label=f"pair {int(prow['PAIR_ID'])} "
-                  f"(RA={prow['RA']:.1f}°, Dec={prow['DEC']:.1f}°, "
-                  f"ecl_lat={prow['ECL_LAT_DEG']:+.1f}°)")
-    if prow["SIM_DATE"]:
-        d = (Time(prow["SIM_DATE"]) - start).jd
-        ax.plot(d, prow["SOLAR_ELONG_DEG"], "o", color=cmap(i % 10),
-                markersize=10, markeredgecolor="k")
-ax.axhspan(ELONG_MIN, ELONG_MAX, color="k", alpha=0.08,
-           label=f"[{ELONG_MIN:.0f}°, {ELONG_MAX:.0f}°]")
-ax.axhline(ELONG_MIN, color="k", ls="--", lw=0.7)
-ax.axhline(ELONG_MAX, color="k", ls="--", lw=0.7)
-ax.set_xlabel(f"Day of year {YEAR}")
-ax.set_ylabel("Solar elongation (deg)")
-ax.set_ylim(0, 180)
-ax.legend(fontsize=8, loc="upper right")
-ax.grid(True, alpha=0.3)
-plt.show()
+#| fig-cap: "Stratification matrix. Grey dots are the HLWAS-interior candidate pool (~700k skycells); red/green dashed lines mark the 25th/75th percentiles of `count_0p25`; vertical dotted lines are the ecl-lat band boundaries. Stars = selected skycells, coloured by PAIR_ID."
+from IPython.display import Image, display
+display(Image(filename=str(REPO / "output/detection/phase1/selection_matrix.png")))
 ```
 
-## The selection
-
-Two anchor picks (southern and northern edge, Dec ≈ −35° and Dec ≈ −2°
-at RA ≈ 20°) plus three RA-spread picks in the main box at median Dec.
+## Sky map
 
 ```{python}
 #| echo: false
-#| tbl-cap: "The five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. SKY_E_PER_PIX_PER_S is the romanisim-predicted F158 zodiacal sky at the pair's (RA, Dec, date), including the 10% stray-light term and the 0.04 e⁻/pix/s F158 thermal background. WINDOWS_DOY lists all 2026 day-of-year ranges where the field's solar elongation is inside [90°, 115°]."
-PAIRS[["PAIR_ID", "RA", "DEC", "PA", "ECL_LON_DEG", "ECL_LAT_DEG",
-       "SIM_DATE", "SOLAR_ELONG_DEG", "SKY_E_PER_PIX_PER_S",
-       "WINDOWS_DOY"]].style.format(
-    {"RA": "{:.3f}", "DEC": "{:.3f}", "PA": "{:.1f}",
-     "ECL_LON_DEG": "{:.2f}", "ECL_LAT_DEG": "{:+.2f}",
-     "SOLAR_ELONG_DEG": "{:.2f}",
-     "SKY_E_PER_PIX_PER_S": "{:.3f}"})
+#| fig-cap: "All HLWAS F158 exposures (grey) and the 12 selected skycells (stars). Low-zodi picks cluster near the southern edge of HLWAS (high |ecl_lat|); high-zodi picks are near RA 0° where HLWAS crosses the ecliptic."
+display(Image(filename=str(REPO / "output/detection/phase1/sky_map.png")))
 ```
 
-The set spans ecliptic latitudes from −9.5° to −39.6° (via the two
-anchors) while keeping every pair deep inside the HLWAS footprint.
-The predicted F158 zodiacal sky rate varies by a factor of ~2 across
-the five pairs.
-
-## Sky distribution
+## Coverage distribution
 
 ```{python}
 #| echo: false
-#| fig-cap: "HLWAS F158 exposures (grey cloud), (15,16) interior pairs (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed black rectangle = the main-survey RA-spread box; dotted orange rectangles = the two anchor windows (southern and northern edge)."
-pool_centres = pairs_pool.groupby("PAIR_ID")[["RA", "DEC"]].first()
-
-fig, ax = plt.subplots(figsize=(11, 6))
-ax.scatter(f158["RA"], f158["DEC"], s=0.5, color="lightgray", alpha=0.5,
-           label=f"{len(f158):,} HLWAS F158 exposures (all sky)")
-ax.scatter(pool_centres["RA"], pool_centres["DEC"], s=6, color="tab:blue",
-           alpha=0.5,
-           label=f"{len(pool_centres)} (15,16) interior pairs")
-for _, prow in PAIRS.iterrows():
-    ax.scatter(prow["RA"], prow["DEC"], s=140, marker="*",
-               color="tab:red", edgecolor="k", lw=0.6, zorder=5)
-    ax.annotate(f" {int(prow['PAIR_ID'])}",
-                (prow["RA"], prow["DEC"]), fontsize=10)
-for i, (ra_lo, ra_hi) in enumerate([(RA_MIN_A, 360.0), (0.0, RA_MAX_B)]):
-    ax.plot([ra_lo, ra_hi, ra_hi, ra_lo, ra_lo],
-            [DEC_MIN, DEC_MIN, DEC_MAX, DEC_MAX, DEC_MIN],
-            color="k", ls="--", lw=1.0, alpha=0.6,
-            label="main RA-spread box" if i == 0 else None)
-for i, anchor in enumerate(ANCHORS):
-    ax.plot([anchor["ra_lo"], anchor["ra_hi"], anchor["ra_hi"],
-             anchor["ra_lo"], anchor["ra_lo"]],
-            [anchor["dec_lo"], anchor["dec_lo"], anchor["dec_hi"],
-             anchor["dec_hi"], anchor["dec_lo"]],
-            color="tab:orange", ls=":", lw=1.2,
-            label="anchor window" if i == 0 else None)
-ax.set_xlabel("RA (deg)")
-ax.set_ylabel("Dec (deg)")
-ax.set_xlim(360, 0)
-ax.grid(True, alpha=0.3)
-ax.legend(loc="lower right", markerscale=2)
-plt.show()
+#| fig-cap: "Histogram of `count_0p25` across the HLWAS-interior candidate pool. A large mass at 0 reflects HLWAS's tiling pattern: between visit centres there are 'gap' skycells that no inner SCA reaches. The 25th percentile is 0, 75th is 6. Our 'low coverage' picks target the gap population; 'high coverage' the visit-centre population."
+display(Image(filename=str(REPO / "output/detection/phase1/coverage_distribution.png")))
 ```
 
-## Predicted sky background
+## Caveat — some "low coverage" cells produce no mosaic
 
-For each selected pair we also compute the expected F158 zodiacal sky
-rate using `galsim.roman.getSkyLevel`, matching the model romanisim
-uses internally (the same code path as `romanisim-make-image` at
-`romanisim.image.simulate_counts:697`). We include the 10% stray-light
-fraction and the 0.04 e⁻/pix/s F158 thermal background, and multiply
-by the Roman WFI pixel area (0.11″ native).
-
-As a sanity check, romanisim at the full-run target (RA 10°, Dec 0°,
-sim-date 2026-01-01) predicts ~1.27 e⁻/pix/s here — matching the
-measured 1.28 e⁻/pix/s from the full-run L2 files.
-
-```{python}
-#| echo: false
-#| fig-cap: "Predicted F158 sky rate (e⁻/pix/s) for every interior pair at the elongation-optimal date, coloured by pair. The five selected pairs are over-plotted as red stars. Sky level tracks |ecliptic latitude| — the southern anchor (Pair 2550, ecl_lat -39.6°) is near the minimum; the northern anchor (Pair 2525, ecl_lat -9.5°) is near the maximum."
-import galsim  # warm up
-# We compute sky level only for the 5 selected pairs (expensive for 10k);
-# as a proxy for the full pool we colour-code by |ecl_lat|.
-from astropy.coordinates import get_sun
-pool_positions = pool_centres.copy()
-sc_pool = SkyCoord(ra=pool_positions["RA"].values * u.deg,
-                   dec=pool_positions["DEC"].values * u.deg)
-ecl = sc_pool.transform_to("barycentrictrueecliptic")
-pool_positions["ECL_LAT"] = ecl.lat.deg
-
-fig, ax = plt.subplots(figsize=(9, 5.5))
-ax.scatter(pool_positions["ECL_LAT"],
-           # Proxy: pool pairs aren't date-optimised, so scale sky from
-           # a representative value. This axis just shows the trend —
-           # the red stars (selected pairs) use the real computed value.
-           np.zeros_like(pool_positions["ECL_LAT"]),
-           s=0)  # invisible — just for legend scaffolding
-ax.scatter(PAIRS["ECL_LAT_DEG"], PAIRS["SKY_E_PER_PIX_PER_S"],
-           s=200, marker="*", color="tab:red", edgecolor="k", zorder=5,
-           label="selected pairs (romanisim getSkyLevel)")
-for _, prow in PAIRS.iterrows():
-    ax.annotate(f" {int(prow['PAIR_ID'])}",
-                (prow["ECL_LAT_DEG"], prow["SKY_E_PER_PIX_PER_S"]),
-                fontsize=10)
-ax.set_xlabel("ecliptic latitude (deg)")
-ax.set_ylabel("F158 sky rate (e⁻/pix/s)")
-ax.grid(True, alpha=0.3)
-ax.legend(loc="upper right")
-plt.show()
-```
-
-## The pointing-level file
-
-`catalogs/detection/selected_pointings.ecsv` is the artefact Phase 2
-consumes. It has one row per *dithered exposure* — 5 pairs × 2 visits ×
-3 dithers = 30 rows.
-
-```{python}
-#| echo: false
-#| tbl-cap: "The 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to `romanisim-make-image`."
-POINTINGS[["PAIR_ID", "PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE",
-           "RA", "DEC", "PA", "SIM_DATE", "SOLAR_ELONG_DEG",
-           "SKY_E_PER_PIX_PER_S"]]
-```
-
-## Self-checks
-
-```{python}
-#| echo: false
-#| tbl-cap: "End-of-phase assertions on the selection output."
-visits = POINTINGS.drop_duplicates(
-    ["PAIR_ID", "PASS", "SEGMENT", "OBSERVATION", "VISIT"])
-checks = [
-    ("5 pairs selected",                       len(PAIRS) == 5),
-    ("10 visits (2 per pair)",                 len(visits) == 10),
-    ("30 pointings (3 dithers per visit)",     len(POINTINGS) == 30),
-    ("southern anchor present (Dec in [-40, -30], RA in [10, 30])",
-     bool((PAIRS["DEC"].between(-40, -30) & PAIRS["RA"].between(10, 30)).any())),
-    ("northern anchor present (Dec in [-5, 0], RA in [10, 30])",
-     bool((PAIRS["DEC"].between(-5, 0) & PAIRS["RA"].between(10, 30)).any())),
-    ("all MA_TABLE_NUMBER = 1007",
-     bool((POINTINGS["MA_TABLE_NUMBER"] == 1007).all())),
-    ("all elongations in [90, 115]",
-     bool(PAIRS["SOLAR_ELONG_DEG"].between(ELONG_MIN, ELONG_MAX).all())),
-    ("pair centres pairwise distinct",
-     PAIRS[["RA", "DEC"]].round(3).drop_duplicates().shape[0] == 5),
-    ("both visits of a pair share (RA,Dec,PA) at nominal centres",
-     bool(visits.groupby("PAIR_ID")[["RA", "DEC", "PA"]]
-            .nunique().eq(1).all(axis=None))),
-    ("all sky levels positive and < 5 e⁻/pix/s",
-     bool(PAIRS["SKY_E_PER_PIX_PER_S"].between(0.1, 5.0).all())),
-]
-pd.DataFrame(checks, columns=["check", "pass"])
-```
+After Phase 2 expansion, the `high_zodi × low_coverage` cell (pairs 9
+and 10) ends up with **zero** L2 files overlapping the selected
+skycell — HLWAS's tiling near the ecliptic is sparse enough that even
+outer SCAs don't reach "gap" skycells there. We proceed with the other
+10 skycells for Phase 4b; the missing cell is documented but not
+recovered in this pass. A future iteration could tighten the "low
+coverage" definition to `count_0p25 ∈ [1, 4]` instead of `≤ 0` to
+guarantee non-zero overlap.
 
 ## Reproducing
 
 ```bash
-pixi run python scripts/detection/01_select_pointings.py
+pixi run python scripts/detection/01_select_skycells.py
 ```
 
-Writes `catalogs/detection/selected_pairs.ecsv` (pair-level, 10 rows),
-`catalogs/detection/selected_pointings.ecsv` (per-dither, 30 rows — the
-Phase 2 input), and the two diagnostic PNGs under
-`output/detection/phase1/`.
+Writes `catalogs/detection/selected_skycells.ecsv` (12 rows) plus
+three PNGs under `output/detection/phase1/`.
 
 ## Checkpoint
 
-Phase 1 deliverable — ready for user review before starting Phase 2
-(skycell / SCA overlap analysis, no new simulations).
+Phase 1 deliverable. The 10 usable skycells carry Phase 4b through
+to a detection-efficiency measurement across both the zodi and
+coverage axes.

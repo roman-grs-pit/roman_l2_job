@@ -1,27 +1,16 @@
 ---
-title: "Phase 2 — skycell / SCA overlap"
-subtitle: "Finding depth-6 skycells for each selected pair and the exact (pointing, SCA) list to simulate"
+title: "Phase 2 — HLWAS expansion per skycell"
+subtitle: "For each selected skycell, enumerate every HLWAS F158 (pointing, SCA) that overlaps"
 ---
 
 ```{python}
 #| echo: false
 from pathlib import Path
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np, pandas as pd, matplotlib.pyplot as plt
 from astropy.table import Table
-
 REPO = Path("../..").resolve()
-
-POINTINGS = Table.read(REPO / "catalogs/detection/selected_pointings.ecsv",
-                       format="ascii.ecsv").to_pandas().sort_values(
-    ["PAIR_ID", "PASS", "EXPOSURE"]).reset_index(drop=True)
-SCA_TABLE = Table.read(REPO / "catalogs/detection/skycell_overlap_sca.ecsv",
-                        format="ascii.ecsv").to_pandas()
-PT_TABLE = Table.read(REPO / "catalogs/detection/skycell_overlap_pointing.ecsv",
-                      format="ascii.ecsv").to_pandas()
-SELECTED = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
-                      format="ascii.ecsv").to_pandas()
+SKY = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
+                 format="ascii.ecsv").to_pandas()
 NEED_SIM = Table.read(REPO / "catalogs/detection/pointings_sca_to_simulate.ecsv",
                       format="ascii.ecsv").to_pandas()
 ```
@@ -29,151 +18,70 @@ NEED_SIM = Table.read(REPO / "catalogs/detection/pointings_sca_to_simulate.ecsv"
 ## What Phase 2 does
 
 Phase 2 is purely geometric — no image data is simulated. For each of
-the 30 pointings from [Phase 1](phase1_pointings.qmd), we:
+the 12 skycells selected in [Phase 1](phase1_pointings.qmd):
 
-1. Build each of the 18 SCA WCSs via
-   `romanisim.wcs.get_wcs(meta_dict, usecrds=True)` with
-   `fill_in_parameters(coord, pa_aper, boresight=False)`. This is the
-   same CRDS-backed code path `romanisim-make-image --usecrds` uses,
-   so the corners agree with the L2 image WCS to sub-pixel accuracy.
-2. Extract the four corner positions of each 4088×4088 SCA.
-3. Call `romancal.skycell.match.find_skycell_matches(corners)` to get
-   the list of skycells the SCA footprint overlaps — this walks the
-   skymap KDTree and tests polygon overlap against each candidate
-   projection region's skycell grid.
+1. Gather all HLWAS F158 (Wide-Field2) exposures whose nominal centre
+   is within 0.6° of the skycell centre — the pool of candidate
+   pointings whose outer SCAs could plausibly reach the 4.6′ skycell.
+2. For each (candidate pointing, SCA) pair, build the CRDS-backed WCS
+   via `romanisim.wcs.get_wcs(meta_dict, usecrds=True)` with
+   `fill_in_parameters(coord, pa_aper, boresight=False)` — the same
+   code path `romanisim-make-image --usecrds` uses.
+3. Take the 4 SCA corners and call
+   `romancal.skycell.match.find_skycell_matches(corners)`. If the
+   selected skycell is in the match list, add the (pointing, SCA)
+   to Phase 4's sim list.
 
-From the 540 `(pointing, SCA) → skycell(s)` triples we build two
-aggregate tables and pick one depth-6 skycell per pair for Phase 3/4.
+All L2s per skycell are simulated at the skycell's SIM_DATE (from
+Phase 1, chosen for ~90° solar elongation). That fixes zodi across
+the mosaic regardless of what HLWAS PASS the original visit was
+scheduled in.
 
-### Expansion step — back to full HLWAS
-
-The pair's 6 pointings alone only reach *nominal* depth 6 on the
-selected skycell, but the 3 dithers in a visit shift the telescope
-by ~7-12′ (larger than a 4.6′ skycell). So per-pixel depth from the
-pair alone tops out at ~4. To recover the full HLWAS depth,
-we then **sweep the entire HLWAS F158 pointing list for every
-pointing whose centre lies within 0.6° of the selected skycell**
-(Roman WFI outer SCAs reach ~0.2° from the boresight; 0.6° is a
-comfortable margin). For each candidate we compute all 18 SCA
-footprints via the CRDS-backed WCS and keep any (pointing, SCA)
-pair that overlaps the target skycell.
-
-All the expanded sims use the pair's chosen SIM_DATE so the
-zodiacal background stays fixed across the mosaic. The expansion
-lifts the number of L2 sims from 6 to ~20 per pair and the
-per-pixel mosaic depth from 4 to 10-12.
-
-::: {.callout-note collapse="true"}
-## WCS-model note — why CRDS over galsim
-
-The first iteration of this script used `galsim.roman.getWCS`, which
-applies GalSim's analytical (SIAF-based) Roman distortion model. That
-model differs from the CRDS-provided distortion that
-`romanisim-make-image --usecrds` applies by several arcmin per SCA —
-enough to flip overlap decisions at skycell boundaries. Phase 4a
-surfaced this: the Phase-2-selected "depth 6" skycell for pair 11119
-only received contributions from 4 of the 6 pointings at sim time, not
-6. Switching to the romanisim CRDS path made Phase-2 predictions and
-post-sim `skycell_asn` output agree.
-:::
-
-## Overlap counts
-
-Every pair has ≥ 1 skycell where all 6 pointings overlap
-(**depth 6**, the design maximum); depth falls off near the edges of the
-pair's combined footprint.
+## L2 counts per skycell
 
 ```{python}
 #| echo: false
-#| tbl-cap: "Per-pair skycell-depth distribution. A depth-d skycell gets contributions from d of the pair's 6 pointings."
-depth_table = (PT_TABLE
-               .groupby(["PAIR_ID", "n_pointings"]).size()
-               .rename("n_skycells").reset_index()
-               .pivot(index="PAIR_ID", columns="n_pointings",
-                      values="n_skycells").fillna(0).astype(int))
-depth_table.columns = [f"depth {c}" for c in depth_table.columns]
-depth_table
+#| tbl-cap: "L2 files per pair after HLWAS expansion. `n_l2_files` is the distinct (PASS × SEGMENT × VISIT × EXPOSURE × SCA) combos whose SCA overlaps the target skycell; `n_visits` is the number of distinct HLWAS visits contributing. Pairs 9 and 10 got 0 overlap — HLWAS tiling near the ecliptic leaves coverage gaps."
+dedup_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE", "SCA"]
+visits_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT"]
+
+l2_counts = (NEED_SIM.drop_duplicates(["PAIR_ID"] + dedup_key)
+             .groupby("PAIR_ID").size().reset_index(name="n_l2_files"))
+l2_counts["n_visits"] = (NEED_SIM.drop_duplicates(["PAIR_ID"] + visits_key)
+                         .groupby("PAIR_ID").size().values)
+summary = SKY[["PAIR_ID", "skycell_name", "zodi_bin", "coverage_bin",
+                "count_0p25"]].merge(l2_counts, on="PAIR_ID", how="left")
+summary["n_l2_files"] = summary["n_l2_files"].fillna(0).astype(int)
+summary["n_visits"] = summary["n_visits"].fillna(0).astype(int)
+summary
 ```
 
-## Per-pair coverage maps
-
-Each panel shows one pair. Coloured polygons are skycells in the
-(pair, skycell) table — fill colour encodes mosaic depth (0 → max).
-Thin outlines are the 18 SCA footprints of each of the pair's 6
-pointings, colour-coded by pointing. The red thick outline is the
-Phase-2-selected skycell for that pair (the deepest one nearest the
-pair's nominal centre). The black `+` is the pair centre.
+## Per-skycell coverage maps
 
 ```{python}
 #| echo: false
+#| fig-cap: "Per-skycell SCA footprint overlays. Red square = the 4.6′ skycell; each coloured polygon = one contributing L2's SCA footprint. Plots show, visually, how coverage density varies with pair_id."
 from IPython.display import Image, display
-for pid in sorted(SELECTED["PAIR_ID"].unique()):
+from pathlib import Path as P
+for pid in sorted(NEED_SIM["PAIR_ID"].unique()):
     path = REPO / f"output/detection/phase2/coverage_pair_{pid}.png"
-    if path.exists():
+    if P(str(path)).exists():
         display(Image(filename=str(path)))
 ```
 
-## The selected skycells
+## Design consequence — variable per-pixel depth across the sample
 
-One depth-6 skycell per pair — selected to be the deepest skycell
-nearest the pair's nominal centre.
+Low-coverage skycells (pairs 1, 2, 5, 6) have only ~2 L2 files each
+after expansion — outer SCAs of ~1-2 nearby HLWAS visits. Per-pixel
+depth will be 1-2 in most of those mosaics.
 
-```{python}
-#| echo: false
-#| tbl-cap: "The five selected skycells, one per pair. `n_pointings` is the mosaic depth (design maximum = 6); `n_sca_events` is the total number of distinct (pointing, SCA) contributions (may exceed 6 when the skycell straddles an SCA boundary inside a single pointing)."
-SELECTED[["PAIR_ID", "skycell_idx", "skycell_name",
-          "skycell_ra", "skycell_dec", "n_pointings", "n_sca_events"]].style.format(
-    {"skycell_ra": "{:.3f}", "skycell_dec": "{:.3f}"})
-```
+High-coverage skycells (pairs 3, 4, 7, 8, 11, 12) have 16-26 L2
+files each, with per-pixel depth ~8-12 expected based on pair 11119's
+earlier validation.
 
-## L2 files to simulate
-
-For each selected skycell, the set of `(pointing, SCA)` pairs whose
-footprint overlaps the skycell:
-
-```{python}
-#| echo: false
-#| tbl-cap: "L2 files to simulate per pair after the HLWAS expansion. `n_visits` is the number of distinct HLWAS visits contributing; `n_l2_files` is the (visit × exposure × SCA) count."
-dedup_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE", "SCA"]
-visits_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT"]
-_ns = NEED_SIM.drop_duplicates(["PAIR_ID"] + dedup_key)
-l2_counts = (_ns
-             .groupby("PAIR_ID").size().reset_index(name="n_l2_files"))
-l2_counts["n_visits"] = (_ns.drop_duplicates(["PAIR_ID"] + visits_key)
-                             .groupby("PAIR_ID").size().values)
-l2_counts["scas_per_visit_mean"] = (l2_counts["n_l2_files"] /
-                                     l2_counts["n_visits"]).round(2)
-l2_counts
-```
-
-```{python}
-#| echo: false
-#| tbl-cap: "First 40 rows of the per-skycell L2 list. The full HLWAS expansion can add dozens of (visit × exposure × SCA) combinations beyond the pair's 6 nominal dithers."
-NEED_SIM[["PAIR_ID", "skycell_name", "PASS", "SEGMENT", "VISIT",
-          "EXPOSURE", "SCA", "RA", "DEC"]].sort_values(
-    ["PAIR_ID", "PASS", "VISIT", "EXPOSURE", "SCA"]).head(40).reset_index(drop=True)
-```
-
-## Self-checks
-
-```{python}
-#| echo: false
-#| tbl-cap: "End-of-phase assertions on the overlap output."
-checks = [
-    ("5 skycells selected (one per pair)",        len(SELECTED) == 5),
-    ("every selected skycell has n_pointings == 6",
-     bool((SELECTED["n_pointings"] == 6).all())),
-    ("every pair has exactly one selected skycell",
-     SELECTED["PAIR_ID"].nunique() == SELECTED.shape[0]),
-    ("every pointing appears in the SCA table",
-     SCA_TABLE["POINTING_IDX"].nunique() == len(POINTINGS)),
-    ("n_sca_events ≥ n_pointings for every (pair, skycell)",
-     bool((PT_TABLE["n_sca_events"] >= PT_TABLE["n_pointings"]).all())),
-    ("expansion adds at least as many L2s as the pair contributes",
-     bool((l2_counts["n_l2_files"] >= 6).all())),
-]
-pd.DataFrame(checks, columns=["check", "pass"])
-```
+That dynamic range — factor of 10× in depth across the sample — is the
+point of the matrix design: Phase 5 measures detection efficiency vs
+position, source type, magnitude, *and* depth simultaneously.
 
 ## Reproducing
 
@@ -181,22 +89,14 @@ pd.DataFrame(checks, columns=["check", "pass"])
 pixi run python scripts/detection/02_skycell_overlap.py
 ```
 
-Writes:
-
-- `catalogs/detection/skycell_overlap_sca.ecsv` — every
-  `(pointing, SCA, skycell)` triple
-- `catalogs/detection/skycell_overlap_pointing.ecsv` — aggregated to
-  one row per `(pair, skycell)`, with depth and contributing
-  pointings/SCAs
-- `catalogs/detection/selected_skycells.ecsv` — one depth-6 skycell
-  per pair
-- `catalogs/detection/pointings_sca_to_simulate.ecsv` — the
-  `(pointing, SCA)` list Phase 4 uses
-- `output/detection/phase2/coverage_pair_*.png`
+Reads `selected_skycells.ecsv` (Phase 1), writes
+`pointings_sca_to_simulate.ecsv` (the Phase 4 input) plus per-pair
+coverage plots. Wall time ~85 min at 4-way parallelism (one
+CRDS-backed get_wcs × find_skycell_matches call takes a few seconds;
+the expansion loops over `# candidates × 18 SCAs` per pair).
 
 ## Checkpoint
 
-Phase 2 deliverable. Before Phase 3, we need to pick a storage
-location with the user for the L2/L3 binary products (they won't live
-in the repo). Default: `output/detection/{l2,l3}/` in-tree, with the
-corresponding subpaths added to `.gitignore`.
+Phase 2 done — 10 of 12 skycells have non-zero L2 coverage. The two
+skipped (pairs 9, 10 in the `high_zodi × low_coverage` cell) are
+documented in Phase 1.

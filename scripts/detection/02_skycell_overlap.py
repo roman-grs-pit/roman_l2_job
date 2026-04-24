@@ -268,12 +268,12 @@ def expand_to_full_hlwas(selected: pd.DataFrame, workers: int = 4
     import time as _t
 
     hlwas = Table.read(HLWAS_ECSV, format="ascii.ecsv").to_pandas()
-    hlwas = hlwas[hlwas["BANDPASS"] == "F158"].copy()
+    hlwas = hlwas[(hlwas["BANDPASS"] == "F158")
+                  & (hlwas["TARGET_NAME"] == "Wide-Field2")].copy()
 
-    pair_date = {}
-    pair_pts = Table.read(POINTINGS_IN, format="ascii.ecsv").to_pandas()
-    for pid, g in pair_pts.groupby("PAIR_ID"):
-        pair_date[int(pid)] = str(g["SIM_DATE"].iloc[0])
+    # SIM_DATE now comes directly from selected_skycells.ecsv
+    pair_date = {int(r["PAIR_ID"]): str(r["SIM_DATE"])
+                 for _, r in selected.iterrows()}
 
     tasks = []
     for _, s in selected.iterrows():
@@ -451,71 +451,26 @@ def plot_pair_coverage(pair_id: int, pointings: pd.DataFrame,
 
 
 def main():
-    p = argparse.ArgumentParser()
-    p.add_argument("--target-depth", type=int, default=6)
-    p.add_argument("--n-skycells-per-pair", type=int, default=1,
-                   help="how many depth-`target-depth` skycells to select per pair")
+    p = argparse.ArgumentParser(
+        description="Expand each skycell in selected_skycells.ecsv to the "
+                    "full list of HLWAS F158 (pointing, SCA) pairs that "
+                    "overlap it.")
     p.add_argument("--force", action="store_true",
-                   help="rebuild the SCA-level overlap table even if cached")
+                   help="(legacy) rebuild everything")
     p.add_argument("--plots-only", action="store_true",
-                   help="only regenerate per-pair diagnostic plots from existing tables")
+                   help="skip the expansion step; reuse the cached "
+                        "pointings_sca_to_simulate.ecsv")
     args = p.parse_args()
 
     OUT_CAT.mkdir(parents=True, exist_ok=True)
     OUT_PLOTS.mkdir(parents=True, exist_ok=True)
 
-    pointings = Table.read(POINTINGS_IN,
+    selected = Table.read(OUT_CAT / "selected_skycells.ecsv",
                            format="ascii.ecsv").to_pandas()
-    pointings = pointings.sort_values(["PAIR_ID", "PASS", "EXPOSURE"]).reset_index(drop=True)
-    print(f"Loaded {len(pointings)} pointings across "
-          f"{pointings['PAIR_ID'].nunique()} pairs.")
-
-    sca_ecsv = OUT_CAT / "skycell_overlap_sca.ecsv"
-    pt_ecsv = OUT_CAT / "skycell_overlap_pointing.ecsv"
-    if args.force or args.plots_only:
-        use_cache = args.plots_only
-    else:
-        use_cache = sca_ecsv.exists() and pt_ecsv.exists()
-
-    if use_cache:
-        print(f"\nReading cached overlap tables from {OUT_CAT}/ "
-              "(use --force to rebuild)…")
-        sca_table = Table.read(sca_ecsv, format="ascii.ecsv").to_pandas()
-        pt_table = Table.read(pt_ecsv, format="ascii.ecsv").to_pandas()
-    else:
-        print("\nBuilding SCA-level overlap table "
-              f"({len(pointings)} pointings × 18 SCAs)…")
-        sca_table = build_sca_overlap_table(pointings)
-        print(f"  {len(sca_table):,} (pointing, SCA, skycell) triples")
-        print(f"  distinct skycells touched: "
-              f"{sca_table['skycell_idx'].nunique():,}")
-        Table.from_pandas(sca_table).write(sca_ecsv, format="ascii.ecsv",
-                                           overwrite=True)
-
-        print("\nAggregating to pointing level…")
-        pt_table = aggregate_to_pointing_level(sca_table, pointings)
-        pt_table = enrich_with_skycell_meta(pt_table)
-        print(f"  {len(pt_table):,} (pair, skycell) rows")
-        depth_counts = (pt_table.groupby("PAIR_ID")["n_pointings"]
-                        .apply(lambda s: (s == args.target_depth).sum()))
-        print(f"  depth-{args.target_depth} skycells per pair:")
-        for pid, cnt in depth_counts.items():
-            print(f"    pair {pid:5d}: {cnt} skycells")
-        Table.from_pandas(pt_table).write(pt_ecsv, format="ascii.ecsv",
-                                          overwrite=True)
-
-    print(f"\nSelecting {args.n_skycells_per_pair} depth-"
-          f"{args.target_depth} skycell(s) per pair…")
-    selected = select_skycells_per_pair(
-        pt_table, pointings, args.target_depth, args.n_skycells_per_pair)
-    Table.from_pandas(selected).write(
-        OUT_CAT / "selected_skycells.ecsv",
-        format="ascii.ecsv", overwrite=True
-    )
-    print("Selected:")
+    print(f"Loaded {len(selected)} selected skycells from Phase 1.")
     print(selected[["PAIR_ID", "skycell_idx", "skycell_name",
-                    "skycell_ra", "skycell_dec",
-                    "n_pointings", "n_sca_events"]].to_string(index=False))
+                    "skycell_ra", "skycell_dec", "ECL_LAT_DEG",
+                    "SIM_DATE"]].to_string(index=False))
 
     # Expand from "pair's 6 pointings" to "every HLWAS pointing that
     # overlaps the selected skycell". All additional pointings are
@@ -541,14 +496,44 @@ def main():
     for pid, cnt in by_pair.items():
         print(f"    pair {pid}: {cnt} L2 files")
 
-    # Plots
-    print("\nWriting per-pair diagnostic plots…")
+    # Per-skycell coverage plot: overlay all contributing L2 footprints
+    print("\nWriting per-skycell coverage plots…")
+    from matplotlib.patches import Rectangle
+    import matplotlib.pyplot as plt
     for _, s in selected.iterrows():
-        out = OUT_PLOTS / f"coverage_pair_{int(s['PAIR_ID'])}.png"
-        plot_pair_coverage(int(s["PAIR_ID"]), pointings,
-                           sca_table, pt_table,
-                           int(s["skycell_idx"]), out)
-        print(f"  {out}")
+        pid = int(s["PAIR_ID"])
+        sub = need_sim[need_sim["PAIR_ID"] == pid]
+        if sub.empty:
+            print(f"  pair {pid}: no L2s — skipping plot"); continue
+        date = Time(s["SIM_DATE"])
+        fig, ax = plt.subplots(figsize=(8, 8))
+        ra0, dec0 = s["skycell_ra"], s["skycell_dec"]
+        # Skycell itself (4.6' box)
+        sc_half = 0.077 / 2
+        ax.add_patch(Rectangle((-sc_half, -sc_half), 2*sc_half, 2*sc_half,
+                                 fill=False, edgecolor="tab:red", lw=2, zorder=5))
+        # Each contributing (pointing, SCA) → draw corners
+        for _, row in sub.drop_duplicates(
+                ["PASS", "SEGMENT", "VISIT", "EXPOSURE", "SCA"]).iterrows():
+            wcs = _build_sca_wcs_crds(row["RA"], row["DEC"], row["PA"],
+                                        date, int(row["SCA"]))
+            c = sca_sky_corners(wcs)
+            c[:, 0] = _ra_rel(c[:, 0], ra0)
+            c[:, 1] = c[:, 1] - dec0
+            xy = np.vstack([c, c[:1]])
+            ax.plot(xy[:, 0], xy[:, 1], lw=0.5, alpha=0.4)
+        n_l2 = sub.drop_duplicates(["PASS", "SEGMENT", "VISIT", "EXPOSURE", "SCA"]).shape[0]
+        ax.set_xlabel("Δ RA × cos(Dec) (deg)"); ax.set_ylabel("Δ Dec (deg)")
+        ax.set_aspect("equal")
+        ax.set_xlim(-0.6, 0.6); ax.set_ylim(-0.6, 0.6)
+        ax.grid(alpha=0.3)
+        ax.set_title(
+            f"pair {pid} — {s['skycell_name']} ({n_l2} L2s overlap)"
+        )
+        fig.tight_layout()
+        out = OUT_PLOTS / f"coverage_pair_{pid}.png"
+        fig.savefig(out, dpi=140); plt.close(fig)
+        print(f"  {out.name}")
 
 
 if __name__ == "__main__":
