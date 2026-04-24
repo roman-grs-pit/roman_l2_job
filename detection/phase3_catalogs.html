@@ -234,18 +234,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../detection/phase5b_kernel_sweep.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Phase 5b — kernel sweep</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../detection/phase5c_npixels_sweep.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Phase 5c — npixels sweep</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../detection/phase6_summary.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Phase 6 — full-scale summary</span></a>
   </div>
@@ -306,12 +294,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Instead of a regular grid (which would correlate magnitude with pixel column and could interact with SCA boundaries or PSF variations), we use a <strong>2-D Sobol low-discrepancy sequence</strong> inside the skycell’s unique core. The magnitude assignment is a separate seeded shuffle, so every mag bin’s 10 sources are scattered across the full skycell area — no systematic mag-vs-position correlation.</p>
 <p>Skycells overlap their neighbours by <code>skycell_border_pixels = 100</code> (per the Roman skymap reference file), so the unique core of each 5000×5000 skycell is <code>[100, 4900]²</code>. We inject sources inside <code>[200, 4800]²</code> — a 200-pixel margin that puts every source 100 pixels inside the unique core, with room to spare for PSF wings and drizzle kernels.</p>
 <p>420 Sobol points are generated per skycell; the first 210 become the stars catalog, the second 210 the galaxies catalog. With the full 420 spread over a 4600×4600 pix injection area at 0.055″/pix, mean nearest-neighbour separation is ~6″, with a small tail down to ~3″ — well above the PSF FWHM (~0.15″) and the galaxy half-light radius (0.275″), so detection sees all sources individually.</p>
-<div id="6c8eb84a" class="cell" data-execution_count="2">
+<div id="066748b5" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="phase3_catalogs_files/figure-html/cell-3-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Pair 11119 skycell 000m18x60y42 source layout. LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."><img src="phase3_catalogs_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img" alt="Pair 11119 skycell 000m18x60y42 source layout. LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."></a></p>
-<figcaption>Pair 11119 skycell 000m18x60y42 source layout. LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources.</figcaption>
+<p><a href="phase3_catalogs_files/figure-html/cell-3-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Example skycell source layout (first row of the catalogs index). LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."><img src="phase3_catalogs_files/figure-html/cell-3-output-1.png" class="img-fluid figure-img" alt="Example skycell source layout (first row of the catalogs index). LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."></a></p>
+<figcaption>Example skycell source layout (first row of the catalogs index). LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources.</figcaption>
 </figure>
 </div>
 </div>
@@ -329,7 +317,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">PAIR_ID</th>
+<th data-quarto-table-cell-role="th">SKYCELL_ID</th>
 <th data-quarto-table-cell-role="th">skycell_name</th>
 <th data-quarto-table-cell-role="th">skycell_idx</th>
 <th data-quarto-table-cell-role="th">n_stars</th>
@@ -343,63 +331,147 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
-<td>2525</td>
-<td>021m03x63y41</td>
-<td>4140671</td>
+<td>1</td>
+<td>066m27x58y55</td>
+<td>5811830</td>
 <td>210</td>
 <td>210</td>
 <td>23.0</td>
 <td>26.0</td>
-<td>catalogs/detection/catalogs/skycell_021m03x63y...</td>
-<td>catalogs/detection/catalogs/skycell_021m03x63y...</td>
+<td>catalogs/detection/catalogs/skycell_066m27x58y...</td>
+<td>catalogs/detection/catalogs/skycell_066m27x58y...</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
-<td>2550</td>
-<td>021m34x40y47</td>
-<td>6197746</td>
+<td>2</td>
+<td>063m53x50y41</td>
+<td>7195990</td>
 <td>210</td>
 <td>210</td>
 <td>23.0</td>
 <td>26.0</td>
-<td>catalogs/detection/catalogs/skycell_021m34x40y...</td>
-<td>catalogs/detection/catalogs/skycell_021m34x40y...</td>
+<td>catalogs/detection/catalogs/skycell_063m53x50y...</td>
+<td>catalogs/detection/catalogs/skycell_063m53x50y...</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
-<td>3316</td>
-<td>028m18x55y34</td>
-<td>5172492</td>
+<td>3</td>
+<td>059m27x43y57</td>
+<td>5807231</td>
 <td>210</td>
 <td>210</td>
 <td>23.0</td>
 <td>26.0</td>
-<td>catalogs/detection/catalogs/skycell_028m18x55y...</td>
-<td>catalogs/detection/catalogs/skycell_028m18x55y...</td>
+<td>catalogs/detection/catalogs/skycell_059m27x43y...</td>
+<td>catalogs/detection/catalogs/skycell_059m27x43y...</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>10101</td>
-<td>350m18x57y47</td>
-<td>5355902</td>
+<td>4</td>
+<td>065m50x70y32</td>
+<td>7026338</td>
 <td>210</td>
 <td>210</td>
 <td>23.0</td>
 <td>26.0</td>
-<td>catalogs/detection/catalogs/skycell_350m18x57y...</td>
-<td>catalogs/detection/catalogs/skycell_350m18x57y...</td>
+<td>catalogs/detection/catalogs/skycell_065m50x70y...</td>
+<td>catalogs/detection/catalogs/skycell_065m50x70y...</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
-<td>11119</td>
-<td>000m18x60y42</td>
-<td>5156967</td>
+<td>5</td>
+<td>017m15x33y57</td>
+<td>4955684</td>
 <td>210</td>
 <td>210</td>
 <td>23.0</td>
 <td>26.0</td>
-<td>catalogs/detection/catalogs/skycell_000m18x60y...</td>
-<td>catalogs/detection/catalogs/skycell_000m18x60y...</td>
+<td>catalogs/detection/catalogs/skycell_017m15x33y...</td>
+<td>catalogs/detection/catalogs/skycell_017m15x33y...</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>6</td>
+<td>003m31x40y48</td>
+<td>5981179</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_003m31x40y...</td>
+<td>catalogs/detection/catalogs/skycell_003m31x40y...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>7</td>
+<td>042m06x41y42</td>
+<td>4359961</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_042m06x41y...</td>
+<td>catalogs/detection/catalogs/skycell_042m06x41y...</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>8</td>
+<td>329m31x72y34</td>
+<td>6169176</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_329m31x72y...</td>
+<td>catalogs/detection/catalogs/skycell_329m31x72y...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>9</td>
+<td>339m15x60y34</td>
+<td>5144883</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_339m15x60y...</td>
+<td>catalogs/detection/catalogs/skycell_339m15x60y...</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>10</td>
+<td>329m06x40y30</td>
+<td>4522499</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_329m06x40y...</td>
+<td>catalogs/detection/catalogs/skycell_329m06x40y...</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
+<td>11</td>
+<td>346m12x64y68</td>
+<td>4939151</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_346m12x64y...</td>
+<td>catalogs/detection/catalogs/skycell_346m12x64y...</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">11</th>
+<td>12</td>
+<td>325m24x50y57</td>
+<td>5754018</td>
+<td>210</td>
+<td>210</td>
+<td>23.0</td>
+<td>26.0</td>
+<td>catalogs/detection/catalogs/skycell_325m24x50y...</td>
+<td>catalogs/detection/catalogs/skycell_325m24x50y...</td>
 </tr>
 </tbody>
 </table>
@@ -411,7 +483,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="schema" class="level2">
 <h2 class="anchored" data-anchor-id="schema">Schema</h2>
 <p>The on-disk parquet format matches the existing <code>catalogs/sources.parquet</code> column convention (see <code>docs/data_model_reference.md</code>) so romanisim can ingest it without any adapter:</p>
-<div id="629a2b77" class="cell" data-execution_count="4">
+<div id="e1bcf721" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
@@ -492,7 +564,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>A sample row from the 11119 <strong>stars</strong> catalog (<code>type = PSF</code>):</p>
-<div id="49ed4a44" class="cell" data-execution_count="5">
+<div id="57f18ecb" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display" data-execution_count="5">
 <div>
 
@@ -507,11 +579,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">ra</th>
-<td>359.350895</td>
+<td>325.976831</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">dec</th>
-<td>-17.164726</td>
+<td>-24.208783</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">type</th>
@@ -539,7 +611,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">mag</th>
-<td>24.65</td>
+<td>25.25</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">src_index</th>
@@ -547,11 +619,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">pix_x</th>
-<td>299.926575</td>
+<td>4254.723633</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">pix_y</th>
-<td>3884.532471</td>
+<td>3220.480225</td>
 </tr>
 </tbody>
 </table>
@@ -560,7 +632,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>A sample row from the 11119 <strong>galaxies</strong> catalog (<code>type = SER</code>, <code>n = 1</code>, <code>half_light_radius = 0.275″</code>) — different position, same magnitude distribution:</p>
-<div id="c2f76274" class="cell" data-execution_count="6">
+<div id="aba212f5" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 
@@ -575,11 +647,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">ra</th>
-<td>359.409128</td>
+<td>325.942727</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">dec</th>
-<td>-17.182675</td>
+<td>-24.186203</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">type</th>
@@ -607,7 +679,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">mag</th>
-<td>24.2</td>
+<td>23.3</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">src_index</th>
@@ -615,11 +687,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">pix_x</th>
-<td>3946.183838</td>
+<td>2224.494629</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">pix_y</th>
-<td>2721.0979</td>
+<td>4706.912109</td>
 </tr>
 </tbody>
 </table>
@@ -648,7 +720,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>5 catalog pairs written (1 per selected skycell)</td>
-<td>True</td>
+<td>False</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
@@ -1233,123 +1305,125 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Pair 11119 skycell 000m18x60y42 source layout. LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Example skycell source layout (first row of the catalogs index). LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."</span></span>
 <span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Image, display</span>
-<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>display(Image(filename<span class="op">=</span><span class="bu">str</span>(</span>
-<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="st">"output/detection/phase3/grid_000m18x60y42.png"</span>)))</span>
-<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="fu">## Catalog index</span></span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "One row per skycell catalog pair. Each Phase-4 L2 sim reads the combined stars+galaxies file for its pair's skycell; the per-source `type` column tells romanisim which is which."</span></span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>INDEX[[<span class="st">"PAIR_ID"</span>, <span class="st">"skycell_name"</span>, <span class="st">"skycell_idx"</span>,</span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>       <span class="st">"n_stars"</span>, <span class="st">"n_galaxies"</span>, <span class="st">"mag_min"</span>, <span class="st">"mag_max"</span>,</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>       <span class="st">"stars_path"</span>, <span class="st">"galaxies_path"</span>]]</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a><span class="fu">## Schema</span></span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>The on-disk parquet format matches the existing <span class="in">`catalogs/sources.parquet`</span></span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>column convention (see <span class="in">`docs/data_model_reference.md`</span>) so romanisim</span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>can ingest it without any adapter:</span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyarrow.parquet <span class="im">as</span> pq</span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the first row of the 11119 stars catalog</span></span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> REPO <span class="op">/</span> INDEX.iloc[<span class="op">-</span><span class="dv">1</span>][<span class="st">"stars_path"</span>]</span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> pq.read_table(path)</span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>schema_rows <span class="op">=</span> [(f.name, <span class="bu">str</span>(f.<span class="bu">type</span>)) <span class="cf">for</span> f <span class="kw">in</span> t.schema]</span>
-<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(schema_rows, columns<span class="op">=</span>[<span class="st">"column"</span>, <span class="st">"dtype"</span>])</span>
-<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a>A sample row from the 11119 **stars** catalog (<span class="in">`type = PSF`</span>):</span>
-<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-108"><a href="#cb2-108" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">17</span>)</span>
-<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="bu">int</span>(rng.integers(<span class="dv">0</span>, t.num_rows))</span>
-<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>t.<span class="bu">slice</span>(k, <span class="dv">1</span>).to_pandas().T.rename(columns<span class="op">=</span>{<span class="dv">0</span>: <span class="st">"value"</span>})</span>
-<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a>A sample row from the 11119 **galaxies** catalog</span>
-<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>(<span class="in">`type = SER`</span>, <span class="in">`n = 1`</span>, <span class="in">`half_light_radius = 0.275″`</span>) — different</span>
-<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>position, same magnitude distribution:</span>
-<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-122"><a href="#cb2-122" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a>gpath <span class="op">=</span> REPO <span class="op">/</span> INDEX.iloc[<span class="op">-</span><span class="dv">1</span>][<span class="st">"galaxies_path"</span>]</span>
-<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a>gt <span class="op">=</span> pq.read_table(gpath)</span>
-<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>gt.<span class="bu">slice</span>(k, <span class="dv">1</span>).to_pandas().T.rename(columns<span class="op">=</span>{<span class="dv">0</span>: <span class="st">"value"</span>})</span>
-<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a><span class="fu">## Self-checks</span></span>
-<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-133"><a href="#cb2-133" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "End-of-phase assertions."</span></span>
-<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a>stars_11119 <span class="op">=</span> Table.read(</span>
-<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="st">"catalogs/detection/catalogs/skycell_000m18x60y42_stars.parquet"</span></span>
-<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>).to_pandas()</span>
-<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>gal_11119 <span class="op">=</span> Table.read(</span>
-<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="st">"catalogs/detection/catalogs/skycell_000m18x60y42_galaxies.parquet"</span></span>
-<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>).to_pandas()</span>
-<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>checks <span class="op">=</span> [</span>
-<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"5 catalog pairs written (1 per selected skycell)"</span>,  <span class="bu">len</span>(INDEX) <span class="op">==</span> <span class="dv">5</span>),</span>
-<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"210 sources in every catalog"</span>,</span>
-<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((INDEX[<span class="st">"n_stars"</span>] <span class="op">==</span> <span class="dv">210</span>).<span class="bu">all</span>() <span class="kw">and</span></span>
-<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a>          (INDEX[<span class="st">"n_galaxies"</span>] <span class="op">==</span> <span class="dv">210</span>).<span class="bu">all</span>())),</span>
-<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"21 distinct magnitudes × 10 each = 210 (per type)"</span>,</span>
-<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a>     <span class="bu">len</span>(stars_11119[<span class="st">"mag"</span>].unique()) <span class="op">==</span> <span class="dv">21</span> <span class="kw">and</span></span>
-<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"mag"</span>].value_counts() <span class="op">==</span> <span class="dv">10</span>).<span class="bu">all</span>())),</span>
-<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"mag range [23.0, 26.0]"</span>,</span>
-<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a>     (np.isclose(stars_11119[<span class="st">"mag"</span>].<span class="bu">min</span>(), <span class="fl">23.0</span>)</span>
-<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>      <span class="kw">and</span> np.isclose(stars_11119[<span class="st">"mag"</span>].<span class="bu">max</span>(), <span class="fl">26.0</span>))),</span>
-<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"stars and galaxies have disjoint positions"</span>,</span>
-<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(<span class="bu">len</span>(<span class="bu">set</span>(<span class="bu">zip</span>(stars_11119[<span class="st">"ra"</span>].<span class="bu">round</span>(<span class="dv">7</span>), stars_11119[<span class="st">"dec"</span>].<span class="bu">round</span>(<span class="dv">7</span>)))</span>
-<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a>               <span class="op">&amp;</span> <span class="bu">set</span>(<span class="bu">zip</span>(gal_11119[<span class="st">"ra"</span>].<span class="bu">round</span>(<span class="dv">7</span>), gal_11119[<span class="st">"dec"</span>].<span class="bu">round</span>(<span class="dv">7</span>)))) <span class="op">==</span> <span class="dv">0</span>)),</span>
-<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"stars and galaxies share identical magnitude set"</span>,</span>
-<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(np.allclose(<span class="bu">sorted</span>(stars_11119[<span class="st">"mag"</span>]), <span class="bu">sorted</span>(gal_11119[<span class="st">"mag"</span>])))),</span>
-<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"F158 = 10^(-mag/2.5)"</span>,</span>
-<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(np.allclose(stars_11119[<span class="st">"F158"</span>].values,</span>
-<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>                      <span class="fl">10.0</span> <span class="op">**</span> (<span class="op">-</span>stars_11119[<span class="st">"mag"</span>].values <span class="op">/</span> <span class="fl">2.5</span>)))),</span>
-<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"stars all type PSF"</span>,</span>
-<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"PSF"</span>).<span class="bu">all</span>())),</span>
-<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"galaxies all type SER with n=1, r=0.275"</span>,</span>
-<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((gal_11119[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"SER"</span>).<span class="bu">all</span>()</span>
-<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> np.allclose(gal_11119[<span class="st">"n"</span>], <span class="fl">1.0</span>)</span>
-<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> np.allclose(gal_11119[<span class="st">"half_light_radius"</span>], <span class="fl">0.275</span>))),</span>
-<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pixel positions inside the 200-px injection boundary"</span>,</span>
-<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"pix_x"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
-<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (stars_11119[<span class="st">"pix_y"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
-<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (gal_11119[<span class="st">"pix_x"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
-<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (gal_11119[<span class="st">"pix_y"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>())),</span>
-<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>]</span>
-<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(checks, columns<span class="op">=</span>[<span class="st">"check"</span>, <span class="st">"pass"</span>])</span>
-<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducing</span></span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>_example_name <span class="op">=</span> INDEX[<span class="st">"skycell_name"</span>].iloc[<span class="dv">0</span>]</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>display(Image(filename<span class="op">=</span><span class="bu">str</span>(</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="ss">f"output/detection/phase3/grid_</span><span class="sc">{</span>_example_name<span class="sc">}</span><span class="ss">.png"</span>)))</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="fu">## Catalog index</span></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "One row per skycell catalog pair. Each Phase-4 L2 sim reads the combined stars+galaxies file for its pair's skycell; the per-source `type` column tells romanisim which is which."</span></span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>INDEX[[<span class="st">"SKYCELL_ID"</span>, <span class="st">"skycell_name"</span>, <span class="st">"skycell_idx"</span>,</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>       <span class="st">"n_stars"</span>, <span class="st">"n_galaxies"</span>, <span class="st">"mag_min"</span>, <span class="st">"mag_max"</span>,</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a>       <span class="st">"stars_path"</span>, <span class="st">"galaxies_path"</span>]]</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="fu">## Schema</span></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>The on-disk parquet format matches the existing <span class="in">`catalogs/sources.parquet`</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>column convention (see <span class="in">`docs/data_model_reference.md`</span>) so romanisim</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>can ingest it without any adapter:</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyarrow.parquet <span class="im">as</span> pq</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the first row of the 11119 stars catalog</span></span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> REPO <span class="op">/</span> INDEX.iloc[<span class="op">-</span><span class="dv">1</span>][<span class="st">"stars_path"</span>]</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a>t <span class="op">=</span> pq.read_table(path)</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a>schema_rows <span class="op">=</span> [(f.name, <span class="bu">str</span>(f.<span class="bu">type</span>)) <span class="cf">for</span> f <span class="kw">in</span> t.schema]</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(schema_rows, columns<span class="op">=</span>[<span class="st">"column"</span>, <span class="st">"dtype"</span>])</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-105"><a href="#cb2-105" aria-hidden="true" tabindex="-1"></a>A sample row from the 11119 **stars** catalog (<span class="in">`type = PSF`</span>):</span>
+<span id="cb2-106"><a href="#cb2-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-109"><a href="#cb2-109" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-110"><a href="#cb2-110" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-111"><a href="#cb2-111" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-112"><a href="#cb2-112" aria-hidden="true" tabindex="-1"></a>rng <span class="op">=</span> np.random.default_rng(<span class="dv">17</span>)</span>
+<span id="cb2-113"><a href="#cb2-113" aria-hidden="true" tabindex="-1"></a>k <span class="op">=</span> <span class="bu">int</span>(rng.integers(<span class="dv">0</span>, t.num_rows))</span>
+<span id="cb2-114"><a href="#cb2-114" aria-hidden="true" tabindex="-1"></a>t.<span class="bu">slice</span>(k, <span class="dv">1</span>).to_pandas().T.rename(columns<span class="op">=</span>{<span class="dv">0</span>: <span class="st">"value"</span>})</span>
+<span id="cb2-115"><a href="#cb2-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-116"><a href="#cb2-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-117"><a href="#cb2-117" aria-hidden="true" tabindex="-1"></a>A sample row from the 11119 **galaxies** catalog</span>
+<span id="cb2-118"><a href="#cb2-118" aria-hidden="true" tabindex="-1"></a>(<span class="in">`type = SER`</span>, <span class="in">`n = 1`</span>, <span class="in">`half_light_radius = 0.275″`</span>) — different</span>
+<span id="cb2-119"><a href="#cb2-119" aria-hidden="true" tabindex="-1"></a>position, same magnitude distribution:</span>
+<span id="cb2-120"><a href="#cb2-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-123"><a href="#cb2-123" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-124"><a href="#cb2-124" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-125"><a href="#cb2-125" aria-hidden="true" tabindex="-1"></a>gpath <span class="op">=</span> REPO <span class="op">/</span> INDEX.iloc[<span class="op">-</span><span class="dv">1</span>][<span class="st">"galaxies_path"</span>]</span>
+<span id="cb2-126"><a href="#cb2-126" aria-hidden="true" tabindex="-1"></a>gt <span class="op">=</span> pq.read_table(gpath)</span>
+<span id="cb2-127"><a href="#cb2-127" aria-hidden="true" tabindex="-1"></a>gt.<span class="bu">slice</span>(k, <span class="dv">1</span>).to_pandas().T.rename(columns<span class="op">=</span>{<span class="dv">0</span>: <span class="st">"value"</span>})</span>
+<span id="cb2-128"><a href="#cb2-128" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-129"><a href="#cb2-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-130"><a href="#cb2-130" aria-hidden="true" tabindex="-1"></a><span class="fu">## Self-checks</span></span>
+<span id="cb2-131"><a href="#cb2-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-134"><a href="#cb2-134" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb2-135"><a href="#cb2-135" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb2-136"><a href="#cb2-136" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "End-of-phase assertions."</span></span>
+<span id="cb2-137"><a href="#cb2-137" aria-hidden="true" tabindex="-1"></a>_example_name <span class="op">=</span> INDEX[<span class="st">"skycell_name"</span>].iloc[<span class="dv">0</span>]</span>
+<span id="cb2-138"><a href="#cb2-138" aria-hidden="true" tabindex="-1"></a>stars_11119 <span class="op">=</span> Table.read(</span>
+<span id="cb2-139"><a href="#cb2-139" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="ss">f"catalogs/detection/catalogs/skycell_</span><span class="sc">{</span>_example_name<span class="sc">}</span><span class="ss">_stars.parquet"</span></span>
+<span id="cb2-140"><a href="#cb2-140" aria-hidden="true" tabindex="-1"></a>).to_pandas()</span>
+<span id="cb2-141"><a href="#cb2-141" aria-hidden="true" tabindex="-1"></a>gal_11119 <span class="op">=</span> Table.read(</span>
+<span id="cb2-142"><a href="#cb2-142" aria-hidden="true" tabindex="-1"></a>    REPO <span class="op">/</span> <span class="ss">f"catalogs/detection/catalogs/skycell_</span><span class="sc">{</span>_example_name<span class="sc">}</span><span class="ss">_galaxies.parquet"</span></span>
+<span id="cb2-143"><a href="#cb2-143" aria-hidden="true" tabindex="-1"></a>).to_pandas()</span>
+<span id="cb2-144"><a href="#cb2-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-145"><a href="#cb2-145" aria-hidden="true" tabindex="-1"></a>checks <span class="op">=</span> [</span>
+<span id="cb2-146"><a href="#cb2-146" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"5 catalog pairs written (1 per selected skycell)"</span>,  <span class="bu">len</span>(INDEX) <span class="op">==</span> <span class="dv">5</span>),</span>
+<span id="cb2-147"><a href="#cb2-147" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"210 sources in every catalog"</span>,</span>
+<span id="cb2-148"><a href="#cb2-148" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((INDEX[<span class="st">"n_stars"</span>] <span class="op">==</span> <span class="dv">210</span>).<span class="bu">all</span>() <span class="kw">and</span></span>
+<span id="cb2-149"><a href="#cb2-149" aria-hidden="true" tabindex="-1"></a>          (INDEX[<span class="st">"n_galaxies"</span>] <span class="op">==</span> <span class="dv">210</span>).<span class="bu">all</span>())),</span>
+<span id="cb2-150"><a href="#cb2-150" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"21 distinct magnitudes × 10 each = 210 (per type)"</span>,</span>
+<span id="cb2-151"><a href="#cb2-151" aria-hidden="true" tabindex="-1"></a>     <span class="bu">len</span>(stars_11119[<span class="st">"mag"</span>].unique()) <span class="op">==</span> <span class="dv">21</span> <span class="kw">and</span></span>
+<span id="cb2-152"><a href="#cb2-152" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"mag"</span>].value_counts() <span class="op">==</span> <span class="dv">10</span>).<span class="bu">all</span>())),</span>
+<span id="cb2-153"><a href="#cb2-153" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"mag range [23.0, 26.0]"</span>,</span>
+<span id="cb2-154"><a href="#cb2-154" aria-hidden="true" tabindex="-1"></a>     (np.isclose(stars_11119[<span class="st">"mag"</span>].<span class="bu">min</span>(), <span class="fl">23.0</span>)</span>
+<span id="cb2-155"><a href="#cb2-155" aria-hidden="true" tabindex="-1"></a>      <span class="kw">and</span> np.isclose(stars_11119[<span class="st">"mag"</span>].<span class="bu">max</span>(), <span class="fl">26.0</span>))),</span>
+<span id="cb2-156"><a href="#cb2-156" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"stars and galaxies have disjoint positions"</span>,</span>
+<span id="cb2-157"><a href="#cb2-157" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(<span class="bu">len</span>(<span class="bu">set</span>(<span class="bu">zip</span>(stars_11119[<span class="st">"ra"</span>].<span class="bu">round</span>(<span class="dv">7</span>), stars_11119[<span class="st">"dec"</span>].<span class="bu">round</span>(<span class="dv">7</span>)))</span>
+<span id="cb2-158"><a href="#cb2-158" aria-hidden="true" tabindex="-1"></a>               <span class="op">&amp;</span> <span class="bu">set</span>(<span class="bu">zip</span>(gal_11119[<span class="st">"ra"</span>].<span class="bu">round</span>(<span class="dv">7</span>), gal_11119[<span class="st">"dec"</span>].<span class="bu">round</span>(<span class="dv">7</span>)))) <span class="op">==</span> <span class="dv">0</span>)),</span>
+<span id="cb2-159"><a href="#cb2-159" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"stars and galaxies share identical magnitude set"</span>,</span>
+<span id="cb2-160"><a href="#cb2-160" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(np.allclose(<span class="bu">sorted</span>(stars_11119[<span class="st">"mag"</span>]), <span class="bu">sorted</span>(gal_11119[<span class="st">"mag"</span>])))),</span>
+<span id="cb2-161"><a href="#cb2-161" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"F158 = 10^(-mag/2.5)"</span>,</span>
+<span id="cb2-162"><a href="#cb2-162" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>(np.allclose(stars_11119[<span class="st">"F158"</span>].values,</span>
+<span id="cb2-163"><a href="#cb2-163" aria-hidden="true" tabindex="-1"></a>                      <span class="fl">10.0</span> <span class="op">**</span> (<span class="op">-</span>stars_11119[<span class="st">"mag"</span>].values <span class="op">/</span> <span class="fl">2.5</span>)))),</span>
+<span id="cb2-164"><a href="#cb2-164" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"stars all type PSF"</span>,</span>
+<span id="cb2-165"><a href="#cb2-165" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"PSF"</span>).<span class="bu">all</span>())),</span>
+<span id="cb2-166"><a href="#cb2-166" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"galaxies all type SER with n=1, r=0.275"</span>,</span>
+<span id="cb2-167"><a href="#cb2-167" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((gal_11119[<span class="st">"type"</span>] <span class="op">==</span> <span class="st">"SER"</span>).<span class="bu">all</span>()</span>
+<span id="cb2-168"><a href="#cb2-168" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> np.allclose(gal_11119[<span class="st">"n"</span>], <span class="fl">1.0</span>)</span>
+<span id="cb2-169"><a href="#cb2-169" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> np.allclose(gal_11119[<span class="st">"half_light_radius"</span>], <span class="fl">0.275</span>))),</span>
+<span id="cb2-170"><a href="#cb2-170" aria-hidden="true" tabindex="-1"></a>    (<span class="st">"pixel positions inside the 200-px injection boundary"</span>,</span>
+<span id="cb2-171"><a href="#cb2-171" aria-hidden="true" tabindex="-1"></a>     <span class="bu">bool</span>((stars_11119[<span class="st">"pix_x"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
+<span id="cb2-172"><a href="#cb2-172" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (stars_11119[<span class="st">"pix_y"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
+<span id="cb2-173"><a href="#cb2-173" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (gal_11119[<span class="st">"pix_x"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>()</span>
+<span id="cb2-174"><a href="#cb2-174" aria-hidden="true" tabindex="-1"></a>          <span class="kw">and</span> (gal_11119[<span class="st">"pix_y"</span>].between(<span class="dv">200</span>, <span class="dv">4800</span>)).<span class="bu">all</span>())),</span>
+<span id="cb2-175"><a href="#cb2-175" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-176"><a href="#cb2-176" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(checks, columns<span class="op">=</span>[<span class="st">"check"</span>, <span class="st">"pass"</span>])</span>
+<span id="cb2-177"><a href="#cb2-177" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb2-178"><a href="#cb2-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
-<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/detection/03_generate_catalogs.py</span>
-<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a><span class="co"># Or, for the single-skycell validation on pair 11119:</span></span>
-<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/detection/03_generate_catalogs.py <span class="at">--only-pair</span> 11119</span>
-<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a>Writes per-skycell parquet files under</span>
-<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a><span class="in">`catalogs/detection/catalogs/skycell_&lt;name&gt;_{stars,galaxies}.parquet`</span></span>
-<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a>plus a <span class="in">`catalogs_index.ecsv`</span> summary and a <span class="in">`grid_&lt;name&gt;.png`</span> QA plot</span>
-<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a>per skycell.</span>
-<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a><span class="fu">## Checkpoint</span></span>
+<span id="cb2-179"><a href="#cb2-179" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducing</span></span>
+<span id="cb2-180"><a href="#cb2-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-181"><a href="#cb2-181" aria-hidden="true" tabindex="-1"></a><span class="in">```bash</span></span>
+<span id="cb2-182"><a href="#cb2-182" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/detection/03_generate_catalogs.py</span>
+<span id="cb2-183"><a href="#cb2-183" aria-hidden="true" tabindex="-1"></a><span class="co"># Or, for the single-skycell validation on pair 11119:</span></span>
+<span id="cb2-184"><a href="#cb2-184" aria-hidden="true" tabindex="-1"></a><span class="ex">pixi</span> run python scripts/detection/03_generate_catalogs.py <span class="at">--only-pair</span> 11119</span>
+<span id="cb2-185"><a href="#cb2-185" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-186"><a href="#cb2-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-187"><a href="#cb2-187" aria-hidden="true" tabindex="-1"></a>Writes per-skycell parquet files under</span>
+<span id="cb2-188"><a href="#cb2-188" aria-hidden="true" tabindex="-1"></a><span class="in">`catalogs/detection/catalogs/skycell_&lt;name&gt;_{stars,galaxies}.parquet`</span></span>
+<span id="cb2-189"><a href="#cb2-189" aria-hidden="true" tabindex="-1"></a>plus a <span class="in">`catalogs_index.ecsv`</span> summary and a <span class="in">`grid_&lt;name&gt;.png`</span> QA plot</span>
+<span id="cb2-190"><a href="#cb2-190" aria-hidden="true" tabindex="-1"></a>per skycell.</span>
 <span id="cb2-191"><a href="#cb2-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a>Phase 3 deliverable. Pair 11119 is the validation case — next step is</span>
-<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a>Phase 4a: generate its 14 L2 files, coadd to a single L3 mosaic, and</span>
-<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a>verify depth/coverage/image quality before scaling.</span>
+<span id="cb2-192"><a href="#cb2-192" aria-hidden="true" tabindex="-1"></a><span class="fu">## Checkpoint</span></span>
+<span id="cb2-193"><a href="#cb2-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-194"><a href="#cb2-194" aria-hidden="true" tabindex="-1"></a>Phase 3 deliverable. Pair 11119 is the validation case — next step is</span>
+<span id="cb2-195"><a href="#cb2-195" aria-hidden="true" tabindex="-1"></a>Phase 4a: generate its 14 L2 files, coadd to a single L3 mosaic, and</span>
+<span id="cb2-196"><a href="#cb2-196" aria-hidden="true" tabindex="-1"></a>verify depth/coverage/image quality before scaling.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -234,18 +234,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../detection/phase5b_kernel_sweep.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Phase 5b — kernel sweep</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../detection/phase5c_npixels_sweep.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Phase 5c — npixels sweep</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../detection/phase6_summary.html" class="sidebar-item-text sidebar-link active">
  <span class="menu-text">Phase 6 — full-scale summary</span></a>
   </div>
@@ -267,6 +255,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#completeness-vs-mosaic-depth" id="toc-completeness-vs-mosaic-depth" class="nav-link" data-scroll-target="#completeness-vs-mosaic-depth">50%-completeness vs mosaic depth</a></li>
   <li><a href="#parameter-sweep-does-it-hold-up-across-depths" id="toc-parameter-sweep-does-it-hold-up-across-depths" class="nav-link" data-scroll-target="#parameter-sweep-does-it-hold-up-across-depths">Parameter sweep — does it hold up across depths?</a></li>
   <li><a href="#default-parameter-efficiency-curves-overlaid" id="toc-default-parameter-efficiency-curves-overlaid" class="nav-link" data-scroll-target="#default-parameter-efficiency-curves-overlaid">Default-parameter efficiency curves overlaid</a></li>
+  <li><a href="#per-skycell-efficiency-panels" id="toc-per-skycell-efficiency-panels" class="nav-link" data-scroll-target="#per-skycell-efficiency-panels">Per-skycell efficiency panels</a></li>
   <li><a href="#takeaways" id="toc-takeaways" class="nav-link" data-scroll-target="#takeaways">Takeaways</a></li>
   <li><a href="#checkpoint" id="toc-checkpoint" class="nav-link" data-scroll-target="#checkpoint">Checkpoint</a></li>
   </ul>
@@ -317,7 +306,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">PAIR_ID</th>
+<th data-quarto-table-cell-role="th">SKYCELL_ID</th>
 <th data-quarto-table-cell-role="th">skycell_name</th>
 <th data-quarto-table-cell-role="th">zodi_bin</th>
 <th data-quarto-table-cell-role="th">coverage_bin</th>
@@ -334,44 +323,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>1</td>
-<td>066m27x60y41</td>
+<td>066m27x58y55</td>
 <td>low_zodi</td>
 <td>low</td>
-<td>-47.305255</td>
-<td>0.534461</td>
-<td>0.0</td>
-<td>23.1500</td>
+<td>-47.698377</td>
+<td>0.530708</td>
+<td>10.0</td>
+<td>25.400000</td>
+<td>24.750000</td>
 <td>NaN</td>
-<td>23.7500</td>
-<td>NaN</td>
+<td>25.014286</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>2</td>
-<td>063m53x47y43</td>
+<td>063m53x50y41</td>
 <td>low_zodi</td>
 <td>low</td>
-<td>-71.299315</td>
-<td>0.433808</td>
-<td>0.0</td>
-<td>24.0500</td>
-<td>23.7500</td>
-<td>24.8375</td>
-<td>23.750000</td>
+<td>-71.035162</td>
+<td>0.433540</td>
+<td>4.0</td>
+<td>25.310000</td>
+<td>24.625000</td>
+<td>25.7750</td>
+<td>24.710000</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
 <td>3</td>
-<td>059m27x38y48</td>
+<td>059m27x43y57</td>
 <td>low_zodi</td>
 <td>high</td>
-<td>-47.299608</td>
-<td>0.531784</td>
-<td>2.0</td>
-<td>24.7250</td>
-<td>24.1500</td>
-<td>25.3250</td>
-<td>24.290000</td>
+<td>-47.147537</td>
+<td>0.533143</td>
+<td>4.0</td>
+<td>25.200000</td>
+<td>24.560000</td>
+<td>25.7000</td>
+<td>24.612500</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
@@ -382,52 +371,52 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>-67.011369</td>
 <td>0.443283</td>
 <td>6.0</td>
-<td>25.3625</td>
-<td>24.7625</td>
+<td>25.362500</td>
+<td>24.762500</td>
 <td>25.8125</td>
 <td>24.850000</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>5</td>
-<td>048m06x64y42</td>
+<td>017m15x33y57</td>
 <td>mid_zodi</td>
 <td>low</td>
-<td>-21.819559</td>
-<td>0.820681</td>
-<td>0.0</td>
-<td>24.3500</td>
-<td>23.3300</td>
-<td>24.9500</td>
-<td>23.330000</td>
+<td>-21.812501</td>
+<td>0.810501</td>
+<td>10.0</td>
+<td>25.300000</td>
+<td>24.585714</td>
+<td>25.7900</td>
+<td>24.740000</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">5</th>
 <td>6</td>
-<td>028m21x46y37</td>
+<td>003m31x40y48</td>
 <td>mid_zodi</td>
 <td>low</td>
-<td>-29.999727</td>
-<td>0.683234</td>
+<td>-29.999142</td>
+<td>0.686712</td>
 <td>2.0</td>
-<td>24.5750</td>
-<td>24.0500</td>
-<td>24.8375</td>
-<td>24.110000</td>
+<td>24.735714</td>
+<td>24.000000</td>
+<td>25.2000</td>
+<td>24.087500</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">6</th>
 <td>7</td>
-<td>007m21x69y69</td>
+<td>042m06x41y42</td>
 <td>mid_zodi</td>
 <td>high</td>
-<td>-21.289825</td>
-<td>0.821278</td>
-<td>8.0</td>
-<td>25.2125</td>
-<td>24.4750</td>
-<td>25.7375</td>
-<td>24.650000</td>
+<td>-21.321090</td>
+<td>0.824740</td>
+<td>10.0</td>
+<td>25.350000</td>
+<td>24.725000</td>
+<td>25.9250</td>
+<td>24.850000</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">7</th>
@@ -438,27 +427,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>-15.162541</td>
 <td>0.974711</td>
 <td>10.0</td>
-<td>25.2125</td>
-<td>24.6500</td>
+<td>25.212500</td>
+<td>24.650000</td>
 <td>25.7750</td>
 <td>24.714286</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">8</th>
-<td>11</td>
-<td>017p00x68y28</td>
+<td>9</td>
+<td>339m15x60y34</td>
 <td>high_zodi</td>
-<td>high</td>
-<td>-4.959529</td>
-<td>1.249305</td>
-<td>6.0</td>
-<td>25.0000</td>
-<td>24.3800</td>
-<td>25.5750</td>
-<td>24.450000</td>
+<td>low</td>
+<td>-4.557584</td>
+<td>1.276960</td>
+<td>10.0</td>
+<td>25.175000</td>
+<td>24.462500</td>
+<td>25.7000</td>
+<td>24.680000</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">9</th>
+<td>11</td>
+<td>346m12x64y68</td>
+<td>high_zodi</td>
+<td>high</td>
+<td>-5.017027</td>
+<td>1.246174</td>
+<td>8.0</td>
+<td>25.160000</td>
+<td>24.500000</td>
+<td>25.7000</td>
+<td>24.620000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">10</th>
 <td>12</td>
 <td>325m24x50y57</td>
 <td>high_zodi</td>
@@ -466,8 +469,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>-9.977266</td>
 <td>1.127340</td>
 <td>10.0</td>
-<td>25.3000</td>
-<td>24.5900</td>
+<td>25.300000</td>
+<td>24.590000</td>
 <td>25.7900</td>
 <td>24.750000</td>
 </tr>
@@ -480,7 +483,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="completeness-vs-mosaic-depth" class="level2">
 <h2 class="anchored" data-anchor-id="completeness-vs-mosaic-depth">50%-completeness vs mosaic depth</h2>
-<div id="9e727820" class="cell" data-execution_count="3">
+<div id="51ffa2d7" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -493,7 +496,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="parameter-sweep-does-it-hold-up-across-depths" class="level2">
 <h2 class="anchored" data-anchor-id="parameter-sweep-does-it-hold-up-across-depths">Parameter sweep — does it hold up across depths?</h2>
-<div id="dc690c50" class="cell" data-execution_count="4">
+<div id="d24f5040" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -506,12 +509,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="default-parameter-efficiency-curves-overlaid" class="level2">
 <h2 class="anchored" data-anchor-id="default-parameter-efficiency-curves-overlaid">Default-parameter efficiency curves overlaid</h2>
-<div id="6b128bf5" class="cell" data-execution_count="5">
+<div id="ef2846a9" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><a href="phase6_summary_files/figure-html/cell-6-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="All 10 mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off."><img src="phase6_summary_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img" alt="All 10 mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off."></a></p>
-<figcaption>All 10 mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off.</figcaption>
+<p><a href="phase6_summary_files/figure-html/cell-6-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="All mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). After the Phase-1 tightening to count_0p25 ≥ 3, every mosaic reaches depth ≥ 2, so the curves form a clean family with smooth zodi + depth stratification — no more depth-0 outliers."><img src="phase6_summary_files/figure-html/cell-6-output-1.png" class="img-fluid figure-img" alt="All mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). After the Phase-1 tightening to count_0p25 ≥ 3, every mosaic reaches depth ≥ 2, so the curves form a clean family with smooth zodi + depth stratification — no more depth-0 outliers."></a></p>
+<figcaption>All mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). After the Phase-1 tightening to <code>count_0p25 ≥ 3</code>, every mosaic reaches depth ≥ 2, so the curves form a clean family with smooth zodi + depth stratification — no more depth-0 outliers.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="per-skycell-efficiency-panels" class="level2">
+<h2 class="anchored" data-anchor-id="per-skycell-efficiency-panels">Per-skycell efficiency panels</h2>
+<div id="8688aaef" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><a href="phase6_summary_files/figure-html/cell-7-output-1.png" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="Per-skycell efficiency curves — one row per skycell, stars (LEFT) and galaxies (RIGHT). Solid black = default SourceCatalogStep; dashed lines = npixels variants (9 red, 16 orange, 25 blue — same as default) at kernel_fwhm=2. Each panel’s row label shows the skycell’s ecliptic latitude and per-pixel median depth."><img src="phase6_summary_files/figure-html/cell-7-output-1.png" class="img-fluid figure-img" alt="Per-skycell efficiency curves — one row per skycell, stars (LEFT) and galaxies (RIGHT). Solid black = default SourceCatalogStep; dashed lines = npixels variants (9 red, 16 orange, 25 blue — same as default) at kernel_fwhm=2. Each panel’s row label shows the skycell’s ecliptic latitude and per-pixel median depth."></a></p>
+<figcaption>Per-skycell efficiency curves — one row per skycell, stars (LEFT) and galaxies (RIGHT). Solid black = default <code>SourceCatalogStep</code>; dashed lines = <code>npixels</code> variants (9 red, 16 orange, 25 blue — same as default) at <code>kernel_fwhm=2</code>. Each panel’s row label shows the skycell’s ecliptic latitude and per-pixel median depth.</figcaption>
 </figure>
 </div>
 </div>
@@ -998,7 +1014,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np, pandas <span class="im">as</span> pd, matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> astropy.table <span class="im">import</span> Table</span>
 <span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>REPO <span class="op">=</span> Path(<span class="st">"../.."</span>).resolve()</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ALL <span class="op">=</span> pd.read_csv(REPO <span class="op">/</span> <span class="st">"output/detection/phase6/all_pairs.csv"</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>ALL <span class="op">=</span> pd.read_csv(REPO <span class="op">/</span> <span class="st">"output/detection/phase6/all_skycells.csv"</span>)</span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">## What Phase 6 does</span></span>
@@ -1020,7 +1036,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
 <span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "One row per mosaic. Depth is the median per-pixel depth in the interior. `mag_50_*_default` is the 50% completeness magnitude at `SourceCatalogStep` defaults; `*_n16` is the same at `npixels=16`."</span></span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>ALL[[<span class="st">"PAIR_ID"</span>, <span class="st">"skycell_name"</span>, <span class="st">"zodi_bin"</span>, <span class="st">"coverage_bin"</span>,</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>ALL[[<span class="st">"SKYCELL_ID"</span>, <span class="st">"skycell_name"</span>, <span class="st">"zodi_bin"</span>, <span class="st">"coverage_bin"</span>,</span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>     <span class="st">"ECL_LAT_DEG"</span>, <span class="st">"SKY_E_PER_PIX_PER_S"</span>, <span class="st">"depth_median"</span>,</span>
 <span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>     <span class="st">"mag_50_stars_default"</span>, <span class="st">"mag_50_gals_default"</span>,</span>
 <span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>     <span class="st">"mag_50_stars_n16"</span>, <span class="st">"mag_50_gals_n16"</span>]]</span>
@@ -1047,31 +1063,39 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-66"><a href="#cb1-66" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-69"><a href="#cb1-69" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
 <span id="cb1-70"><a href="#cb1-70" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "All 10 mosaics' default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off."</span></span>
+<span id="cb1-71"><a href="#cb1-71" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "All mosaics' default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). After the Phase-1 tightening to `count_0p25 ≥ 3`, every mosaic reaches depth ≥ 2, so the curves form a clean family with smooth zodi + depth stratification — no more depth-0 outliers."</span></span>
 <span id="cb1-72"><a href="#cb1-72" aria-hidden="true" tabindex="-1"></a>display(Image(filename<span class="op">=</span><span class="bu">str</span>(REPO <span class="op">/</span> <span class="st">"output/detection/phase6/baseline_all.png"</span>)))</span>
 <span id="cb1-73"><a href="#cb1-73" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb1-74"><a href="#cb1-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="fu">## Takeaways</span></span>
+<span id="cb1-75"><a href="#cb1-75" aria-hidden="true" tabindex="-1"></a><span class="fu">## Per-skycell efficiency panels</span></span>
 <span id="cb1-76"><a href="#cb1-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-77"><a href="#cb1-77" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**`npixels=16` is a universal win** (+0.5 mag star completeness,</span>
-<span id="cb1-78"><a href="#cb1-78" aria-hidden="true" tabindex="-1"></a>   +0.1 mag galaxy) at every depth and zodi band tested. The</span>
-<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a>   per-mosaic cost is zero — it just re-runs <span class="in">`SourceCatalogStep`</span>.</span>
-<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Depth drives completeness** much more than zodi. In the depth</span>
-<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a>   ≥6 regime, zodi variation contributes ~0.1-0.3 mag; the depth</span>
-<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>   spread from 0 → 10 contributes ~2 mag.</span>
-<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**The `kernel_fwhm=2` default is correct** across the board. Wider</span>
-<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a>   kernels hurt at high depth (blending), break even at low depth.</span>
-<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Depth-0 ("coverage gap") skycells** give very noisy curves — not</span>
-<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a>   useful for characterising the HLWAS-nominal detection regime.</span>
-<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a>   Worth redesigning Phase 1 to pick "low coverage" at 1-3 exposures</span>
-<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>   within 0.25° (rather than ≤0) so the low-depth tier still has</span>
-<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>   partial mosaic coverage.</span>
-<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a><span class="fu">## Checkpoint</span></span>
-<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a>Phase 6 deliverable. The skycell-driven design works end-to-end at</span>
-<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>12-skycell scale. Parameter recommendations from pair 11119</span>
-<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a>(Phase 5c) generalise to the full sample.</span>
+<span id="cb1-79"><a href="#cb1-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb1-80"><a href="#cb1-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb1-81"><a href="#cb1-81" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Per-skycell efficiency curves — one row per skycell, stars (LEFT) and galaxies (RIGHT). Solid black = default `SourceCatalogStep`; dashed lines = `npixels` variants (9 red, 16 orange, 25 blue — same as default) at `kernel_fwhm=2`. Each panel's row label shows the skycell's ecliptic latitude and per-pixel median depth."</span></span>
+<span id="cb1-82"><a href="#cb1-82" aria-hidden="true" tabindex="-1"></a>display(Image(filename<span class="op">=</span><span class="bu">str</span>(REPO <span class="op">/</span> <span class="st">"output/detection/phase6/per_skycell_panels.png"</span>)))</span>
+<span id="cb1-83"><a href="#cb1-83" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb1-84"><a href="#cb1-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-85"><a href="#cb1-85" aria-hidden="true" tabindex="-1"></a><span class="fu">## Takeaways</span></span>
+<span id="cb1-86"><a href="#cb1-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-87"><a href="#cb1-87" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**`npixels=16` is a universal win** (+0.5 mag star completeness,</span>
+<span id="cb1-88"><a href="#cb1-88" aria-hidden="true" tabindex="-1"></a>   +0.1 mag galaxy) at every depth and zodi band tested. The</span>
+<span id="cb1-89"><a href="#cb1-89" aria-hidden="true" tabindex="-1"></a>   per-mosaic cost is zero — it just re-runs <span class="in">`SourceCatalogStep`</span>.</span>
+<span id="cb1-90"><a href="#cb1-90" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Depth drives completeness** much more than zodi. In the depth</span>
+<span id="cb1-91"><a href="#cb1-91" aria-hidden="true" tabindex="-1"></a>   ≥6 regime, zodi variation contributes ~0.1-0.3 mag; the depth</span>
+<span id="cb1-92"><a href="#cb1-92" aria-hidden="true" tabindex="-1"></a>   spread from 0 → 10 contributes ~2 mag.</span>
+<span id="cb1-93"><a href="#cb1-93" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**The `kernel_fwhm=2` default is correct** across the board. Wider</span>
+<span id="cb1-94"><a href="#cb1-94" aria-hidden="true" tabindex="-1"></a>   kernels hurt at high depth (blending), break even at low depth.</span>
+<span id="cb1-95"><a href="#cb1-95" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Depth-0 ("coverage gap") skycells** give very noisy curves — not</span>
+<span id="cb1-96"><a href="#cb1-96" aria-hidden="true" tabindex="-1"></a>   useful for characterising the HLWAS-nominal detection regime.</span>
+<span id="cb1-97"><a href="#cb1-97" aria-hidden="true" tabindex="-1"></a>   Worth redesigning Phase 1 to pick "low coverage" at 1-3 exposures</span>
+<span id="cb1-98"><a href="#cb1-98" aria-hidden="true" tabindex="-1"></a>   within 0.25° (rather than ≤0) so the low-depth tier still has</span>
+<span id="cb1-99"><a href="#cb1-99" aria-hidden="true" tabindex="-1"></a>   partial mosaic coverage.</span>
+<span id="cb1-100"><a href="#cb1-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-101"><a href="#cb1-101" aria-hidden="true" tabindex="-1"></a><span class="fu">## Checkpoint</span></span>
+<span id="cb1-102"><a href="#cb1-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-103"><a href="#cb1-103" aria-hidden="true" tabindex="-1"></a>Phase 6 deliverable. The skycell-driven design works end-to-end at</span>
+<span id="cb1-104"><a href="#cb1-104" aria-hidden="true" tabindex="-1"></a>12-skycell scale. Parameter recommendations from pair 11119</span>
+<span id="cb1-105"><a href="#cb1-105" aria-hidden="true" tabindex="-1"></a>(Phase 5c) generalise to the full sample.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

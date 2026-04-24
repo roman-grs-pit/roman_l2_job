@@ -228,18 +228,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
           <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../detection/phase5b_kernel_sweep.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Phase 5b — kernel sweep</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
-  <a href="../detection/phase5c_npixels_sweep.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text">Phase 5c — npixels sweep</span></a>
-  </div>
-</li>
-          <li class="sidebar-item">
-  <div class="sidebar-item-container"> 
   <a href="../detection/phase6_summary.html" class="sidebar-item-text sidebar-link">
  <span class="menu-text">Phase 6 — full-scale summary</span></a>
   </div>
@@ -289,35 +277,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="what-this-is">What this is</h2>
 <p>A reproducible pipeline to measure the detection efficiency of the Roman L3 (<code>MosaicPipeline</code>) + <code>SourceCatalogStep</code> stack as a function of:</p>
 <ul>
-<li>sky position (multiple pointing groups at different ecliptic latitudes → different zodiacal backgrounds),</li>
-<li>source type (point sources vs exponential-profile galaxies, matched in position and magnitude),</li>
-<li>source magnitude (F158, 23.0–25.0 in 0.1-mag bins),</li>
-<li><code>SourceCatalogStep</code> parameters (primarily <code>kernel_fwhm</code>).</li>
+<li><strong>sky position</strong> (several skycells spanning the HLWAS footprint),</li>
+<li><strong>zodiacal background</strong> (skycells picked across ecliptic latitude),</li>
+<li><strong>local HLWAS coverage</strong> (skycells picked across local exposure density — drives mosaic per-pixel depth),</li>
+<li><strong>source type</strong> (point sources vs exponential-profile galaxies),</li>
+<li><strong>source magnitude</strong> (F158, 23.0–26.0),</li>
+<li><strong><code>SourceCatalogStep</code> parameters</strong> (<code>kernel_fwhm</code>, <code>npixels</code>).</li>
 </ul>
-<p>The workflow is five phases with a user checkpoint at the end of each:</p>
+<p>The workflow is four substantive phases + aggregation:</p>
 <ol type="1">
-<li><strong>Pointing selection</strong> — pick a set of HLWAS F158 re-observed pairs spread across the sky, each with a well-defined solar-elongation window.</li>
-<li><strong>Skycell / SCA overlap analysis</strong> — find which skycells the pair geometries reach mosaic depth 6, and enumerate the (pointing, SCA) pairs that need to be simulated.</li>
-<li><strong>Source catalog generation</strong> — build matched star/galaxy truth catalogs on a grid inside each target skycell.</li>
-<li><strong>L2 + L3 simulation</strong> — run <code>romanisim</code> for each required (pointing, SCA) combination, build the skycell associations, and coadd with <code>MosaicPipeline</code>.</li>
-<li><strong>Source detection + efficiency analysis</strong> — run <code>SourceCatalogStep</code> at default parameters (5a), then sweep <code>kernel_fwhm</code> (5b) and optionally <code>snr_threshold</code> / <code>npixels</code> (5c). Compare recovered catalogs against the Phase-3 truth.</li>
+<li><strong>Skycell selection</strong> — pick <em>N</em> target skycells stratified by (ecliptic latitude × HLWAS coverage) from the Wide-Field2 survey footprint.</li>
+<li><strong>HLWAS expansion</strong> — for each skycell, find every HLWAS F158 (pointing, SCA) whose CRDS-backed WCS overlaps.</li>
+<li><strong>Truth-catalog generation</strong> — 210 stars + 210 galaxies per skycell, disjoint Sobol positions, F158 23.0–26.0 in 0.15-mag bins.</li>
+<li><strong>L2 simulation → L3 mosaic → source detection</strong> — <code>romanisim-make-image</code> per (pointing, SCA), <code>MosaicPipeline</code> per skycell, <code>SourceCatalogStep</code> at defaults and parameter sweeps.</li>
+<li><strong>Cross-skycell summary</strong> — roll up per-mosaic efficiency curves, 50%-completeness vs depth, and parameter-sweep deltas.</li>
 </ol>
 <p>This sits alongside the existing <a href="../full/design.html">Full run</a> report and reuses the same <code>roman_l2_job</code> pixi environment, CRDS cache, and STPSF data.</p>
 </section>
 <section id="data-locations" class="level2">
 <h2 class="anchored" data-anchor-id="data-locations">Data locations</h2>
-<p>Code, configs, and selection artefacts live in this repo. The bulk L2 and L3 binary products — which will be the dominant cost once Phase 4 runs — will live under <code>output/detection/</code> on the host, outside of version control. A pointer file will be added when Phase 4 starts.</p>
+<p>Code, configs, and selection artefacts live in this repo. The bulk L2 and L3 binary products live under <code>output/detection/</code> on the host, outside version control (gitignored). A pointer to the external storage path can be added once the external backup is set up.</p>
 </section>
 <section id="status" class="level2">
 <h2 class="anchored" data-anchor-id="status">Status</h2>
-<p>Phase 1 picks 12 target skycells in a <code>(zodi × coverage)</code> matrix. Phase 2 expands each to the full HLWAS F158 pointings that overlap; 10 of 12 yield non-empty L2 sets (pairs 9 and 10 sit in an HLWAS coverage gap near the ecliptic). Phase 3 generates matched stars+galaxies truth catalogs. Phase 4 simulates the L2s, coadds each skycell into an L3 mosaic, and runs <code>SourceCatalogStep</code> at defaults plus <code>kernel_fwhm</code> and <code>npixels</code> sweeps. Phase 6 rolls up the per-mosaic results into cross-skycell plots.</p>
 <ul>
 <li><a href="../detection/phase1_pointings.html">Phase 1 — skycell selection</a></li>
 <li><a href="../detection/phase2_skycells.html">Phase 2 — HLWAS expansion</a></li>
 <li><a href="../detection/phase3_catalogs.html">Phase 3 — truth-catalog generation</a></li>
-<li><a href="../detection/phase5b_kernel_sweep.html">Phase 5b — kernel_fwhm sweep (case study)</a></li>
-<li><a href="../detection/phase5c_npixels_sweep.html">Phase 5c — npixels sweep (case study)</a></li>
-<li><a href="../detection/phase6_summary.html">Phase 6 — full-scale summary (10 skycells)</a></li>
+<li><a href="../detection/phase6_summary.html">Phase 6 — full-scale summary</a> — default detection + <code>kernel_fwhm</code> + <code>npixels</code> sweeps across every mosaic</li>
 </ul>
 
 
@@ -787,59 +774,47 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>A reproducible pipeline to measure the detection efficiency of the Roman</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>L3 (<span class="in">`MosaicPipeline`</span>) + <span class="in">`SourceCatalogStep`</span> stack as a function of:</span>
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>sky position (multiple pointing groups at different ecliptic</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  latitudes → different zodiacal backgrounds),</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>source type (point sources vs exponential-profile galaxies,</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  matched in position and magnitude),</span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>source magnitude (F158, 23.0–25.0 in 0.1-mag bins),</span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`SourceCatalogStep`</span> parameters (primarily <span class="in">`kernel_fwhm`</span>).</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>The workflow is five phases with a user checkpoint at the end of each:</span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Pointing selection** — pick a set of HLWAS F158 re-observed pairs</span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>   spread across the sky, each with a well-defined solar-elongation</span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>   window.</span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Skycell / SCA overlap analysis** — find which skycells the pair</span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>   geometries reach mosaic depth 6, and enumerate the (pointing, SCA)</span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>   pairs that need to be simulated.</span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Source catalog generation** — build matched star/galaxy truth</span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>   catalogs on a grid inside each target skycell.</span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**L2 + L3 simulation** — run <span class="in">`romanisim`</span> for each required</span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>   (pointing, SCA) combination, build the skycell associations, and</span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>   coadd with <span class="in">`MosaicPipeline`</span>.</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Source detection + efficiency analysis** — run <span class="in">`SourceCatalogStep`</span></span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>   at default parameters (5a), then sweep <span class="in">`kernel_fwhm`</span> (5b) and</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>   optionally <span class="in">`snr_threshold`</span> / <span class="in">`npixels`</span> (5c). Compare recovered</span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>   catalogs against the Phase-3 truth.</span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>This sits alongside the existing <span class="co">[</span><span class="ot">Full run</span><span class="co">](../full/design.qmd)</span> report</span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>and reuses the same <span class="in">`roman_l2_job`</span> pixi environment, CRDS cache, and</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>STPSF data.</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**sky position** (several skycells spanning the HLWAS footprint),</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**zodiacal background** (skycells picked across ecliptic latitude),</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**local HLWAS coverage** (skycells picked across local exposure</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  density — drives mosaic per-pixel depth),</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**source type** (point sources vs exponential-profile galaxies),</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**source magnitude** (F158, 23.0–26.0),</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**`SourceCatalogStep` parameters** (<span class="in">`kernel_fwhm`</span>, <span class="in">`npixels`</span>).</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>The workflow is four substantive phases + aggregation:</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Skycell selection** — pick *N* target skycells stratified by</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>   (ecliptic latitude × HLWAS coverage) from the Wide-Field2 survey</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>   footprint.</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**HLWAS expansion** — for each skycell, find every HLWAS F158</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>   (pointing, SCA) whose CRDS-backed WCS overlaps.</span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Truth-catalog generation** — 210 stars + 210 galaxies per</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>   skycell, disjoint Sobol positions, F158 23.0–26.0 in 0.15-mag bins.</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**L2 simulation → L3 mosaic → source detection** —</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>   <span class="in">`romanisim-make-image`</span> per (pointing, SCA), <span class="in">`MosaicPipeline`</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>   per skycell, <span class="in">`SourceCatalogStep`</span> at defaults and parameter sweeps.</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Cross-skycell summary** — roll up per-mosaic efficiency curves,</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>   50%-completeness vs depth, and parameter-sweep deltas.</span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>This sits alongside the existing <span class="co">[</span><span class="ot">Full run</span><span class="co">](../full/design.qmd)</span> report</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>and reuses the same <span class="in">`roman_l2_job`</span> pixi environment, CRDS cache, and</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>STPSF data.</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data locations</span></span>
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data locations</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>Code, configs, and selection artefacts live in this repo. The bulk L2</span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>and L3 binary products — which will be the dominant cost once Phase 4</span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>runs — will live under <span class="in">`output/detection/`</span> on the host, outside of</span>
-<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>version control. A pointer file will be added when Phase 4 starts.</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>Code, configs, and selection artefacts live in this repo. The bulk L2</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>and L3 binary products live under <span class="in">`output/detection/`</span> on the host,</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>outside version control (gitignored). A pointer to the external</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a>storage path can be added once the external backup is set up.</span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a><span class="fu">## Status</span></span>
 <span id="cb1-46"><a href="#cb1-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="fu">## Status</span></span>
-<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a>Phase 1 picks 12 target skycells in a <span class="in">`(zodi × coverage)`</span> matrix.</span>
-<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a>Phase 2 expands each to the full HLWAS F158 pointings that overlap;</span>
-<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>10 of 12 yield non-empty L2 sets (pairs 9 and 10 sit in an HLWAS</span>
-<span id="cb1-52"><a href="#cb1-52" aria-hidden="true" tabindex="-1"></a>coverage gap near the ecliptic). Phase 3 generates matched</span>
-<span id="cb1-53"><a href="#cb1-53" aria-hidden="true" tabindex="-1"></a>stars+galaxies truth catalogs. Phase 4 simulates the L2s, coadds each</span>
-<span id="cb1-54"><a href="#cb1-54" aria-hidden="true" tabindex="-1"></a>skycell into an L3 mosaic, and runs <span class="in">`SourceCatalogStep`</span> at defaults</span>
-<span id="cb1-55"><a href="#cb1-55" aria-hidden="true" tabindex="-1"></a>plus <span class="in">`kernel_fwhm`</span> and <span class="in">`npixels`</span> sweeps. Phase 6 rolls up the</span>
-<span id="cb1-56"><a href="#cb1-56" aria-hidden="true" tabindex="-1"></a>per-mosaic results into cross-skycell plots.</span>
-<span id="cb1-57"><a href="#cb1-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-58"><a href="#cb1-58" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 1 — skycell selection</span><span class="co">](phase1_pointings.qmd)</span></span>
-<span id="cb1-59"><a href="#cb1-59" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 2 — HLWAS expansion</span><span class="co">](phase2_skycells.qmd)</span></span>
-<span id="cb1-60"><a href="#cb1-60" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 3 — truth-catalog generation</span><span class="co">](phase3_catalogs.qmd)</span></span>
-<span id="cb1-61"><a href="#cb1-61" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 5b — kernel_fwhm sweep (case study)</span><span class="co">](phase5b_kernel_sweep.qmd)</span></span>
-<span id="cb1-62"><a href="#cb1-62" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 5c — npixels sweep (case study)</span><span class="co">](phase5c_npixels_sweep.qmd)</span></span>
-<span id="cb1-63"><a href="#cb1-63" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 6 — full-scale summary (10 skycells)</span><span class="co">](phase6_summary.qmd)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+<span id="cb1-47"><a href="#cb1-47" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 1 — skycell selection</span><span class="co">](phase1_pointings.qmd)</span></span>
+<span id="cb1-48"><a href="#cb1-48" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 2 — HLWAS expansion</span><span class="co">](phase2_skycells.qmd)</span></span>
+<span id="cb1-49"><a href="#cb1-49" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 3 — truth-catalog generation</span><span class="co">](phase3_catalogs.qmd)</span></span>
+<span id="cb1-50"><a href="#cb1-50" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="co">[</span><span class="ot">Phase 6 — full-scale summary</span><span class="co">](phase6_summary.qmd)</span> — default</span>
+<span id="cb1-51"><a href="#cb1-51" aria-hidden="true" tabindex="-1"></a>  detection + <span class="in">`kernel_fwhm`</span> + <span class="in">`npixels`</span> sweeps across every mosaic</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
