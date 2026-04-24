@@ -47,7 +47,7 @@
     "text": "Roll up per-mosaic Phase 5 results from the skycell-driven Phase 4b run (10 mosaics, 12 originally selected skycells less 2 in an HLWAS coverage gap). For each mosaic we have:\n\nMosaic median interior depth (from the coadd context array).\nBaseline detection efficiency (default SourceCatalogStep params).\nKernel sweep (kernel_fwhm 2 / 3 / 5 / 7) and npixels sweep (npixels 9 / 16 / 25).\n\nPlus Phase-1 metadata: ecliptic latitude, zodi band, romanisim sky prediction.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -58,7 +58,7 @@
     "text": "Roll up per-mosaic Phase 5 results from the skycell-driven Phase 4b run (10 mosaics, 12 originally selected skycells less 2 in an HLWAS coverage gap). For each mosaic we have:\n\nMosaic median interior depth (from the coadd context array).\nBaseline detection efficiency (default SourceCatalogStep params).\nKernel sweep (kernel_fwhm 2 / 3 / 5 / 7) and npixels sweep (npixels 9 / 16 / 25).\n\nPlus Phase-1 metadata: ecliptic latitude, zodi band, romanisim sky prediction.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -69,7 +69,7 @@
     "text": "Per-pair summary\n\n\n\n\n\n\nOne row per mosaic. Depth is the median per-pixel depth in the interior. mag_50_*_default is the 50% completeness magnitude at SourceCatalogStep defaults; *_n16 is the same at npixels=16.\n\n\n\nPAIR_ID\nskycell_name\nzodi_bin\ncoverage_bin\nECL_LAT_DEG\nSKY_E_PER_PIX_PER_S\ndepth_median\nmag_50_stars_default\nmag_50_gals_default\nmag_50_stars_n16\nmag_50_gals_n16\n\n\n\n\n0\n1\n066m27x60y41\nlow_zodi\nlow\n-47.305255\n0.534461\n0.0\n23.1500\nNaN\n23.7500\nNaN\n\n\n1\n2\n063m53x47y43\nlow_zodi\nlow\n-71.299315\n0.433808\n0.0\n24.0500\n23.7500\n24.8375\n23.750000\n\n\n2\n3\n059m27x38y48\nlow_zodi\nhigh\n-47.299608\n0.531784\n2.0\n24.7250\n24.1500\n25.3250\n24.290000\n\n\n3\n4\n065m50x70y32\nlow_zodi\nhigh\n-67.011369\n0.443283\n6.0\n25.3625\n24.7625\n25.8125\n24.850000\n\n\n4\n5\n048m06x64y42\nmid_zodi\nlow\n-21.819559\n0.820681\n0.0\n24.3500\n23.3300\n24.9500\n23.330000\n\n\n5\n6\n028m21x46y37\nmid_zodi\nlow\n-29.999727\n0.683234\n2.0\n24.5750\n24.0500\n24.8375\n24.110000\n\n\n6\n7\n007m21x69y69\nmid_zodi\nhigh\n-21.289825\n0.821278\n8.0\n25.2125\n24.4750\n25.7375\n24.650000\n\n\n7\n8\n329m31x72y34\nmid_zodi\nhigh\n-15.162541\n0.974711\n10.0\n25.2125\n24.6500\n25.7750\n24.714286\n\n\n8\n11\n017p00x68y28\nhigh_zodi\nhigh\n-4.959529\n1.249305\n6.0\n25.0000\n24.3800\n25.5750\n24.450000\n\n\n9\n12\n325m24x50y57\nhigh_zodi\nhigh\n-9.977266\n1.127340\n10.0\n25.3000\n24.5900\n25.7900\n24.750000",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -80,7 +80,7 @@
     "text": "50%-completeness vs mosaic depth\n\n\n\n\n\nMag at 50% star completeness (LEFT) and galaxy completeness (RIGHT) against median per-pixel mosaic depth. Points are colour-coded by zodi bin. Clear monotonic trend: deeper mosaics reach fainter magnitudes. Zero-depth mosaics have only ~2 L2 files each and most pixels lack any image coverage — they sit ~1-2 mag shallower than depth-10 skycells.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -91,7 +91,7 @@
     "text": "Parameter sweep — does it hold up across depths?\n\n\n\n\n\nΔmag_50 relative to default SourceCatalogStep settings. LEFT: stars — npixels=16 gives +0.5 mag at every depth (universal win; larger at lower depth). kernel_fwhm=3 is marginal everywhere. RIGHT: galaxies — npixels=16 gains +0.05-0.15 mag; kernel_fwhm=3 is zero or slightly negative. Phase 5c’s finding from pair 11119 generalises across all depths and all zodi bands.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -102,7 +102,7 @@
     "text": "Default-parameter efficiency curves overlaid\n\n\n\n\n\nAll 10 mosaics’ default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -113,7 +113,7 @@
     "text": "Takeaways\n\nnpixels=16 is a universal win (+0.5 mag star completeness, +0.1 mag galaxy) at every depth and zodi band tested. The per-mosaic cost is zero — it just re-runs SourceCatalogStep.\nDepth drives completeness much more than zodi. In the depth ≥6 regime, zodi variation contributes ~0.1-0.3 mag; the depth spread from 0 → 10 contributes ~2 mag.\nThe kernel_fwhm=2 default is correct across the board. Wider kernels hurt at high depth (blending), break even at low depth.\nDepth-0 (“coverage gap”) skycells give very noisy curves — not useful for characterising the HLWAS-nominal detection regime. Worth redesigning Phase 1 to pick “low coverage” at 1-3 exposures within 0.25° (rather than ≤0) so the low-depth tier still has partial mosaic coverage.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
@@ -124,227 +124,128 @@
     "text": "Checkpoint\nPhase 6 deliverable. The skycell-driven design works end-to-end at 12-skycell scale. Parameter recommendations from pair 11119 (Phase 5c) generalise to the full sample.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 6 — 12-skycell summary"
+      "Phase 6 — full-scale summary"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html",
-    "href": "detection/phase1_pointings.html",
-    "title": "Phase 1 — skycell selection",
+    "objectID": "detection/index.html",
+    "href": "detection/index.html",
+    "title": "L3 detection-efficiency study",
     "section": "",
-    "text": "Pick N target skycells inside the HLWAS F158 Wide-Field2 footprint, stratified by:\n\nEcliptic latitude (proxy for zodiacal background). Bands: |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between bands ensure cross-bin picks aren’t at adjacent |ecl_lat|.\nLocal HLWAS coverage density (proxy for mosaic depth): count_0p25 = # HLWAS F158 exposures whose centre lies within 0.25° of the skycell centre. “High” = ≥ 75th percentile; “low” = ≤ 25th percentile, across HLWAS-interior candidates.\n\nThe candidate pool is all skymap skycells in the HLWAS Dec band for which count_0p6 (# F158 exposures within 0.6°) is ≥ 5. That filter is meant to exclude the outer survey edges where only isolated pointings sit nearby. It’s lenient, though: a skycell sitting in a gap between HLWAS visit tiles can still have 5+ exposures at the 0.3-0.6° annulus while having zero within 0.25°. In the current run, pair 6 (RA 26.7°, Dec −21.3°) is exactly such a case — it looks interior on this coarse filter but sits in a real tiling gap, and Phase 2 expansion ultimately finds only 2 L2 files overlapping its selected skycell. The “coverage gap” category we produce is therefore a mix of true survey-edge skycells (pairs 2, 11) and interior-but-gap skycells (pairs 1, 5, 6) — the mosaics show both kinds hit depth 0 for the median interior pixel.\nTarget: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12 skycells. A 5° great-circle minimum separation is enforced between any two picks so different cells don’t accidentally land on top of each other.\nPer skycell, we also compute the sim date that minimises solar elongation inside [90°, 115°] in 2026 — the “hardest-zodi” day within Roman’s pointing constraint for that field.",
+    "text": "A reproducible pipeline to measure the detection efficiency of the Roman L3 (MosaicPipeline) + SourceCatalogStep stack as a function of:\n\nsky position (multiple pointing groups at different ecliptic latitudes → different zodiacal backgrounds),\nsource type (point sources vs exponential-profile galaxies, matched in position and magnitude),\nsource magnitude (F158, 23.0–25.0 in 0.1-mag bins),\nSourceCatalogStep parameters (primarily kernel_fwhm).\n\nThe workflow is five phases with a user checkpoint at the end of each:\n\nPointing selection — pick a set of HLWAS F158 re-observed pairs spread across the sky, each with a well-defined solar-elongation window.\nSkycell / SCA overlap analysis — find which skycells the pair geometries reach mosaic depth 6, and enumerate the (pointing, SCA) pairs that need to be simulated.\nSource catalog generation — build matched star/galaxy truth catalogs on a grid inside each target skycell.\nL2 + L3 simulation — run romanisim for each required (pointing, SCA) combination, build the skycell associations, and coadd with MosaicPipeline.\nSource detection + efficiency analysis — run SourceCatalogStep at default parameters (5a), then sweep kernel_fwhm (5b) and optionally snr_threshold / npixels (5c). Compare recovered catalogs against the Phase-3 truth.\n\nThis sits alongside the existing Full run report and reuses the same roman_l2_job pixi environment, CRDS cache, and STPSF data.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Overview"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#what-phase-1-does",
-    "href": "detection/phase1_pointings.html#what-phase-1-does",
-    "title": "Phase 1 — skycell selection",
+    "objectID": "detection/index.html#what-this-is",
+    "href": "detection/index.html#what-this-is",
+    "title": "L3 detection-efficiency study",
     "section": "",
-    "text": "Pick N target skycells inside the HLWAS F158 Wide-Field2 footprint, stratified by:\n\nEcliptic latitude (proxy for zodiacal background). Bands: |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between bands ensure cross-bin picks aren’t at adjacent |ecl_lat|.\nLocal HLWAS coverage density (proxy for mosaic depth): count_0p25 = # HLWAS F158 exposures whose centre lies within 0.25° of the skycell centre. “High” = ≥ 75th percentile; “low” = ≤ 25th percentile, across HLWAS-interior candidates.\n\nThe candidate pool is all skymap skycells in the HLWAS Dec band for which count_0p6 (# F158 exposures within 0.6°) is ≥ 5. That filter is meant to exclude the outer survey edges where only isolated pointings sit nearby. It’s lenient, though: a skycell sitting in a gap between HLWAS visit tiles can still have 5+ exposures at the 0.3-0.6° annulus while having zero within 0.25°. In the current run, pair 6 (RA 26.7°, Dec −21.3°) is exactly such a case — it looks interior on this coarse filter but sits in a real tiling gap, and Phase 2 expansion ultimately finds only 2 L2 files overlapping its selected skycell. The “coverage gap” category we produce is therefore a mix of true survey-edge skycells (pairs 2, 11) and interior-but-gap skycells (pairs 1, 5, 6) — the mosaics show both kinds hit depth 0 for the median interior pixel.\nTarget: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12 skycells. A 5° great-circle minimum separation is enforced between any two picks so different cells don’t accidentally land on top of each other.\nPer skycell, we also compute the sim date that minimises solar elongation inside [90°, 115°] in 2026 — the “hardest-zodi” day within Roman’s pointing constraint for that field.",
+    "text": "A reproducible pipeline to measure the detection efficiency of the Roman L3 (MosaicPipeline) + SourceCatalogStep stack as a function of:\n\nsky position (multiple pointing groups at different ecliptic latitudes → different zodiacal backgrounds),\nsource type (point sources vs exponential-profile galaxies, matched in position and magnitude),\nsource magnitude (F158, 23.0–25.0 in 0.1-mag bins),\nSourceCatalogStep parameters (primarily kernel_fwhm).\n\nThe workflow is five phases with a user checkpoint at the end of each:\n\nPointing selection — pick a set of HLWAS F158 re-observed pairs spread across the sky, each with a well-defined solar-elongation window.\nSkycell / SCA overlap analysis — find which skycells the pair geometries reach mosaic depth 6, and enumerate the (pointing, SCA) pairs that need to be simulated.\nSource catalog generation — build matched star/galaxy truth catalogs on a grid inside each target skycell.\nL2 + L3 simulation — run romanisim for each required (pointing, SCA) combination, build the skycell associations, and coadd with MosaicPipeline.\nSource detection + efficiency analysis — run SourceCatalogStep at default parameters (5a), then sweep kernel_fwhm (5b) and optionally snr_threshold / npixels (5c). Compare recovered catalogs against the Phase-3 truth.\n\nThis sits alongside the existing Full run report and reuses the same roman_l2_job pixi environment, CRDS cache, and STPSF data.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Overview"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#the-12-selected-skycells",
-    "href": "detection/phase1_pointings.html#the-12-selected-skycells",
-    "title": "Phase 1 — skycell selection",
-    "section": "The 12 selected skycells",
-    "text": "The 12 selected skycells\n\n\n\n\n\nSelected skycells. count_0p25 is the # HLWAS F158 exposures within 0.25° of the skycell centre — the selection metric. SKY_E_PER_PIX_PER_S is romanisim’s predicted F158 zodi at SIM_DATE.\n\n\n \nPAIR_ID\nskycell_name\nskycell_ra\nskycell_dec\nECL_LAT_DEG\nzodi_bin\ncoverage_bin\ncount_0p25\nSIM_DATE\nSOLAR_ELONG_DEG\nSKY_E_PER_PIX_PER_S\n\n\n\n\n0\n1\n066m27x60y41\n65.030\n-26.751\n-47.31\nlow_zodi\nlow\n0\n2026-02-15T00:00:00.000\n90.20\n0.534\n\n\n1\n2\n063m53x47y43\n62.135\n-53.611\n-71.30\nlow_zodi\nlow\n0\n2026-01-20T00:00:00.000\n90.19\n0.434\n\n\n2\n3\n059m27x38y48\n58.679\n-28.366\n-47.30\nlow_zodi\nhigh\n6\n2026-08-11T00:00:00.000\n90.28\n0.532\n\n\n3\n4\n065m50x70y32\n63.479\n-48.099\n-67.01\nlow_zodi\nhigh\n12\n2026-08-03T00:00:00.000\n90.04\n0.443\n\n\n4\n5\n048m06x64y42\n47.873\n-4.860\n-21.82\nmid_zodi\nlow\n0\n2026-02-03T00:00:00.000\n90.15\n0.821\n\n\n5\n6\n028m21x46y37\n26.669\n-21.327\n-30.00\nmid_zodi\nlow\n0\n2026-07-09T00:00:00.000\n90.38\n0.683\n\n\n6\n7\n007m21x69y69\n8.402\n-19.638\n-21.29\nmid_zodi\nhigh\n6\n2026-06-22T00:00:00.000\n90.66\n0.821\n\n\n7\n8\n329m31x72y34\n327.502\n-29.232\n-15.16\nmid_zodi\nhigh\n12\n2026-05-11T00:00:00.000\n90.26\n0.975\n\n\n8\n9\n350m09x36y30\n348.127\n-9.873\n-4.40\nhigh_zodi\nlow\n0\n2026-06-07T00:00:00.000\n90.68\n1.255\n\n\n9\n10\n329m06x42y29\n327.297\n-6.471\n+6.32\nhigh_zodi\nlow\n0\n2026-05-19T00:00:00.000\n90.41\n1.223\n\n\n10\n11\n017p00x68y28\n15.695\n1.319\n-4.96\nhigh_zodi\nhigh\n6\n2026-07-08T00:00:00.000\n90.53\n1.249\n\n\n11\n12\n325m24x50y57\n325.947\n-24.220\n-9.98\nhigh_zodi\nhigh\n12\n2026-05-12T00:00:00.000\n90.81\n1.127",
+    "objectID": "detection/index.html#data-locations",
+    "href": "detection/index.html#data-locations",
+    "title": "L3 detection-efficiency study",
+    "section": "Data locations",
+    "text": "Data locations\nCode, configs, and selection artefacts live in this repo. The bulk L2 and L3 binary products — which will be the dominant cost once Phase 4 runs — will live under output/detection/ on the host, outside of version control. A pointer file will be added when Phase 4 starts.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Overview"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#selection-matrix",
-    "href": "detection/phase1_pointings.html#selection-matrix",
-    "title": "Phase 1 — skycell selection",
-    "section": "Selection matrix",
-    "text": "Selection matrix\n\n\n\n\n\nStratification matrix. Grey dots are the HLWAS-interior candidate pool (~700k skycells); red/green dashed lines mark the 25th/75th percentiles of count_0p25; vertical dotted lines are the ecl-lat band boundaries. Stars = selected skycells, coloured by PAIR_ID.",
+    "objectID": "detection/index.html#status",
+    "href": "detection/index.html#status",
+    "title": "L3 detection-efficiency study",
+    "section": "Status",
+    "text": "Status\nPhase 1 picks 12 target skycells in a (zodi × coverage) matrix. Phase 2 expands each to the full HLWAS F158 pointings that overlap; 10 of 12 yield non-empty L2 sets (pairs 9 and 10 sit in an HLWAS coverage gap near the ecliptic). Phase 3 generates matched stars+galaxies truth catalogs. Phase 4 simulates the L2s, coadds each skycell into an L3 mosaic, and runs SourceCatalogStep at defaults plus kernel_fwhm and npixels sweeps. Phase 6 rolls up the per-mosaic results into cross-skycell plots.\n\nPhase 1 — skycell selection\nPhase 2 — HLWAS expansion\nPhase 3 — truth-catalog generation\nPhase 5b — kernel_fwhm sweep (case study)\nPhase 5c — npixels sweep (case study)\nPhase 6 — full-scale summary (10 skycells)",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Overview"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#sky-map",
-    "href": "detection/phase1_pointings.html#sky-map",
-    "title": "Phase 1 — skycell selection",
-    "section": "Sky map",
-    "text": "Sky map\n\n\n\n\n\nAll HLWAS F158 exposures (grey) and the 12 selected skycells (stars). Low-zodi picks cluster near the southern edge of HLWAS (high |ecl_lat|); high-zodi picks are near RA 0° where HLWAS crosses the ecliptic.",
+    "objectID": "detection/phase2_skycells.html",
+    "href": "detection/phase2_skycells.html",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "",
+    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 12 skycells selected in Phase 1:\n\nGather all HLWAS F158 (Wide-Field2) exposures whose nominal centre is within 0.6° of the skycell centre — the pool of candidate pointings whose outer SCAs could plausibly reach the 4.6′ skycell.\nFor each (candidate pointing, SCA) pair, build the CRDS-backed WCS via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the same code path romanisim-make-image --usecrds uses.\nTake the 4 SCA corners and call romancal.skycell.match.find_skycell_matches(corners). If the selected skycell is in the match list, add the (pointing, SCA) to Phase 4’s sim list.\n\nAll L2s per skycell are simulated at the skycell’s SIM_DATE (from Phase 1, chosen for ~90° solar elongation). That fixes zodi across the mosaic regardless of what HLWAS PASS the original visit was scheduled in.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#coverage-distribution",
-    "href": "detection/phase1_pointings.html#coverage-distribution",
-    "title": "Phase 1 — skycell selection",
-    "section": "Coverage distribution",
-    "text": "Coverage distribution\n\n\n\n\n\nHistogram of count_0p25 across the HLWAS-interior candidate pool. A large mass at 0 reflects HLWAS’s tiling pattern: between visit centres there are ‘gap’ skycells that no inner SCA reaches. The 25th percentile is 0, 75th is 6. Our ‘low coverage’ picks target the gap population; ‘high coverage’ the visit-centre population.",
+    "objectID": "detection/phase2_skycells.html#what-phase-2-does",
+    "href": "detection/phase2_skycells.html#what-phase-2-does",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "",
+    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 12 skycells selected in Phase 1:\n\nGather all HLWAS F158 (Wide-Field2) exposures whose nominal centre is within 0.6° of the skycell centre — the pool of candidate pointings whose outer SCAs could plausibly reach the 4.6′ skycell.\nFor each (candidate pointing, SCA) pair, build the CRDS-backed WCS via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the same code path romanisim-make-image --usecrds uses.\nTake the 4 SCA corners and call romancal.skycell.match.find_skycell_matches(corners). If the selected skycell is in the match list, add the (pointing, SCA) to Phase 4’s sim list.\n\nAll L2s per skycell are simulated at the skycell’s SIM_DATE (from Phase 1, chosen for ~90° solar elongation). That fixes zodi across the mosaic regardless of what HLWAS PASS the original visit was scheduled in.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#caveats-from-the-first-run",
-    "href": "detection/phase1_pointings.html#caveats-from-the-first-run",
-    "title": "Phase 1 — skycell selection",
-    "section": "Caveats from the first run",
-    "text": "Caveats from the first run\nSome “low coverage” cells produce no mosaic. After Phase 2 expansion, the high_zodi × low_coverage cell (pairs 9 and 10) ends up with zero L2 files overlapping the selected skycell — HLWAS’s tiling near the ecliptic is sparse enough that even outer SCAs don’t reach “gap” skycells there. We proceed with the other 10 skycells for Phase 4b; the missing cell is documented but not recovered in this pass. A future iteration could tighten the “low coverage” definition to count_0p25 ∈ [1, 4] instead of ≤ 0 to guarantee non-zero overlap.\nThe interior filter is too lenient. count_0p6 ≥ 5 accepts both true survey-interior skycells and “tiling-gap” skycells where the 0.25° neighbourhood is empty but the 0.3-0.6° annulus isn’t. Tightening to e.g. count_0p25 ≥ 1 AND count_0p6 ≥ 10 would force the candidate pool to skycells that at least one HLWAS pointing’s inner SCAs can reach — eliminating the depth-0 mosaic outcomes by construction rather than after-the-fact.",
+    "objectID": "detection/phase2_skycells.html#l2-counts-per-skycell",
+    "href": "detection/phase2_skycells.html#l2-counts-per-skycell",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "L2 counts per skycell",
+    "text": "L2 counts per skycell\n\n\n\n\n\n\nL2 files per pair after HLWAS expansion. n_l2_files is the distinct (PASS × SEGMENT × VISIT × EXPOSURE × SCA) combos whose SCA overlaps the target skycell; n_visits is the number of distinct HLWAS visits contributing. Pairs 9 and 10 got 0 overlap — HLWAS tiling near the ecliptic leaves coverage gaps.\n\n\n\nPAIR_ID\nskycell_name\nzodi_bin\ncoverage_bin\ncount_0p25\nn_l2_files\nn_visits\n\n\n\n\n0\n1\n066m27x60y41\nlow_zodi\nlow\n0\n2\n2\n\n\n1\n2\n063m53x47y43\nlow_zodi\nlow\n0\n2\n2\n\n\n2\n3\n059m27x38y48\nlow_zodi\nhigh\n6\n6\n2\n\n\n3\n4\n065m50x70y32\nlow_zodi\nhigh\n12\n26\n6\n\n\n4\n5\n048m06x64y42\nmid_zodi\nlow\n0\n2\n2\n\n\n5\n6\n028m21x46y37\nmid_zodi\nlow\n0\n2\n2\n\n\n6\n7\n007m21x69y69\nmid_zodi\nhigh\n6\n20\n6\n\n\n7\n8\n329m31x72y34\nmid_zodi\nhigh\n12\n22\n6\n\n\n8\n9\n350m09x36y30\nhigh_zodi\nlow\n0\n0\n0\n\n\n9\n10\n329m06x42y29\nhigh_zodi\nlow\n0\n0\n0\n\n\n10\n11\n017p00x68y28\nhigh_zodi\nhigh\n6\n16\n4\n\n\n11\n12\n325m24x50y57\nhigh_zodi\nhigh\n12\n26\n6",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#reproducing",
-    "href": "detection/phase1_pointings.html#reproducing",
-    "title": "Phase 1 — skycell selection",
+    "objectID": "detection/phase2_skycells.html#per-skycell-coverage-maps",
+    "href": "detection/phase2_skycells.html#per-skycell-coverage-maps",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "Per-skycell coverage maps",
+    "text": "Per-skycell coverage maps\n\n\n\n\n\nPer-skycell SCA footprint overlays. Red square = the 4.6′ skycell; each coloured polygon = one contributing L2’s SCA footprint. Plots show, visually, how coverage density varies with pair_id.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 2 — skycells"
+    ]
+  },
+  {
+    "objectID": "detection/phase2_skycells.html#design-consequence-variable-per-pixel-depth-across-the-sample",
+    "href": "detection/phase2_skycells.html#design-consequence-variable-per-pixel-depth-across-the-sample",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "Design consequence — variable per-pixel depth across the sample",
+    "text": "Design consequence — variable per-pixel depth across the sample\nLow-coverage skycells (pairs 1, 2, 5, 6) have only ~2 L2 files each after expansion — outer SCAs of ~1-2 nearby HLWAS visits. Per-pixel depth will be 1-2 in most of those mosaics.\nHigh-coverage skycells (pairs 3, 4, 7, 8, 11, 12) have 16-26 L2 files each, with per-pixel depth ~8-12 expected based on pair 11119’s earlier validation.\nThat dynamic range — factor of 10× in depth across the sample — is the point of the matrix design: Phase 5 measures detection efficiency vs position, source type, magnitude, and depth simultaneously.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 2 — skycells"
+    ]
+  },
+  {
+    "objectID": "detection/phase2_skycells.html#reproducing",
+    "href": "detection/phase2_skycells.html#reproducing",
+    "title": "Phase 2 — HLWAS expansion per skycell",
     "section": "Reproducing",
-    "text": "Reproducing\npixi run python scripts/detection/01_select_skycells.py\nWrites catalogs/detection/selected_skycells.ecsv (12 rows) plus three PNGs under output/detection/phase1/.",
+    "text": "Reproducing\npixi run python scripts/detection/02_skycell_overlap.py\nReads selected_skycells.ecsv (Phase 1), writes pointings_sca_to_simulate.ecsv (the Phase 4 input) plus per-pair coverage plots. Wall time ~85 min at 4-way parallelism (one CRDS-backed get_wcs × find_skycell_matches call takes a few seconds; the expansion loops over # candidates × 18 SCAs per pair).",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
+      "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#checkpoint",
-    "href": "detection/phase1_pointings.html#checkpoint",
-    "title": "Phase 1 — skycell selection",
+    "objectID": "detection/phase2_skycells.html#checkpoint",
+    "href": "detection/phase2_skycells.html#checkpoint",
+    "title": "Phase 2 — HLWAS expansion per skycell",
     "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 1 deliverable. The 10 usable skycells carry Phase 4b through to a detection-efficiency measurement across both the zodi and coverage axes.",
+    "text": "Checkpoint\nPhase 2 done — 10 of 12 skycells have non-zero L2 coverage. The two skipped (pairs 9, 10 in the high_zodi × low_coverage cell) are documented in Phase 1.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 1 — pointings"
-    ]
-  },
-  {
-    "objectID": "detection/phase5b_kernel_sweep.html",
-    "href": "detection/phase5b_kernel_sweep.html",
-    "title": "Phase 5b — kernel_fwhm sweep",
-    "section": "",
-    "text": "Rerun SourceCatalogStep on the Phase-4a mosaic with kernel_fwhm ∈ {2.0, 3.0, 5.0, 7.0} pix, keeping the other parameters at the defaults (snr_threshold=3.0, npixels=25, deblend=False). Reuses the same L3 mosaic and truth catalog — so the sweep is ~3 minutes of wall time, no new sims.\nThe research question: does raising kernel_fwhm help detect extended sources (galaxies) by better matching their surface-brightness profile? The expectation going in was yes, widen the kernel for galaxies.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5b — kernel sweep"
-    ]
-  },
-  {
-    "objectID": "detection/phase5b_kernel_sweep.html#what-phase-5b-does",
-    "href": "detection/phase5b_kernel_sweep.html#what-phase-5b-does",
-    "title": "Phase 5b — kernel_fwhm sweep",
-    "section": "",
-    "text": "Rerun SourceCatalogStep on the Phase-4a mosaic with kernel_fwhm ∈ {2.0, 3.0, 5.0, 7.0} pix, keeping the other parameters at the defaults (snr_threshold=3.0, npixels=25, deblend=False). Reuses the same L3 mosaic and truth catalog — so the sweep is ~3 minutes of wall time, no new sims.\nThe research question: does raising kernel_fwhm help detect extended sources (galaxies) by better matching their surface-brightness profile? The expectation going in was yes, widen the kernel for galaxies.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5b — kernel sweep"
-    ]
-  },
-  {
-    "objectID": "detection/phase5b_kernel_sweep.html#results-pair-11119-skycell-000m18x60y42",
-    "href": "detection/phase5b_kernel_sweep.html#results-pair-11119-skycell-000m18x60y42",
-    "title": "Phase 5b — kernel_fwhm sweep",
-    "section": "Results — pair 11119 / skycell 000m18x60y42",
-    "text": "Results — pair 11119 / skycell 000m18x60y42\n\n\n\n\n\n\nSweep summary. n_recovered = total distinct sources found; m50/m90 = F158 magnitude at 50%/90% completeness, linearly interpolated from the per-bin efficiency curves.\n\n\n\nkernel_fwhm\nn_recovered\nn_false_positive\nfp_rate\nmag_50pct_stars\nmag_50pct_galaxies\nmag_90pct_stars\nmag_90pct_galaxies\n\n\n\n\n0\n2.0\n282\n0\n0.0\n25.400\n24.65\n25.250\n24.530\n\n\n1\n3.0\n282\n0\n0.0\n25.475\n24.59\n25.325\n24.425\n\n\n2\n5.0\n265\n0\n0.0\n25.370\n24.44\n25.250\n24.275\n\n\n3\n7.0\n237\n0\n0.0\n25.040\n24.38\n24.875\n24.200\n\n\n\n\n\n\n\n\n\n\n\n\nDetection-efficiency curves at four kernel_fwhm values. LEFT: stars (PSF). RIGHT: galaxies (Sersic n=1, r_h=0.275″). Dotted guides at 50% and 90% completeness. Wider kernels strictly worsen completeness for both source types.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5b — kernel sweep"
-    ]
-  },
-  {
-    "objectID": "detection/phase5b_kernel_sweep.html#the-expectation-didnt-pan-out",
-    "href": "detection/phase5b_kernel_sweep.html#the-expectation-didnt-pan-out",
-    "title": "Phase 5b — kernel_fwhm sweep",
-    "section": "The expectation didn’t pan out",
-    "text": "The expectation didn’t pan out\nThe original hypothesis was that a wider kernel should help extended sources because the matched-filter SNR is maximised when the kernel matches the source profile. For our Sersic-n=1 galaxies with r_eff = 0.275″ (= 5 mosaic pix at 0.055″/pix), an optimal kernel should have been ~5 pix. Empirically it is not:\n\n\n\nkernel_fwhm\nstars m50%\ngalaxies m50%\nn_recovered\n\n\n\n\n2.0\n25.40\n24.65\n282\n\n\n3.0\n25.48\n24.59\n282\n\n\n5.0\n25.37\n24.44\n265\n\n\n7.0\n25.04\n24.38\n237\n\n\n\nThe best kernel for stars is kernel_fwhm = 3.0 (m50 = 25.48; marginal improvement over 2.0). The best kernel for galaxies is kernel_fwhm = 2.0 — the same as the default matched to the PSF. Widening to 7 pix loses ~0.27 mag for galaxies and ~0.36 mag for stars, plus 45 fewer detections total (282 → 237).\n\nWhy the matched-filter intuition misfires here\nThree effects work against the wider kernel:\n\nPeak smoothing: convolving a source with a kernel wider than the source’s intrinsic scale lowers the peak amplitude. For our 0.275″ galaxies — essentially “PSF plus a small Gaussian tail” at the 0.055″ mosaic scale — the peak is still PSF-dominated, and a 7-pixel kernel cuts the peak by a factor of ~3.\nNoise integration: a wider kernel integrates noise from more pixels. The convolved sigma drops as ~1/kernel_fwhm, but the peak drops faster for sources smaller than the kernel — so peak/sigma falls, not rises.\nBlending: at kernel_fwhm = 7, close-neighbour pairs (which our Sobol layout has at the few-arcsec level) start merging into single detections. That’s the 282 → 237 drop.\n\n\n\nWhat would make wider kernels win\nLarger-r_eff galaxies — maybe r_eff ≥ 1″ (≈ 18 mosaic pix) — would have their peak broadened enough that a wider kernel recovers more flux than it smooths away. Those are bigger than typical survey galaxies at the depth-10 HLWAS magnitude range, so for the detection study as spec’d, the default kernel_fwhm = 2.0 is already near-optimal.\n\n\nFalse positives\nAll four kernels give 0 false positives within 0.3″ of any truth source. The sweep does not trade completeness against spurious detections — wider kernels just lose real detections, without gaining false ones. Caveats: our truth-source density is high enough that a random “false positive” has ~20% chance of being within 0.3″ of a real truth source by chance; the absolute floor on FP rate at this truth density is therefore not well-measured here. A scale-up with lower truth density or a sparse-field run would firm up this number.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5b — kernel sweep"
-    ]
-  },
-  {
-    "objectID": "detection/phase5b_kernel_sweep.html#checkpoint",
-    "href": "detection/phase5b_kernel_sweep.html#checkpoint",
-    "title": "Phase 5b — kernel_fwhm sweep",
-    "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 5b complete. Default parameters are near-optimal — no kernel re-tune needed before Phase 4b. The question “does kernel_fwhm help” now has an empirical answer (no, for our galaxy size), with a clear mechanism (peak smoothing &gt; noise reduction for sub-kernel sources).",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5b — kernel sweep"
-    ]
-  },
-  {
-    "objectID": "detection/phase5a_detection.html",
-    "href": "detection/phase5a_detection.html",
-    "title": "Phase 5a — source detection + efficiency baseline",
-    "section": "",
-    "text": "Phase 5a runs source detection on the Phase-4a mosaic and measures per-magnitude detection efficiency vs the Phase-3 truth catalog. It establishes the baseline (default SourceCatalogStep parameters) before the kernel_fwhm sweep of Phase 5b.\nPipeline:\n\nRead the MosaicPipeline side-effect catalog (*_cat.parquet) — equivalent to running SourceCatalogStep standalone with default parameters (kernel_fwhm=2.0, snr_threshold=3.0, npixels=25, deblend=False).\nCrossmatch stars truth and galaxies truth separately against the recovered catalog via astropy.match_coordinates_sky, cross-match radius 0.3″.\nBinned efficiency = fraction of truth sources in each magnitude bin with a recovered match inside the radius.\nCount “false positives” = recovered sources with no truth within the crossmatch radius.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5a — detection baseline"
-    ]
-  },
-  {
-    "objectID": "detection/phase5a_detection.html#what-phase-5a-does",
-    "href": "detection/phase5a_detection.html#what-phase-5a-does",
-    "title": "Phase 5a — source detection + efficiency baseline",
-    "section": "",
-    "text": "Phase 5a runs source detection on the Phase-4a mosaic and measures per-magnitude detection efficiency vs the Phase-3 truth catalog. It establishes the baseline (default SourceCatalogStep parameters) before the kernel_fwhm sweep of Phase 5b.\nPipeline:\n\nRead the MosaicPipeline side-effect catalog (*_cat.parquet) — equivalent to running SourceCatalogStep standalone with default parameters (kernel_fwhm=2.0, snr_threshold=3.0, npixels=25, deblend=False).\nCrossmatch stars truth and galaxies truth separately against the recovered catalog via astropy.match_coordinates_sky, cross-match radius 0.3″.\nBinned efficiency = fraction of truth sources in each magnitude bin with a recovered match inside the radius.\nCount “false positives” = recovered sources with no truth within the crossmatch radius.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5a — detection baseline"
-    ]
-  },
-  {
-    "objectID": "detection/phase5a_detection.html#results-pair-11119-skycell-000m18x60y42",
-    "href": "detection/phase5a_detection.html#results-pair-11119-skycell-000m18x60y42",
-    "title": "Phase 5a — source detection + efficiency baseline",
-    "section": "Results — pair 11119 / skycell 000m18x60y42",
-    "text": "Results — pair 11119 / skycell 000m18x60y42\n\n\n\n\n\n\n\n\n\nPAIR_ID\nskycell_name\nn_truth_stars\nn_truth_galaxies\nn_recovered\nn_false_positive\nmag_50pct_stars\nmag_50pct_galaxies\nmag_90pct_stars\nmag_90pct_galaxies\ncrossmatch_radius_arcsec\n\n\n\n\n0\n11119\n000m18x60y42\n210\n210\n282\n0\n25.4\n24.65\n25.25\n24.53\n0.3\n\n\n\n\n\n\n\n\n\n\n\n\nLEFT: detection efficiency vs F158 input magnitude. Blue = stars (PSF), red = galaxies (circular exponential, n=1, r_h=0.275″). Horizontal dotted guides at 50% and 90%. RIGHT: recovered catalog positions (black x) overlaid on truth stars (blue circles) and galaxies (red squares). Recovery is perfect in both position and count down to each type’s completeness knee.\n\n\n\n\nKey numbers:\n\n\n\nquantity\nstars (PSF)\ngalaxies (SER n=1, r=0.275″)\n\n\n\n\n90% completeness magnitude\n25.25\n24.53\n\n\n50% completeness magnitude\n25.40\n24.65\n\n\n\nThe galaxy curve turns over ~0.75 mag shallower than the star curve — expected because a Sersic profile spreads the flux of a fixed total magnitude over several arcsec², lowering the peak SNR in the detection kernel. The default kernel_fwhm=2.0 pix (≈0.11″) is matched to the F158 PSF, which under-weights galaxies; Phase 5b sweeps the kernel to explicitly study this.\nFalse positives: 0/282 within 0.3″. Every recovered source sits inside the crossmatch radius of at least one truth source. This is partly by design (truth covers the skycell densely) and partly a quality check on the pipeline — no spurious detections.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5a — detection baseline"
-    ]
-  },
-  {
-    "objectID": "detection/phase5a_detection.html#why-the-galaxies-hit-an-earlier-wall",
-    "href": "detection/phase5a_detection.html#why-the-galaxies-hit-an-earlier-wall",
-    "title": "Phase 5a — source detection + efficiency baseline",
-    "section": "Why the galaxies hit an earlier wall",
-    "text": "Why the galaxies hit an earlier wall\n\nThe F158 PSF FWHM is ~0.11″ at the detector plane; a circular exponential galaxy with r_eff = 0.275″ extends to ≥2× that.\nSourceCatalogStep convolves the image with a Gaussian of kernel_fwhm = 2.0 pix (≈0.11″) and applies snr_threshold = 3 to the convolved image. The convolution essentially integrates flux under a PSF-matched kernel. For point sources this kernel is matched-filter-optimal; for resolved sources it loses up to ~50% of the signal because flux outside the PSF radius is not weighted.\nRaising kernel_fwhm to ~5-7 pix would better match the galaxy surface-brightness profile and push the galaxy completeness curve ~0.3-0.5 mag deeper, at the cost of slightly higher false-positive rates and blending.\n\nPhase 5b will quantify that tradeoff.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5a — detection baseline"
-    ]
-  },
-  {
-    "objectID": "detection/phase5a_detection.html#comparison-to-the-full-runs-depth",
-    "href": "detection/phase5a_detection.html#comparison-to-the-full-runs-depth",
-    "title": "Phase 5a — source detection + efficiency baseline",
-    "section": "Comparison to the full run’s depth",
-    "text": "Comparison to the full run’s depth\nThe full-run mosaic (configs/full.yaml, 6 pair-only visits at target RA 10°, Dec 0°) measured Kron-based 50% completeness at F158 mag 23.95 across all depth levels, and 24.05 at the design depth ≥ 6 — shallower than our 24.65 (galaxies) / 25.40 (stars) here. The gap comes from two effects:\n\nDepth: our pair 11119 mosaic reaches per-pixel depth ~10 (after the Phase 2 HLWAS expansion), the full-run design-depth skycells only reach depth 6. Moving from depth 6 to 10 is sqrt(10/6) = 1.29× better SNR, ≈ 0.28 mag depth gain.\nDetection method: the full-run’s mag_50pct uses a Kron-like aperture metric based on detected flux; we use a position-based “was a source found” criterion. The latter is more forgiving for faint extended sources.\n\nBoth contribute plausibly to our ~0.5-1 mag deeper result.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5a — detection baseline"
-    ]
-  },
-  {
-    "objectID": "detection/phase5a_detection.html#checkpoint",
-    "href": "detection/phase5a_detection.html#checkpoint",
-    "title": "Phase 5a — source detection + efficiency baseline",
-    "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 5a criteria met: pipeline works end-to-end, clean efficiency curves, physically-sensible star-vs-galaxy offset, zero false positives at default parameters. Ready for either:\n\nPhase 4b — scale to all 5 (or 25) skycells (after the proposed skycell-driven refactor of Phases 1-2).\nPhase 5b — kernel_fwhm ∈ {2, 3, 5, 7} sweep on the current mosaic, cheaper (just reruns SourceCatalogStep).",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 5a — detection baseline"
+      "Phase 2 — skycells"
     ]
   },
   {
@@ -749,209 +650,165 @@
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html",
-    "href": "detection/phase2_skycells.html",
-    "title": "Phase 2 — HLWAS expansion per skycell",
+    "objectID": "detection/phase5b_kernel_sweep.html",
+    "href": "detection/phase5b_kernel_sweep.html",
+    "title": "Phase 5b — kernel_fwhm sweep (single-skycell case study)",
     "section": "",
-    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 12 skycells selected in Phase 1:\n\nGather all HLWAS F158 (Wide-Field2) exposures whose nominal centre is within 0.6° of the skycell centre — the pool of candidate pointings whose outer SCAs could plausibly reach the 4.6′ skycell.\nFor each (candidate pointing, SCA) pair, build the CRDS-backed WCS via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the same code path romanisim-make-image --usecrds uses.\nTake the 4 SCA corners and call romancal.skycell.match.find_skycell_matches(corners). If the selected skycell is in the match list, add the (pointing, SCA) to Phase 4’s sim list.\n\nAll L2s per skycell are simulated at the skycell’s SIM_DATE (from Phase 1, chosen for ~90° solar elongation). That fixes zodi across the mosaic regardless of what HLWAS PASS the original visit was scheduled in.",
+    "text": "Note\n\n\n\nThis page presents the kernel sweep on a single historical validation skycell (pair 11119, x60y42, depth 10). The same sweep was then run on all 10 mosaics in Phase 4b — see the Phase 6 summary for the cross-mosaic aggregate. The mechanisms discussed here (peak smoothing vs noise integration) generalise; the numbers below are one datapoint.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
+      "Phase 5b — kernel sweep"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#what-phase-2-does",
-    "href": "detection/phase2_skycells.html#what-phase-2-does",
-    "title": "Phase 2 — HLWAS expansion per skycell",
+    "objectID": "detection/phase5b_kernel_sweep.html#what-phase-5b-does",
+    "href": "detection/phase5b_kernel_sweep.html#what-phase-5b-does",
+    "title": "Phase 5b — kernel_fwhm sweep (single-skycell case study)",
+    "section": "What Phase 5b does",
+    "text": "What Phase 5b does\nRerun SourceCatalogStep on the Phase-4a mosaic with kernel_fwhm ∈ {2.0, 3.0, 5.0, 7.0} pix, keeping the other parameters at the defaults (snr_threshold=3.0, npixels=25, deblend=False). Reuses the same L3 mosaic and truth catalog — so the sweep is ~3 minutes of wall time, no new sims.\nThe research question: does raising kernel_fwhm help detect extended sources (galaxies) by better matching their surface-brightness profile? The expectation going in was yes, widen the kernel for galaxies.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 5b — kernel sweep"
+    ]
+  },
+  {
+    "objectID": "detection/phase5b_kernel_sweep.html#results-pair-11119-skycell-000m18x60y42",
+    "href": "detection/phase5b_kernel_sweep.html#results-pair-11119-skycell-000m18x60y42",
+    "title": "Phase 5b — kernel_fwhm sweep (single-skycell case study)",
+    "section": "Results — pair 11119 / skycell 000m18x60y42",
+    "text": "Results — pair 11119 / skycell 000m18x60y42\n\n\n\n\n\n\nSweep summary. n_recovered = total distinct sources found; m50/m90 = F158 magnitude at 50%/90% completeness, linearly interpolated from the per-bin efficiency curves.\n\n\n\nkernel_fwhm\nn_recovered\nn_false_positive\nfp_rate\nmag_50pct_stars\nmag_50pct_galaxies\nmag_90pct_stars\nmag_90pct_galaxies\n\n\n\n\n0\n2.0\n282\n0\n0.0\n25.400\n24.65\n25.250\n24.530\n\n\n1\n3.0\n282\n0\n0.0\n25.475\n24.59\n25.325\n24.425\n\n\n2\n5.0\n265\n0\n0.0\n25.370\n24.44\n25.250\n24.275\n\n\n3\n7.0\n237\n0\n0.0\n25.040\n24.38\n24.875\n24.200\n\n\n\n\n\n\n\n\n\n\n\n\nDetection-efficiency curves at four kernel_fwhm values. LEFT: stars (PSF). RIGHT: galaxies (Sersic n=1, r_h=0.275″). Dotted guides at 50% and 90% completeness. Wider kernels strictly worsen completeness for both source types.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 5b — kernel sweep"
+    ]
+  },
+  {
+    "objectID": "detection/phase5b_kernel_sweep.html#the-expectation-didnt-pan-out",
+    "href": "detection/phase5b_kernel_sweep.html#the-expectation-didnt-pan-out",
+    "title": "Phase 5b — kernel_fwhm sweep (single-skycell case study)",
+    "section": "The expectation didn’t pan out",
+    "text": "The expectation didn’t pan out\nThe original hypothesis was that a wider kernel should help extended sources because the matched-filter SNR is maximised when the kernel matches the source profile. For our Sersic-n=1 galaxies with r_eff = 0.275″ (= 5 mosaic pix at 0.055″/pix), an optimal kernel should have been ~5 pix. Empirically it is not:\n\n\n\nkernel_fwhm\nstars m50%\ngalaxies m50%\nn_recovered\n\n\n\n\n2.0\n25.40\n24.65\n282\n\n\n3.0\n25.48\n24.59\n282\n\n\n5.0\n25.37\n24.44\n265\n\n\n7.0\n25.04\n24.38\n237\n\n\n\nThe best kernel for stars is kernel_fwhm = 3.0 (m50 = 25.48; marginal improvement over 2.0). The best kernel for galaxies is kernel_fwhm = 2.0 — the same as the default matched to the PSF. Widening to 7 pix loses ~0.27 mag for galaxies and ~0.36 mag for stars, plus 45 fewer detections total (282 → 237).\n\nWhy the matched-filter intuition misfires here\nThree effects work against the wider kernel:\n\nPeak smoothing: convolving a source with a kernel wider than the source’s intrinsic scale lowers the peak amplitude. For our 0.275″ galaxies — essentially “PSF plus a small Gaussian tail” at the 0.055″ mosaic scale — the peak is still PSF-dominated, and a 7-pixel kernel cuts the peak by a factor of ~3.\nNoise integration: a wider kernel integrates noise from more pixels. The convolved sigma drops as ~1/kernel_fwhm, but the peak drops faster for sources smaller than the kernel — so peak/sigma falls, not rises.\nBlending: at kernel_fwhm = 7, close-neighbour pairs (which our Sobol layout has at the few-arcsec level) start merging into single detections. That’s the 282 → 237 drop.\n\n\n\nWhat would make wider kernels win\nLarger-r_eff galaxies — maybe r_eff ≥ 1″ (≈ 18 mosaic pix) — would have their peak broadened enough that a wider kernel recovers more flux than it smooths away. Those are bigger than typical survey galaxies at the depth-10 HLWAS magnitude range, so for the detection study as spec’d, the default kernel_fwhm = 2.0 is already near-optimal.\n\n\nFalse positives\nAll four kernels give 0 false positives within 0.3″ of any truth source. The sweep does not trade completeness against spurious detections — wider kernels just lose real detections, without gaining false ones. Caveats: our truth-source density is high enough that a random “false positive” has ~20% chance of being within 0.3″ of a real truth source by chance; the absolute floor on FP rate at this truth density is therefore not well-measured here. A scale-up with lower truth density or a sparse-field run would firm up this number.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 5b — kernel sweep"
+    ]
+  },
+  {
+    "objectID": "detection/phase5b_kernel_sweep.html#checkpoint",
+    "href": "detection/phase5b_kernel_sweep.html#checkpoint",
+    "title": "Phase 5b — kernel_fwhm sweep (single-skycell case study)",
+    "section": "Checkpoint",
+    "text": "Checkpoint\nPhase 5b complete. Default parameters are near-optimal — no kernel re-tune needed before Phase 4b. The question “does kernel_fwhm help” now has an empirical answer (no, for our galaxy size), with a clear mechanism (peak smoothing &gt; noise reduction for sub-kernel sources).",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 5b — kernel sweep"
+    ]
+  },
+  {
+    "objectID": "detection/phase1_pointings.html",
+    "href": "detection/phase1_pointings.html",
+    "title": "Phase 1 — skycell selection",
     "section": "",
-    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 12 skycells selected in Phase 1:\n\nGather all HLWAS F158 (Wide-Field2) exposures whose nominal centre is within 0.6° of the skycell centre — the pool of candidate pointings whose outer SCAs could plausibly reach the 4.6′ skycell.\nFor each (candidate pointing, SCA) pair, build the CRDS-backed WCS via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the same code path romanisim-make-image --usecrds uses.\nTake the 4 SCA corners and call romancal.skycell.match.find_skycell_matches(corners). If the selected skycell is in the match list, add the (pointing, SCA) to Phase 4’s sim list.\n\nAll L2s per skycell are simulated at the skycell’s SIM_DATE (from Phase 1, chosen for ~90° solar elongation). That fixes zodi across the mosaic regardless of what HLWAS PASS the original visit was scheduled in.",
+    "text": "Pick N target skycells inside the HLWAS F158 Wide-Field2 footprint, stratified by:\n\nEcliptic latitude (proxy for zodiacal background). Bands: |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between bands ensure cross-bin picks aren’t at adjacent |ecl_lat|.\nLocal HLWAS coverage density (proxy for mosaic depth): count_0p25 = # HLWAS F158 exposures whose centre lies within 0.25° of the skycell centre. “High” = ≥ 75th percentile; “low” = ≤ 25th percentile, across HLWAS-interior candidates.\n\nThe candidate pool is all skymap skycells in the HLWAS Dec band for which count_0p6 (# F158 exposures within 0.6°) is ≥ 5. That filter is meant to exclude the outer survey edges where only isolated pointings sit nearby. It’s lenient, though: a skycell sitting in a gap between HLWAS visit tiles can still have 5+ exposures at the 0.3-0.6° annulus while having zero within 0.25°. In the current run, pair 6 (RA 26.7°, Dec −21.3°) is exactly such a case — it looks interior on this coarse filter but sits in a real tiling gap, and Phase 2 expansion ultimately finds only 2 L2 files overlapping its selected skycell. The “coverage gap” category we produce is therefore a mix of true survey-edge skycells (pairs 2, 11) and interior-but-gap skycells (pairs 1, 5, 6) — the mosaics show both kinds hit depth 0 for the median interior pixel.\nTarget: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12 skycells. A 5° great-circle minimum separation is enforced between any two picks so different cells don’t accidentally land on top of each other.\nPer skycell, we also compute the sim date that minimises solar elongation inside [90°, 115°] in 2026 — the “hardest-zodi” day within Roman’s pointing constraint for that field.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
+      "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#l2-counts-per-skycell",
-    "href": "detection/phase2_skycells.html#l2-counts-per-skycell",
-    "title": "Phase 2 — HLWAS expansion per skycell",
-    "section": "L2 counts per skycell",
-    "text": "L2 counts per skycell\n\n\n\n\n\n\nL2 files per pair after HLWAS expansion. n_l2_files is the distinct (PASS × SEGMENT × VISIT × EXPOSURE × SCA) combos whose SCA overlaps the target skycell; n_visits is the number of distinct HLWAS visits contributing. Pairs 9 and 10 got 0 overlap — HLWAS tiling near the ecliptic leaves coverage gaps.\n\n\n\nPAIR_ID\nskycell_name\nzodi_bin\ncoverage_bin\ncount_0p25\nn_l2_files\nn_visits\n\n\n\n\n0\n1\n066m27x60y41\nlow_zodi\nlow\n0\n2\n2\n\n\n1\n2\n063m53x47y43\nlow_zodi\nlow\n0\n2\n2\n\n\n2\n3\n059m27x38y48\nlow_zodi\nhigh\n6\n6\n2\n\n\n3\n4\n065m50x70y32\nlow_zodi\nhigh\n12\n26\n6\n\n\n4\n5\n048m06x64y42\nmid_zodi\nlow\n0\n2\n2\n\n\n5\n6\n028m21x46y37\nmid_zodi\nlow\n0\n2\n2\n\n\n6\n7\n007m21x69y69\nmid_zodi\nhigh\n6\n20\n6\n\n\n7\n8\n329m31x72y34\nmid_zodi\nhigh\n12\n22\n6\n\n\n8\n9\n350m09x36y30\nhigh_zodi\nlow\n0\n0\n0\n\n\n9\n10\n329m06x42y29\nhigh_zodi\nlow\n0\n0\n0\n\n\n10\n11\n017p00x68y28\nhigh_zodi\nhigh\n6\n16\n4\n\n\n11\n12\n325m24x50y57\nhigh_zodi\nhigh\n12\n26\n6",
+    "objectID": "detection/phase1_pointings.html#what-phase-1-does",
+    "href": "detection/phase1_pointings.html#what-phase-1-does",
+    "title": "Phase 1 — skycell selection",
+    "section": "",
+    "text": "Pick N target skycells inside the HLWAS F158 Wide-Field2 footprint, stratified by:\n\nEcliptic latitude (proxy for zodiacal background). Bands: |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between bands ensure cross-bin picks aren’t at adjacent |ecl_lat|.\nLocal HLWAS coverage density (proxy for mosaic depth): count_0p25 = # HLWAS F158 exposures whose centre lies within 0.25° of the skycell centre. “High” = ≥ 75th percentile; “low” = ≤ 25th percentile, across HLWAS-interior candidates.\n\nThe candidate pool is all skymap skycells in the HLWAS Dec band for which count_0p6 (# F158 exposures within 0.6°) is ≥ 5. That filter is meant to exclude the outer survey edges where only isolated pointings sit nearby. It’s lenient, though: a skycell sitting in a gap between HLWAS visit tiles can still have 5+ exposures at the 0.3-0.6° annulus while having zero within 0.25°. In the current run, pair 6 (RA 26.7°, Dec −21.3°) is exactly such a case — it looks interior on this coarse filter but sits in a real tiling gap, and Phase 2 expansion ultimately finds only 2 L2 files overlapping its selected skycell. The “coverage gap” category we produce is therefore a mix of true survey-edge skycells (pairs 2, 11) and interior-but-gap skycells (pairs 1, 5, 6) — the mosaics show both kinds hit depth 0 for the median interior pixel.\nTarget: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12 skycells. A 5° great-circle minimum separation is enforced between any two picks so different cells don’t accidentally land on top of each other.\nPer skycell, we also compute the sim date that minimises solar elongation inside [90°, 115°] in 2026 — the “hardest-zodi” day within Roman’s pointing constraint for that field.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
+      "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#per-skycell-coverage-maps",
-    "href": "detection/phase2_skycells.html#per-skycell-coverage-maps",
-    "title": "Phase 2 — HLWAS expansion per skycell",
-    "section": "Per-skycell coverage maps",
-    "text": "Per-skycell coverage maps\n\n\n\n\n\nPer-skycell SCA footprint overlays. Red square = the 4.6′ skycell; each coloured polygon = one contributing L2’s SCA footprint. Plots show, visually, how coverage density varies with pair_id.",
+    "objectID": "detection/phase1_pointings.html#the-12-selected-skycells",
+    "href": "detection/phase1_pointings.html#the-12-selected-skycells",
+    "title": "Phase 1 — skycell selection",
+    "section": "The 12 selected skycells",
+    "text": "The 12 selected skycells\n\n\n\n\n\nSelected skycells. count_0p25 is the # HLWAS F158 exposures within 0.25° of the skycell centre — the selection metric. SKY_E_PER_PIX_PER_S is romanisim’s predicted F158 zodi at SIM_DATE.\n\n\n \nPAIR_ID\nskycell_name\nskycell_ra\nskycell_dec\nECL_LAT_DEG\nzodi_bin\ncoverage_bin\ncount_0p25\nSIM_DATE\nSOLAR_ELONG_DEG\nSKY_E_PER_PIX_PER_S\n\n\n\n\n0\n1\n066m27x60y41\n65.030\n-26.751\n-47.31\nlow_zodi\nlow\n0\n2026-02-15T00:00:00.000\n90.20\n0.534\n\n\n1\n2\n063m53x47y43\n62.135\n-53.611\n-71.30\nlow_zodi\nlow\n0\n2026-01-20T00:00:00.000\n90.19\n0.434\n\n\n2\n3\n059m27x38y48\n58.679\n-28.366\n-47.30\nlow_zodi\nhigh\n6\n2026-08-11T00:00:00.000\n90.28\n0.532\n\n\n3\n4\n065m50x70y32\n63.479\n-48.099\n-67.01\nlow_zodi\nhigh\n12\n2026-08-03T00:00:00.000\n90.04\n0.443\n\n\n4\n5\n048m06x64y42\n47.873\n-4.860\n-21.82\nmid_zodi\nlow\n0\n2026-02-03T00:00:00.000\n90.15\n0.821\n\n\n5\n6\n028m21x46y37\n26.669\n-21.327\n-30.00\nmid_zodi\nlow\n0\n2026-07-09T00:00:00.000\n90.38\n0.683\n\n\n6\n7\n007m21x69y69\n8.402\n-19.638\n-21.29\nmid_zodi\nhigh\n6\n2026-06-22T00:00:00.000\n90.66\n0.821\n\n\n7\n8\n329m31x72y34\n327.502\n-29.232\n-15.16\nmid_zodi\nhigh\n12\n2026-05-11T00:00:00.000\n90.26\n0.975\n\n\n8\n9\n350m09x36y30\n348.127\n-9.873\n-4.40\nhigh_zodi\nlow\n0\n2026-06-07T00:00:00.000\n90.68\n1.255\n\n\n9\n10\n329m06x42y29\n327.297\n-6.471\n+6.32\nhigh_zodi\nlow\n0\n2026-05-19T00:00:00.000\n90.41\n1.223\n\n\n10\n11\n017p00x68y28\n15.695\n1.319\n-4.96\nhigh_zodi\nhigh\n6\n2026-07-08T00:00:00.000\n90.53\n1.249\n\n\n11\n12\n325m24x50y57\n325.947\n-24.220\n-9.98\nhigh_zodi\nhigh\n12\n2026-05-12T00:00:00.000\n90.81\n1.127",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
+      "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#design-consequence-variable-per-pixel-depth-across-the-sample",
-    "href": "detection/phase2_skycells.html#design-consequence-variable-per-pixel-depth-across-the-sample",
-    "title": "Phase 2 — HLWAS expansion per skycell",
-    "section": "Design consequence — variable per-pixel depth across the sample",
-    "text": "Design consequence — variable per-pixel depth across the sample\nLow-coverage skycells (pairs 1, 2, 5, 6) have only ~2 L2 files each after expansion — outer SCAs of ~1-2 nearby HLWAS visits. Per-pixel depth will be 1-2 in most of those mosaics.\nHigh-coverage skycells (pairs 3, 4, 7, 8, 11, 12) have 16-26 L2 files each, with per-pixel depth ~8-12 expected based on pair 11119’s earlier validation.\nThat dynamic range — factor of 10× in depth across the sample — is the point of the matrix design: Phase 5 measures detection efficiency vs position, source type, magnitude, and depth simultaneously.",
+    "objectID": "detection/phase1_pointings.html#selection-matrix",
+    "href": "detection/phase1_pointings.html#selection-matrix",
+    "title": "Phase 1 — skycell selection",
+    "section": "Selection matrix",
+    "text": "Selection matrix\n\n\n\n\n\nStratification matrix. Grey dots are the HLWAS-interior candidate pool (~700k skycells); red/green dashed lines mark the 25th/75th percentiles of count_0p25; vertical dotted lines are the ecl-lat band boundaries. Stars = selected skycells, coloured by PAIR_ID.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
+      "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#reproducing",
-    "href": "detection/phase2_skycells.html#reproducing",
-    "title": "Phase 2 — HLWAS expansion per skycell",
+    "objectID": "detection/phase1_pointings.html#sky-map",
+    "href": "detection/phase1_pointings.html#sky-map",
+    "title": "Phase 1 — skycell selection",
+    "section": "Sky map",
+    "text": "Sky map\n\n\n\n\n\nAll HLWAS F158 exposures (grey) and the 12 selected skycells (stars). Low-zodi picks cluster near the southern edge of HLWAS (high |ecl_lat|); high-zodi picks are near RA 0° where HLWAS crosses the ecliptic.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 1 — pointings"
+    ]
+  },
+  {
+    "objectID": "detection/phase1_pointings.html#coverage-distribution",
+    "href": "detection/phase1_pointings.html#coverage-distribution",
+    "title": "Phase 1 — skycell selection",
+    "section": "Coverage distribution",
+    "text": "Coverage distribution\n\n\n\n\n\nHistogram of count_0p25 across the HLWAS-interior candidate pool. A large mass at 0 reflects HLWAS’s tiling pattern: between visit centres there are ‘gap’ skycells that no inner SCA reaches. The 25th percentile is 0, 75th is 6. Our ‘low coverage’ picks target the gap population; ‘high coverage’ the visit-centre population.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 1 — pointings"
+    ]
+  },
+  {
+    "objectID": "detection/phase1_pointings.html#caveats-from-the-first-run",
+    "href": "detection/phase1_pointings.html#caveats-from-the-first-run",
+    "title": "Phase 1 — skycell selection",
+    "section": "Caveats from the first run",
+    "text": "Caveats from the first run\nSome “low coverage” cells produce no mosaic. After Phase 2 expansion, the high_zodi × low_coverage cell (pairs 9 and 10) ends up with zero L2 files overlapping the selected skycell — HLWAS’s tiling near the ecliptic is sparse enough that even outer SCAs don’t reach “gap” skycells there. We proceed with the other 10 skycells for Phase 4b; the missing cell is documented but not recovered in this pass. A future iteration could tighten the “low coverage” definition to count_0p25 ∈ [1, 4] instead of ≤ 0 to guarantee non-zero overlap.\nThe interior filter is too lenient. count_0p6 ≥ 5 accepts both true survey-interior skycells and “tiling-gap” skycells where the 0.25° neighbourhood is empty but the 0.3-0.6° annulus isn’t. Tightening to e.g. count_0p25 ≥ 1 AND count_0p6 ≥ 10 would force the candidate pool to skycells that at least one HLWAS pointing’s inner SCAs can reach — eliminating the depth-0 mosaic outcomes by construction rather than after-the-fact.",
+    "crumbs": [
+      "Detection efficiency",
+      "Phase 1 — pointings"
+    ]
+  },
+  {
+    "objectID": "detection/phase1_pointings.html#reproducing",
+    "href": "detection/phase1_pointings.html#reproducing",
+    "title": "Phase 1 — skycell selection",
     "section": "Reproducing",
-    "text": "Reproducing\npixi run python scripts/detection/02_skycell_overlap.py\nReads selected_skycells.ecsv (Phase 1), writes pointings_sca_to_simulate.ecsv (the Phase 4 input) plus per-pair coverage plots. Wall time ~85 min at 4-way parallelism (one CRDS-backed get_wcs × find_skycell_matches call takes a few seconds; the expansion loops over # candidates × 18 SCAs per pair).",
+    "text": "Reproducing\npixi run python scripts/detection/01_select_skycells.py\nWrites catalogs/detection/selected_skycells.ecsv (12 rows) plus three PNGs under output/detection/phase1/.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
+      "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#checkpoint",
-    "href": "detection/phase2_skycells.html#checkpoint",
-    "title": "Phase 2 — HLWAS expansion per skycell",
+    "objectID": "detection/phase1_pointings.html#checkpoint",
+    "href": "detection/phase1_pointings.html#checkpoint",
+    "title": "Phase 1 — skycell selection",
     "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 2 done — 10 of 12 skycells have non-zero L2 coverage. The two skipped (pairs 9, 10 in the high_zodi × low_coverage cell) are documented in Phase 1.",
+    "text": "Checkpoint\nPhase 1 deliverable. The 10 usable skycells carry Phase 4b through to a detection-efficiency measurement across both the zodi and coverage axes.",
     "crumbs": [
       "Detection efficiency",
-      "Phase 2 — skycells"
-    ]
-  },
-  {
-    "objectID": "detection/index.html",
-    "href": "detection/index.html",
-    "title": "L3 detection-efficiency study",
-    "section": "",
-    "text": "A reproducible pipeline to measure the detection efficiency of the Roman L3 (MosaicPipeline) + SourceCatalogStep stack as a function of:\n\nsky position (multiple pointing groups at different ecliptic latitudes → different zodiacal backgrounds),\nsource type (point sources vs exponential-profile galaxies, matched in position and magnitude),\nsource magnitude (F158, 23.0–25.0 in 0.1-mag bins),\nSourceCatalogStep parameters (primarily kernel_fwhm).\n\nThe workflow is five phases with a user checkpoint at the end of each:\n\nPointing selection — pick a set of HLWAS F158 re-observed pairs spread across the sky, each with a well-defined solar-elongation window.\nSkycell / SCA overlap analysis — find which skycells the pair geometries reach mosaic depth 6, and enumerate the (pointing, SCA) pairs that need to be simulated.\nSource catalog generation — build matched star/galaxy truth catalogs on a grid inside each target skycell.\nL2 + L3 simulation — run romanisim for each required (pointing, SCA) combination, build the skycell associations, and coadd with MosaicPipeline.\nSource detection + efficiency analysis — run SourceCatalogStep at default parameters (5a), then sweep kernel_fwhm (5b) and optionally snr_threshold / npixels (5c). Compare recovered catalogs against the Phase-3 truth.\n\nThis sits alongside the existing Full run report and reuses the same roman_l2_job pixi environment, CRDS cache, and STPSF data.",
-    "crumbs": [
-      "Detection efficiency",
-      "Overview"
-    ]
-  },
-  {
-    "objectID": "detection/index.html#what-this-is",
-    "href": "detection/index.html#what-this-is",
-    "title": "L3 detection-efficiency study",
-    "section": "",
-    "text": "A reproducible pipeline to measure the detection efficiency of the Roman L3 (MosaicPipeline) + SourceCatalogStep stack as a function of:\n\nsky position (multiple pointing groups at different ecliptic latitudes → different zodiacal backgrounds),\nsource type (point sources vs exponential-profile galaxies, matched in position and magnitude),\nsource magnitude (F158, 23.0–25.0 in 0.1-mag bins),\nSourceCatalogStep parameters (primarily kernel_fwhm).\n\nThe workflow is five phases with a user checkpoint at the end of each:\n\nPointing selection — pick a set of HLWAS F158 re-observed pairs spread across the sky, each with a well-defined solar-elongation window.\nSkycell / SCA overlap analysis — find which skycells the pair geometries reach mosaic depth 6, and enumerate the (pointing, SCA) pairs that need to be simulated.\nSource catalog generation — build matched star/galaxy truth catalogs on a grid inside each target skycell.\nL2 + L3 simulation — run romanisim for each required (pointing, SCA) combination, build the skycell associations, and coadd with MosaicPipeline.\nSource detection + efficiency analysis — run SourceCatalogStep at default parameters (5a), then sweep kernel_fwhm (5b) and optionally snr_threshold / npixels (5c). Compare recovered catalogs against the Phase-3 truth.\n\nThis sits alongside the existing Full run report and reuses the same roman_l2_job pixi environment, CRDS cache, and STPSF data.",
-    "crumbs": [
-      "Detection efficiency",
-      "Overview"
-    ]
-  },
-  {
-    "objectID": "detection/index.html#data-locations",
-    "href": "detection/index.html#data-locations",
-    "title": "L3 detection-efficiency study",
-    "section": "Data locations",
-    "text": "Data locations\nCode, configs, and selection artefacts live in this repo. The bulk L2 and L3 binary products — which will be the dominant cost once Phase 4 runs — will live under output/detection/ on the host, outside of version control. A pointer file will be added when Phase 4 starts.",
-    "crumbs": [
-      "Detection efficiency",
-      "Overview"
-    ]
-  },
-  {
-    "objectID": "detection/index.html#status",
-    "href": "detection/index.html#status",
-    "title": "L3 detection-efficiency study",
-    "section": "Status",
-    "text": "Status\nPhase 1 rewritten for the skycell-driven design: 12 skycells picked in a (zodi × coverage) matrix. Phase 2 expansion ran on all 12; 10 have ≥ 2 overlapping L2 files and will mosaic (pairs 9 and 10 in the high_zodi × low_coverage cell got 0 overlap — documented in Phase 1). Phase 4b orchestrator running now (~124 L2 sims + 10 mosaics + Phase 5a/b/c per mosaic).\n\nPhase 1 — skycell selection ← rewritten for matrix\nPhase 2 — HLWAS expansion ← expansion-only\nPhase 3 — truth-catalog generation\nPhase 4a — L2 + L3 validation (pair 11119) ← historical single-skycell validation\nPhase 5a — detection baseline (pair 11119)\nPhase 5b — kernel_fwhm sweep (pair 11119)\nPhase 5c — npixels sweep (pair 11119)\nPhase 6 — cross-mosaic summary (10 skycells) ← new",
-    "crumbs": [
-      "Detection efficiency",
-      "Overview"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html",
-    "href": "detection/phase4a_validation.html",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "",
-    "text": "Before scaling to all 5 pairs, validate the full L2 → L3 → (Phase 5) source detection chain on one (pair, skycell). Concretely, for pair 11119 (skycell 000m18x60y42):\n\nBuild a combined truth catalog (stars + galaxies merged in one parquet — romanisim ingests both via the per-row type column).\nEmit 22 romanisim-make-image commands from the corrected + HLWAS-expanded Phase 2 list (see below), each with a deterministic CRC32-of-basename seed so every dither draws an independent noise realisation.\nRun the sims 4-way parallel (~34 min). Output L2s in output/detection/l2/ (~200 MB each).\nRun skycell_asn --product-type full on the 22 L2s — target skycell gets all 22 members.\nRun MosaicPipeline → 503 MB coadd for x60y42.\nInspect depth, weight, image, truth-to-image correspondence.\n\nWall time for pair 11119: ~40 min end-to-end (34 min sims + 3 min mosaic + &lt;1 min validate).",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html#what-phase-4a-does",
-    "href": "detection/phase4a_validation.html#what-phase-4a-does",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "",
-    "text": "Before scaling to all 5 pairs, validate the full L2 → L3 → (Phase 5) source detection chain on one (pair, skycell). Concretely, for pair 11119 (skycell 000m18x60y42):\n\nBuild a combined truth catalog (stars + galaxies merged in one parquet — romanisim ingests both via the per-row type column).\nEmit 22 romanisim-make-image commands from the corrected + HLWAS-expanded Phase 2 list (see below), each with a deterministic CRC32-of-basename seed so every dither draws an independent noise realisation.\nRun the sims 4-way parallel (~34 min). Output L2s in output/detection/l2/ (~200 MB each).\nRun skycell_asn --product-type full on the 22 L2s — target skycell gets all 22 members.\nRun MosaicPipeline → 503 MB coadd for x60y42.\nInspect depth, weight, image, truth-to-image correspondence.\n\nWall time for pair 11119: ~40 min end-to-end (34 min sims + 3 min mosaic + &lt;1 min validate).",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html#phase-2-wcs-fix-applied-before-this-run",
-    "href": "detection/phase4a_validation.html#phase-2-wcs-fix-applied-before-this-run",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "Phase 2 WCS fix (applied before this run)",
-    "text": "Phase 2 WCS fix (applied before this run)\nThe first Phase-4a run surfaced a Phase-2 bug. Phase 2 had been computing SCA corners via galsim.roman.getWCS, which uses GalSim’s analytical (SIAF-based) distortion. The L2 sims run with --usecrds and use the CRDS distortion reference instead; the two models disagree by ~arcmin per SCA, flipping overlap decisions near skycell edges. Consequence: the first-run selected “depth 6” skycell x58y45 only received contributions from 4 of the 6 pointings at sim time.\nFix: use romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the exact code path romanisim-make-image --usecrds takes. After the fix, Phase-2 predictions and skycell_asn agree on every skycell.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html#per-pixel-depth-the-pair-alone-isnt-enough-expand-to-hlwas",
-    "href": "detection/phase4a_validation.html#per-pixel-depth-the-pair-alone-isnt-enough-expand-to-hlwas",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "Per-pixel depth — the pair alone isn’t enough; expand to HLWAS",
-    "text": "Per-pixel depth — the pair alone isn’t enough; expand to HLWAS\nThe first corrected run simulated only the pair’s 6 pointings. That gave n_pointings = 6 on x60y42 but per-pixel depth of just 4: HLWAS dithers shift ~7-12′ between exposures — larger than the 4.6′ skycell — so the three dithers put three different SCAs over different regions of the skycell, not the same pixels. Most interior pixels get covered by only 2 of the 3 dithers (× 2 passes = depth 4).\nFix: at Phase 2’s end, sweep all of HLWAS F158 for any pointing within 0.6° of the selected skycell and keep (pointing, SCA) pairs that overlap (via the CRDS-backed WCS). For pair 11119’s skycell the expansion adds 16 more L2 files from nearby visits 9, 10, and 12 (and their pass-16 revisits) on top of the original 6 dithers from visit 11. All expanded sims use the pair’s SIM_DATE so zodi stays fixed across the mosaic — we get HLWAS-like depth at a single date.\nWith 22 L2 files the mosaic depth map reaches max 12, median interior 10:\n\n\n\ndepth tier\nfraction of skycell\n\n\n\n\ndepth 10-12 (core)\n~55%\n\n\ndepth 8\n~30%\n\n\ndepth 4-6 (edge bands)\n~12%\n\n\ndepth 0-2 (corners)\n~3%\n\n\n\nThis matches what the full-run measured for its design-depth skycells (median ~6, max ~8 there because the full-run budget included the pair only, not neighbours). Our detection study gets deeper because we pull in every HLWAS visit whose SCAs overlap the target skycell.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html#mosaic-diagnostics",
-    "href": "detection/phase4a_validation.html#mosaic-diagnostics",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "Mosaic diagnostics",
-    "text": "Mosaic diagnostics\n\n\n\n\n\n2×2 diagnostic: L3 image, weight map, per-pixel depth map, and truth positions overlaid. Depth map is uniformly 4 across ~95% of the skycell interior — from SCAs 1 + 4 (× 2 passes) overlapping most pixels. The thin southern strip at depth 2 is where only SCA 7 contributes. 210 stars (blue) and 210 galaxies (red), 21 F158 mag bins × 10 sources, Sobol-distributed inside the [200, 4800]² core.\n\n\n\n\n\n\n\nquantity\nvalue\n\n\n\n\nimage shape\n5000 × 5000\n\n\nsigma-clipped median\n0.332 MJy/sr\n\n\nsigma-clipped sigma\n0.012 MJy/sr\n\n\nweight map median\n3733 (arb. units)\n\n\ndepth map max / median (interior)\n12 / 10\n\n\nL2 files in asn\n22\n\n\n\nSigma-clipped median 0.356 MJy/sr is consistent with Phase-1’s galsim.getSkyLevel prediction of 0.96 e⁻/pix/s for this pair at its sim date (a unit conversion from e⁻/pix/s → MJy/sr puts this within 5% of the measured value — the same sanity check that held for the full run’s 0.49 MJy/sr measurement).\n\n\n\n\n\nZoom around the brightest truth source (F158 mag 23.0 star). Clear PSF at the injected RA/Dec — confirms that every stage of the catalog → sim → mosaic → resample chain preserves source positions correctly to sub-pixel precision.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html#what-works",
-    "href": "detection/phase4a_validation.html#what-works",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "What works",
-    "text": "What works\n\nL2 sims: 6/6 succeed in 11 minutes (4-way parallel, ~5.8 min/sim).\nskycell_asn: target skycell gets all 6 L2 members after the Phase-2 WCS fix.\nMosaicPipeline: clean 502 MB coadd, no rejection artifacts, uniform depth over the unique core.\nTruth mapping: brightest star (mag 23.0) at its injected RA/Dec in the mosaic. The Sobol-spread sources are all inside the mosaic footprint.\nZodi: measured sigma-clipped median matches the Phase-1 galsim.getSkyLevel prediction.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
-    ]
-  },
-  {
-    "objectID": "detection/phase4a_validation.html#checkpoint",
-    "href": "detection/phase4a_validation.html#checkpoint",
-    "title": "Phase 4a — L2 + L3 validation on pair 11119",
-    "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 4a criteria met. Ready for Phase 4b scale-up (5 pairs × N skycells per pair). Per the user’s directive, if 4a passes we go to 5 skycells per pair for 4b — ~30 L2 files per pair × 5 = 150 L2 files, ~6 hr at 4-way parallelism.",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 4a — validation"
+      "Phase 1 — pointings"
     ]
   },
   {
     "objectID": "detection/phase5c_npixels_sweep.html",
     "href": "detection/phase5c_npixels_sweep.html",
-    "title": "Phase 5c — npixels sweep",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
     "section": "",
-    "text": "Rerun SourceCatalogStep on the same Phase-4a mosaic with npixels ∈ {9, 16, 25}, keeping kernel_fwhm = 2.0 (near-optimal from Phase 5b) and the other defaults. npixels is the minimum connected pixels above threshold required to register as a detection — 25 is the MosaicPipeline default.",
+    "text": "Note\n\n\n\nSame scope note as Phase 5b: this page shows the npixels sweep on one validation skycell. The Phase 6 summary confirms the finding across all 10 mosaics (npixels=16 gives +0.5 mag for stars at every depth).",
     "crumbs": [
       "Detection efficiency",
       "Phase 5c — npixels sweep"
@@ -960,9 +817,9 @@
   {
     "objectID": "detection/phase5c_npixels_sweep.html#what-phase-5c-does",
     "href": "detection/phase5c_npixels_sweep.html#what-phase-5c-does",
-    "title": "Phase 5c — npixels sweep",
-    "section": "",
-    "text": "Rerun SourceCatalogStep on the same Phase-4a mosaic with npixels ∈ {9, 16, 25}, keeping kernel_fwhm = 2.0 (near-optimal from Phase 5b) and the other defaults. npixels is the minimum connected pixels above threshold required to register as a detection — 25 is the MosaicPipeline default.",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
+    "section": "What Phase 5c does",
+    "text": "What Phase 5c does\nRerun SourceCatalogStep on the same Phase-4a mosaic with npixels ∈ {9, 16, 25}, keeping kernel_fwhm = 2.0 (near-optimal from Phase 5b) and the other defaults. npixels is the minimum connected pixels above threshold required to register as a detection — 25 is the MosaicPipeline default.",
     "crumbs": [
       "Detection efficiency",
       "Phase 5c — npixels sweep"
@@ -971,7 +828,7 @@
   {
     "objectID": "detection/phase5c_npixels_sweep.html#results",
     "href": "detection/phase5c_npixels_sweep.html#results",
-    "title": "Phase 5c — npixels sweep",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
     "section": "Results",
     "text": "Results\n\n\n\n\n\n\nnpixels sweep summary at kernel_fwhm=2.\n\n\n\nnpixels\nn_recovered\nn_false_positive\nfp_rate\nmag_50pct_stars\nmag_50pct_galaxies\nmag_90pct_stars\nmag_90pct_galaxies\n\n\n\n\n0\n9\n345\n5\n0.014493\nNaN\n24.875000\nNaN\n24.815\n\n\n1\n16\n327\n1\n0.003058\n25.8875\n24.866667\n25.7375\n24.800\n\n\n2\n25\n282\n0\n0.000000\n25.4000\n24.650000\n25.2500\n24.530\n\n\n\n\n\n\n\n\n\n\n\n\nLEFT: star detection efficiency vs input F158 mag, for npixels 9/16/25. RIGHT: same for galaxies. Default (yellow, npixels=25) is strictly worse than the lower values at every magnitude. At npixels=9, stars remain at 100% completeness out to mag 26 (the limit of our injection grid).",
     "crumbs": [
@@ -982,7 +839,7 @@
   {
     "objectID": "detection/phase5c_npixels_sweep.html#stars-see-a-huge-benefit-galaxies-much-smaller",
     "href": "detection/phase5c_npixels_sweep.html#stars-see-a-huge-benefit-galaxies-much-smaller",
-    "title": "Phase 5c — npixels sweep",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
     "section": "Stars see a huge benefit, galaxies much smaller",
     "text": "Stars see a huge benefit, galaxies much smaller\n\n\n\n\n\n\n\n\n\n\n\nnpixels\nstars m50%\nΔ vs default\ngalaxies m50%\nΔ vs default\nFP rate\n\n\n\n\n9\n≥26.0 (saturates above mag range)\n≥ +0.6\n24.88\n+0.23\n1.4%\n\n\n16\n25.89\n+0.49\n24.87\n+0.22\n0.3%\n\n\n25 (default)\n25.40\n—\n24.65\n—\n0.0%\n\n\n\nThe default npixels=25 is the binding constraint for point sources at our depth. A Roman F158 PSF on a 0.055″ drizzled mosaic has FWHM ~2.7 pix. After kernel_fwhm=2 convolution the core extends over ~15 pixels above 3σ at mag 23, shrinking to ~20-25 at mag 25, and dropping below 25 for fainter stars — so the 25-pixel floor simply cuts off the faint-end tail.\nGalaxies (Sersic n=1, r_eff=0.275″) have intrinsic brightness profiles that spread over more pixels at any magnitude, so npixels=25 is already well below the typical galaxy footprint — dropping it only gains a little.",
     "crumbs": [
@@ -993,7 +850,7 @@
   {
     "objectID": "detection/phase5c_npixels_sweep.html#false-positive-caveat",
     "href": "detection/phase5c_npixels_sweep.html#false-positive-caveat",
-    "title": "Phase 5c — npixels sweep",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
     "section": "False-positive caveat",
     "text": "False-positive caveat\nAt npixels=9 we see 5 FPs out of 345 (1.4%), up from 0 at npixels=25. Our truth density is ~0.4 sources per arcsec² (420 in a ~1000 arcsec² skycell core), so a random position has ~3% chance of being within 0.3″ of a real truth source by chance. Some of those 5 “FPs” may therefore be genuine noise peaks, some may be truth matches lost in attribution. At npixels=16 we see 1 FP (0.3%) — comfortably below that chance-coincidence rate, so likely a real false detection.",
     "crumbs": [
@@ -1004,7 +861,7 @@
   {
     "objectID": "detection/phase5c_npixels_sweep.html#takeaway-for-the-detection-study",
     "href": "detection/phase5c_npixels_sweep.html#takeaway-for-the-detection-study",
-    "title": "Phase 5c — npixels sweep",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
     "section": "Takeaway for the detection study",
     "text": "Takeaway for the detection study\nFor the depth-10 HLWAS mosaics this study produces, npixels is the binding parameter, not kernel_fwhm. The “kernel_fwhm helps extended sources” design assumption misses the real optimization axis.\nRecommendation for Phase 4b/5 at scale: use kernel_fwhm=2, npixels=16 — gains 0.5 mag star depth / 0.2 mag galaxy depth with only 0.3% FP rate, a marginal cost. Dropping to npixels=9 gains a little more but adds ambiguity at the FP floor.",
     "crumbs": [
@@ -1015,7 +872,7 @@
   {
     "objectID": "detection/phase5c_npixels_sweep.html#checkpoint",
     "href": "detection/phase5c_npixels_sweep.html#checkpoint",
-    "title": "Phase 5c — npixels sweep",
+    "title": "Phase 5c — npixels sweep (single-skycell case study)",
     "section": "Checkpoint",
     "text": "Checkpoint\nParameter studies on the single validation mosaic complete. Default kernel_fwhm=2 stays; npixels moves from 25 to 16. Ready for the skycell-driven Phase 1-2 refactor and Phase 4b scale-up.",
     "crumbs": [
