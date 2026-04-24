@@ -29,7 +29,7 @@ Output
 ------
 catalogs/detection/selected_skycells.ecsv
     One row per selected skycell. Columns include
-    PAIR_ID (integer tag 1..N, retained for downstream script
+    SKYCELL_ID (integer tag 1..N, retained for downstream script
     compatibility), skycell_idx, skycell_name, skycell_ra, skycell_dec,
     ECL_LAT_DEG, ECL_LON_DEG, SIM_DATE, SOLAR_ELONG_DEG,
     count_0p25, count_0p6, zodi_bin, coverage_bin, SKY_E_PER_PIX_PER_S.
@@ -135,19 +135,26 @@ def candidate_skycells(f158: pd.DataFrame,
     cand_ra = centres[candidates_idx, 0]
     cand_dec = centres[candidates_idx, 1]
     tree = build_coverage_tree(f158)
-    # Interior = ≥ some_exposures within 0.6°. A single nearby exposure
-    # could be a stray isolated visit at the edge; require ≥ 5 to mark
-    # the skycell as inside a well-sampled patch of HLWAS.
-    MIN_WIDE_COUNT = 5
-    print(f"Filtering to HLWAS-interior (≥ {MIN_WIDE_COUNT} exposures within {radius_deg}°)…")
+    # Tighten the interior filter so every selected skycell has at
+    # least one HLWAS pointing with inner-SCA reach (`count_0p25 ≥ 1`)
+    # and sits in a well-sampled neighbourhood (`count_0p6 ≥ 10`).
+    # This eliminates depth-0 mosaic outcomes by construction: the
+    # previous `count_0p6 ≥ 5` filter accepted "tiling-gap" skycells
+    # where the inner 0.25° radius was empty and only outer SCAs
+    # reached the cell from 0.3-0.6° away — those mosaics topped out
+    # at depth 2 or depth 0.
+    MIN_TIGHT_COUNT = 3
+    MIN_WIDE_COUNT = 10
+    print(f"Filtering to HLWAS-interior "
+          f"(count_0p25 ≥ {MIN_TIGHT_COUNT} AND count_0p6 ≥ {MIN_WIDE_COUNT})…")
     counts_wide = query_counts(tree, cand_ra, cand_dec, radius_deg)
-    interior = counts_wide >= MIN_WIDE_COUNT
+    counts_tight_all = query_counts(tree, cand_ra, cand_dec, COVERAGE_RADIUS_TIGHT)
+    interior = (counts_tight_all >= MIN_TIGHT_COUNT) & (counts_wide >= MIN_WIDE_COUNT)
     print(f"  {interior.sum():,} candidate skycells in HLWAS interior")
 
-    # Compute tight-radius count for every interior candidate
     idx = candidates_idx[interior]
     ra = cand_ra[interior]; dec = cand_dec[interior]
-    counts_tight = query_counts(tree, ra, dec, COVERAGE_RADIUS_TIGHT)
+    counts_tight = counts_tight_all[interior]
     counts_wide_i = counts_wide[interior]
     names = np.array(SKYMAP.model.skycells["name"])[idx]
 
@@ -193,7 +200,7 @@ def stratify_and_pick(df: pd.DataFrame, n_per_cell: int = N_PER_CELL,
 
     rng = np.random.default_rng(rng_seed)
     picks = []
-    pair_id = 1
+    sid = 1
     all_chosen_radec = []  # (ra, dec) of every pick made so far
     for zb in ["low_zodi", "mid_zodi", "high_zodi"]:
         for cb in ["low", "high"]:
@@ -261,14 +268,14 @@ def stratify_and_pick(df: pd.DataFrame, n_per_cell: int = N_PER_CELL,
                 chosen.append(i)
             for j in chosen:
                 r = sub.iloc[j].copy()
-                r["PAIR_ID"] = pair_id; pair_id += 1
+                r["SKYCELL_ID"] = sid; sid += 1
                 r = r.drop(labels=["_lat_n", "_cov_n"])
                 picks.append(r)
                 all_chosen_radec.append((r["skycell_ra"], r["skycell_dec"]))
 
     picks_df = pd.DataFrame(picks).reset_index(drop=True)
     print(f"\nSelected {len(picks_df)} skycells:")
-    print(picks_df[["PAIR_ID", "skycell_name", "skycell_ra", "skycell_dec",
+    print(picks_df[["SKYCELL_ID", "skycell_name", "skycell_ra", "skycell_dec",
                       "ECL_LAT_DEG", tight, "zodi_bin",
                       "coverage_bin"]].to_string(index=False))
     return picks_df
@@ -335,7 +342,7 @@ def main():
     picks["SIM_DATE"] = dates
     picks["SOLAR_ELONG_DEG"] = elongs
     picks["SKY_E_PER_PIX_PER_S"] = skies
-    # Rename for consistency with the pair_id schema used by 04a
+    # Rename for consistency with the sid schema used by 04a
     picks["n_pointings"] = 0  # unused now but the phase2 expansion step needs column
     picks["n_sca_events"] = 0
 
@@ -376,7 +383,7 @@ def main():
     for i, (_, r) in enumerate(picks.iterrows()):
         ax.scatter(r["ECL_LAT_DEG"], r[tight], s=120, marker="*",
                      color=cmap(i % 10), edgecolor="k", zorder=5)
-        ax.annotate(f" {int(r['PAIR_ID'])}",
+        ax.annotate(f" {int(r['SKYCELL_ID'])}",
                      (r["ECL_LAT_DEG"], r[tight]), fontsize=8)
     ax.set_xlabel("ecliptic latitude (deg)")
     ax.set_ylabel(f"# exposures within {COVERAGE_RADIUS_TIGHT}°")
@@ -397,7 +404,7 @@ def main():
     for i, (_, r) in enumerate(picks.iterrows()):
         ax.scatter(r["skycell_ra"], r["skycell_dec"], s=140, marker="*",
                      color=cmap(i % 10), edgecolor="k", zorder=5)
-        ax.annotate(f" {int(r['PAIR_ID'])}",
+        ax.annotate(f" {int(r['SKYCELL_ID'])}",
                      (r["skycell_ra"], r["skycell_dec"]), fontsize=9)
     ax.set_xlabel("RA (deg)")
     ax.set_ylabel("Dec (deg)")

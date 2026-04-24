@@ -1,7 +1,7 @@
 # %ECSV 1.0
 # ---
 # datatype:
-# - {name: PAIR_ID, datatype: int64}
+# - {name: SKYCELL_ID, datatype: int64}
 # - {name: skycell_idx, datatype: int64}
 # - {name: skycell_name, datatype: string}
 # - {name: n_stars, datatype: int64}
@@ -11,16 +11,16 @@
 # - {name: stars_path, datatype: string}
 # - {name: galaxies_path, datatype: string}
 # schema: astropy-2.0
-PAIR_ID skycell_idx skycell_name n_stars n_galaxies mag_min mag_max stars_path galaxies_path
-1 5811902 066m27x60y41 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_066m27x60y41_stars.parquet catalogs/detection/catalogs/skycell_066m27x60y41_galaxies.parquet
-2 7195881 063m53x47y43 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_063m53x47y43_stars.parquet catalogs/detection/catalogs/skycell_063m53x47y43_galaxies.parquet
-3 5807007 059m27x38y48 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_059m27x38y48_stars.parquet catalogs/detection/catalogs/skycell_059m27x38y48_galaxies.parquet
+SKYCELL_ID skycell_idx skycell_name n_stars n_galaxies mag_min mag_max stars_path galaxies_path
+1 5811830 066m27x58y55 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_066m27x58y55_stars.parquet catalogs/detection/catalogs/skycell_066m27x58y55_galaxies.parquet
+2 7195990 063m53x50y41 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_063m53x50y41_stars.parquet catalogs/detection/catalogs/skycell_063m53x50y41_galaxies.parquet
+3 5807231 059m27x43y57 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_059m27x43y57_stars.parquet catalogs/detection/catalogs/skycell_059m27x43y57_galaxies.parquet
 4 7026338 065m50x70y32 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_065m50x70y32_stars.parquet catalogs/detection/catalogs/skycell_065m50x70y32_galaxies.parquet
-5 4364979 048m06x64y42 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_048m06x64y42_stars.parquet catalogs/detection/catalogs/skycell_048m06x64y42_galaxies.parquet
-6 5377188 028m21x46y37 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_028m21x46y37_stars.parquet catalogs/detection/catalogs/skycell_028m21x46y37_galaxies.parquet
-7 5366375 007m21x69y69 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_007m21x69y69_stars.parquet catalogs/detection/catalogs/skycell_007m21x69y69_galaxies.parquet
+5 4955684 017m15x33y57 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_017m15x33y57_stars.parquet catalogs/detection/catalogs/skycell_017m15x33y57_galaxies.parquet
+6 5981179 003m31x40y48 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_003m31x40y48_stars.parquet catalogs/detection/catalogs/skycell_003m31x40y48_galaxies.parquet
+7 4359961 042m06x41y42 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_042m06x41y42_stars.parquet catalogs/detection/catalogs/skycell_042m06x41y42_galaxies.parquet
 8 6169176 329m31x72y34 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_329m31x72y34_stars.parquet catalogs/detection/catalogs/skycell_329m31x72y34_galaxies.parquet
-9 4734569 350m09x36y30 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_350m09x36y30_stars.parquet catalogs/detection/catalogs/skycell_350m09x36y30_galaxies.parquet
-10 4522592 329m06x42y29 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_329m06x42y29_stars.parquet catalogs/detection/catalogs/skycell_329m06x42y29_galaxies.parquet
-11 3929958 017p00x68y28 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_017p00x68y28_stars.parquet catalogs/detection/catalogs/skycell_017p00x68y28_galaxies.parquet
+9 5144883 339m15x60y34 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_339m15x60y34_stars.parquet catalogs/detection/catalogs/skycell_339m15x60y34_galaxies.parquet
+10 4522499 329m06x40y30 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_329m06x40y30_stars.parquet catalogs/detection/catalogs/skycell_329m06x40y30_galaxies.parquet
+11 4939151 346m12x64y68 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_346m12x64y68_stars.parquet catalogs/detection/catalogs/skycell_346m12x64y68_galaxies.parquet
 12 5754018 325m24x50y57 210 210 23.0 26.0 catalogs/detection/catalogs/skycell_325m24x50y57_stars.parquet catalogs/detection/catalogs/skycell_325m24x50y57_galaxies.parquet

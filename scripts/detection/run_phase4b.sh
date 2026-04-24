@@ -3,13 +3,13 @@
 # (pointings_sca_to_simulate.ecsv) are in place, this script:
 #
 #   1. Regenerates Phase-3 catalogs (cheap).
-#   2. Builds one combined L2 sims.script for all pairs; runs 4-way.
-#   3. Per pair: build skycell asn + run MosaicPipeline.
+#   2. Builds one combined L2 sims.script for all skycells; runs 4-way.
+#   3. Per skycell: build skycell asn + run MosaicPipeline.
 #   4. Per mosaic: Phase-5a detection + Phase-5b kernel sweep
 #      + Phase-5c npixels sweep.
 #
-# Parallelism over L2 sims is global (single xargs across all 12 pairs'
-# commands — better load balancing than per-pair). Mosaic and
+# Parallelism over L2 sims is global (single xargs across all skycells'
+# commands — better load balancing than per-skycell). Mosaic and
 # SourceCatalogStep runs are serial (each uses ~15 GB RSS briefly and
 # romancal isn't thread-safe across processes sharing CRDS cache).
 #
@@ -21,13 +21,13 @@ PARALLELISM="${PARALLELISM:-4}"
 # Pair IDs are read from pointings_sca_to_simulate.ecsv so that any
 # skycell with 0 L2 overlaps (e.g., HLWAS-sparse ecliptic region) is
 # automatically skipped — it'd produce no mosaic anyway.
-PAIR_IDS=$(pixi run --manifest-path pixi.toml python -c "
+CELL_IDS=$(pixi run --manifest-path pixi.toml python -c "
 from astropy.table import Table
 t = Table.read('catalogs/detection/pointings_sca_to_simulate.ecsv',
                format='ascii.ecsv').to_pandas()
-print(' '.join(str(int(p)) for p in sorted(t['PAIR_ID'].unique())))
+print(' '.join(str(int(p)) for p in sorted(t['SKYCELL_ID'].unique())))
 ")
-echo "Pairs to process: $PAIR_IDS"
+echo "Skycells to process: $CELL_IDS"
 
 # 3. Catalogs
 echo ""
@@ -39,10 +39,10 @@ echo ""
 echo "=== Phase 4a: build combined sims.script ==="
 ALL_SCRIPT=output/detection/sims_all.script
 : > "$ALL_SCRIPT"
-for PAIR in $PAIR_IDS; do
+for CELL in $CELL_IDS; do
     pixi run --manifest-path pixi.toml python scripts/detection/04a_build_sims.py \
-        --pair "$PAIR" >/dev/null
-    cat "output/detection/sims_${PAIR}.script" >> "$ALL_SCRIPT"
+        --cell "$CELL" >/dev/null
+    cat "output/detection/sims_${CELL}.script" >> "$ALL_SCRIPT"
 done
 N=$(wc -l < "$ALL_SCRIPT")
 echo "Combined sims.script: $N commands"
@@ -55,33 +55,37 @@ pixi run --manifest-path pixi.toml bash -c "\
     xargs -P $PARALLELISM -I{} bash -c '{}' < $ALL_SCRIPT"
 echo "L2 sims done in $(( $(date +%s) - START ))s"
 
-# 4c/d: asn + mosaic per pair
+# 4c/d: asn + mosaic per skycell
 echo ""
-echo "=== Phase 4: asn + MosaicPipeline per pair ==="
-for PAIR in $PAIR_IDS; do
-    echo "--- pair $PAIR ---"
+echo "=== Phase 4: asn + MosaicPipeline per skycell ==="
+for CELL in $CELL_IDS; do
+    echo "--- skycell $CELL ---"
     SKY=$(pixi run --manifest-path pixi.toml python -c "
 from astropy.table import Table
 t = Table.read('catalogs/detection/selected_skycells.ecsv',
                format='ascii.ecsv').to_pandas()
-print(t[t['PAIR_ID']==$PAIR]['skycell_name'].iloc[0])
+print(t[t['SKYCELL_ID']==$CELL]['skycell_name'].iloc[0])
 ")
-    bash scripts/detection/04b_build_asn.sh "$PAIR"
-    bash scripts/detection/04c_run_mosaic.sh "$PAIR" "$SKY"
+    bash scripts/detection/04b_build_asn.sh "$CELL"
+    bash scripts/detection/04c_run_mosaic.sh "$CELL" "$SKY"
 done
 
 # 5. Detection — baseline + sweeps
 echo ""
 echo "=== Phase 5: detection + sweeps per mosaic ==="
-for PAIR in $PAIR_IDS; do
-    echo "--- pair $PAIR ---"
+for CELL in $CELL_IDS; do
+    echo "--- skycell $CELL ---"
     pixi run --manifest-path pixi.toml python \
-        scripts/detection/05a_detect_and_efficiency.py --pair "$PAIR" || true
+        scripts/detection/05a_detect_and_efficiency.py --cell "$CELL" || true
     pixi run --manifest-path pixi.toml python \
-        scripts/detection/05b_kernel_sweep.py --pair "$PAIR" || true
+        scripts/detection/05b_kernel_sweep.py --cell "$CELL" || true
     pixi run --manifest-path pixi.toml python \
-        scripts/detection/05c_npixels_sweep.py --pair "$PAIR" || true
+        scripts/detection/05c_npixels_sweep.py --cell "$CELL" || true
 done
+
+echo ""
+echo "=== Phase 6: cross-mosaic summary ==="
+pixi run --manifest-path pixi.toml python scripts/detection/06_summary.py || true
 
 echo ""
 echo "=== done ==="

@@ -1,0 +1,299 @@
+2026-04-24 18:07:01,258 - CRDS - ERROR -  Error determining best reference for 'pars-fluxstep'  =   No match found.
+2026-04-24 18:07:01,259 - CRDS - ERROR -  Error determining best reference for 'pars-skymatchstep'  =   No match found.
+2026-04-24 18:07:01,260 - CRDS - ERROR -  Error determining best reference for 'pars-outlierdetectionstep'  =   No match found.
+2026-04-24 18:07:01,261 - CRDS - ERROR -  Error determining best reference for 'pars-resamplestep'  =   No match found.
+2026-04-24 18:07:01,261 - CRDS - ERROR -  Error determining best reference for 'pars-sourcecatalogstep'  =   Unknown reference type 'pars-sourcecatalogstep'
+2026-04-24 18:07:01,262 - CRDS - ERROR -  Error determining best reference for 'pars-mosaicpipeline'  =   Unknown reference type 'pars-mosaicpipeline'
+2026-04-24 18:07:01,266 - stpipe.step - INFO - MosaicPipeline instance created.
+2026-04-24 18:07:01,267 - stpipe.step - INFO - FluxStep instance created.
+2026-04-24 18:07:01,268 - stpipe.step - INFO - SkyMatchStep instance created.
+2026-04-24 18:07:01,269 - stpipe.step - INFO - OutlierDetectionStep instance created.
+2026-04-24 18:07:01,270 - stpipe.step - INFO - ResampleStep instance created.
+2026-04-24 18:07:01,270 - stpipe.step - INFO - SourceCatalogStep instance created.
+2026-04-24 18:07:01,356 - stpipe.step - INFO - Step MosaicPipeline running with args ('output/detection/asn/sky_6_d_full_003m31x40y48_f158_asn.json',).
+2026-04-24 18:07:01,365 - stpipe.step - INFO - Step MosaicPipeline parameters are:
+  pre_hooks: []
+  post_hooks: []
+  output_file: None
+  output_dir: output/detection/l3
+  output_ext: .asdf
+  output_use_model: False
+  output_use_index: True
+  save_results: True
+  skip: False
+  suffix: None
+  search_output_file: True
+  input_dir: output/detection/asn
+  update_version: False
+  on_disk: False
+  resample_on_skycell: True
+  steps:
+    flux:
+      pre_hooks: []
+      post_hooks: []
+      output_file: None
+      output_dir: None
+      output_ext: .asdf
+      output_use_model: False
+      output_use_index: True
+      save_results: False
+      skip: False
+      suffix: None
+      search_output_file: True
+      input_dir: output/detection/asn
+      update_version: False
+    skymatch:
+      pre_hooks: []
+      post_hooks: []
+      output_file: None
+      output_dir: None
+      output_ext: .asdf
+      output_use_model: False
+      output_use_index: True
+      save_results: False
+      skip: False
+      suffix: None
+      search_output_file: True
+      input_dir: output/detection/asn
+      update_version: False
+      skymethod: match
+      match_down: True
+      subtract: False
+      stepsize: None
+      skystat: mode
+      dqbits: ~DO_NOT_USE+NON_SCIENCE
+      lower: None
+      upper: None
+      nclip: 5
+      lsigma: 4.0
+      usigma: 4.0
+      binwidth: 0.1
+    outlier_detection:
+      pre_hooks: []
+      post_hooks: []
+      output_file: None
+      output_dir: None
+      output_ext: .asdf
+      output_use_model: False
+      output_use_index: True
+      save_results: False
+      skip: False
+      suffix: None
+      search_output_file: True
+      input_dir: output/detection/asn
+      update_version: False
+      weight_type: ivm
+      pixfrac: 1.0
+      kernel: square
+      fillval: NaN
+      maskpt: 0.7
+      snr: 5.0 4.0
+      scale: 1.2 0.7
+      backg: 0.0
+      save_intermediate_results: False
+      resample_data: True
+      resample_on_skycell: True
+      good_bits: ~DO_NOT_USE+NON_SCIENCE
+      in_memory: True
+      pixmap_stepsize: 10.0
+      pixmap_order: 3
+    resample:
+      pre_hooks: []
+      post_hooks: []
+      output_file: None
+      output_dir: None
+      output_ext: .asdf
+      output_use_model: False
+      output_use_index: True
+      save_results: False
+      skip: False
+      suffix: None
+      search_output_file: True
+      input_dir: output/detection/asn
+      update_version: False
+      pixfrac: 1.0
+      kernel: square
+      fillval: NAN
+      weight_type: ivm
+      output_shape: None
+      crpix: None
+      crval: None
+      rotation: None
+      pixel_scale_ratio: 1.0
+      pixel_scale: None
+      output_wcs: ''
+      resample_on_skycell: True
+      in_memory: False
+      good_bits: ~DO_NOT_USE+NON_SCIENCE
+      include_var_flat: False
+      propagate_dq: False
+      pixmap_stepsize: 10.0
+      pixmap_order: 3
+    source_catalog:
+      pre_hooks: []
+      post_hooks: []
+      output_file: None
+      output_dir: None
+      output_ext: .asdf
+      output_use_model: False
+      output_use_index: True
+      save_results: False
+      skip: False
+      suffix: cat
+      search_output_file: True
+      input_dir: output/detection/asn
+      update_version: False
+      bkg_boxsize: 1000
+      kernel_fwhm: 2.0
+      snr_threshold: 3.0
+      npixels: 25
+      deblend: False
+      fit_psf: True
+      forced_segmentation: ''
+2026-04-24 18:07:01,473 - stpipe.pipeline - INFO - Prefetching reference files for dataset: 'sky_6_d_full_003m31x40y48_f158_asn.json' reftypes = ['apcorr']
+2026-04-24 18:07:01,475 - stpipe.pipeline - INFO - Prefetch for APCORR reference file is '/home/np274/roman_l2_job/crds_cache/references/roman/wfi/roman_wfi_apcorr_0004.asdf'.
+2026-04-24 18:07:01,475 - romancal.pipeline.mosaic_pipeline - INFO - Starting Roman mosaic level calibration pipeline ...
+2026-04-24 18:07:01,634 - stpipe.step - INFO - Step flux running with args (<romancal.datamodels.library.ModelLibrary object at 0x727d351d9be0>,).
+2026-04-24 18:07:10,711 - stpipe.step - INFO - Step flux done
+2026-04-24 18:07:10,793 - stpipe.step - INFO - Step skymatch running with args (<romancal.datamodels.library.ModelLibrary object at 0x727d351d9be0>,).
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO -  
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO - ***** stcal.skymatch.skymatch.skymatch() started on 2026-04-24 18:07:15.713550
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO -  
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO - Sky computation method: 'match'
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO - Sky matching direction: DOWN
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO - Sky subtraction from image data: OFF
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO -  
+2026-04-24 18:07:15,713 - stcal.skymatch.skymatch - INFO - ----  Computing differences in sky values in overlapping regions.
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101015100001009_0002_wfi17_f158_cal.asdf. Sky background: 0
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101015100001009_0003_wfi13_f158_cal.asdf. Sky background: 0.0201925
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101015100001009_0003_wfi16_f158_cal.asdf. Sky background: 0.0203982
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101015100001010_0001_wfi10_f158_cal.asdf. Sky background: 0.0169098
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101015100001010_0001_wfi13_f158_cal.asdf. Sky background: 0.0198214
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101016100001009_0002_wfi17_f158_cal.asdf. Sky background: 0.000706981
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101016100001009_0003_wfi13_f158_cal.asdf. Sky background: 0.0188167
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101016100001009_0003_wfi16_f158_cal.asdf. Sky background: 0.0208131
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101016100001010_0001_wfi10_f158_cal.asdf. Sky background: 0.0166594
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -    *  Image ID=r0000101016100001010_0001_wfi13_f158_cal.asdf. Sky background: 0.0201347
+2026-04-24 18:07:43,546 - stcal.skymatch.skymatch - INFO -  
+2026-04-24 18:07:43,547 - stcal.skymatch.skymatch - INFO - ***** stcal.skymatch.skymatch.skymatch() ended on 2026-04-24 18:07:43.546972
+2026-04-24 18:07:43,547 - stcal.skymatch.skymatch - INFO - ***** stcal.skymatch.skymatch.skymatch() TOTAL RUN TIME: 0:00:27.833422
+2026-04-24 18:07:43,547 - stcal.skymatch.skymatch - INFO -  
+2026-04-24 18:07:43,558 - stpipe.step - INFO - Step skymatch done
+2026-04-24 18:07:43,706 - stpipe.step - INFO - Step outlier_detection running with args (<romancal.datamodels.library.ModelLibrary object at 0x727d351d9be0>,).
+2026-04-24 18:07:44,282 - romancal.resample.resample - INFO - Skycell record: [('003m31x40y48', 3.28938131, -31.58506388, 0.17215715, 12099.5, 50499.5, 3.24446199, -31.62318354, 3.33416261, -31.62330392, 3.3342648, -31.54692774, 3.24463614, -31.54680771)]
+2026-04-24 18:07:44,282 - romancal.resample.resample - INFO - Creating skycell image at ra: 3.2893813082321555  dec -31.585063879746915
+2026-04-24 18:07:44,282 - romancal.resample.resample - INFO - Resampling to skycell wcs
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Computed output pixel scale: 0.05499296081215539 arcsec.
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Driz parameter kernel: square
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Driz parameter pixfrac: 1.0
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Driz parameter fillval: NaN
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Driz parameter weight_type: ivm
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Evaluating the full pixel map every 10.0 pixels
+2026-04-24 18:07:44,449 - stcal.resample.resample - INFO - Interpolating the rest with order 3 bivariate splines
+2026-04-24 18:07:45,648 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:07:47,511 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:07:51,099 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:07:53,020 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:07:53,375 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:07:55,785 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:07:57,470 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:07:58,011 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:08:00,463 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:08:03,685 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:08:09,187 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:08:11,317 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:08:11,677 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:08:13,596 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:08:15,187 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:08:15,716 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:08:30,099 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:31,941 - romancal.outlier_detection.utils - INFO - 29 pixels marked as outliers
+2026-04-24 18:08:32,910 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:34,633 - romancal.outlier_detection.utils - INFO - 134 pixels marked as outliers
+2026-04-24 18:08:35,606 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:37,339 - romancal.outlier_detection.utils - INFO - 1 pixels marked as outliers
+2026-04-24 18:08:38,298 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:39,986 - romancal.outlier_detection.utils - INFO - 17 pixels marked as outliers
+2026-04-24 18:08:40,946 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:42,681 - romancal.outlier_detection.utils - INFO - 12 pixels marked as outliers
+2026-04-24 18:08:43,641 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:45,457 - romancal.outlier_detection.utils - INFO - 30 pixels marked as outliers
+2026-04-24 18:08:46,429 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:48,204 - romancal.outlier_detection.utils - INFO - 136 pixels marked as outliers
+2026-04-24 18:08:49,170 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:50,867 - romancal.outlier_detection.utils - INFO - 1 pixels marked as outliers
+2026-04-24 18:08:51,832 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:53,565 - romancal.outlier_detection.utils - INFO - 18 pixels marked as outliers
+2026-04-24 18:08:54,526 - stcal.outlier_detection.utils - INFO - Blotting (4088, 4088) <-- (5000, 5000)
+2026-04-24 18:08:56,241 - romancal.outlier_detection.utils - INFO - 12 pixels marked as outliers
+2026-04-24 18:08:56,269 - stpipe.step - INFO - Step outlier_detection done
+2026-04-24 18:08:56,368 - stpipe.step - INFO - Step resample running with args (<romancal.datamodels.library.ModelLibrary object at 0x727d351d9be0>,).
+2026-04-24 18:08:56,831 - romancal.resample.resample - INFO - Skycell record: [('003m31x40y48', 3.28938131, -31.58506388, 0.17215715, 12099.5, 50499.5, 3.24446199, -31.62318354, 3.33416261, -31.62330392, 3.3342648, -31.54692774, 3.24463614, -31.54680771)]
+2026-04-24 18:08:56,832 - romancal.resample.resample - INFO - Creating skycell image at ra: 3.2893813082321555  dec -31.585063879746915
+2026-04-24 18:08:56,832 - romancal.resample.resample - INFO - Resampling to skycell wcs
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Computed output pixel scale: 0.05499296081215539 arcsec.
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Driz parameter kernel: square
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Driz parameter pixfrac: 1.0
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Driz parameter fillval: NAN
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Driz parameter weight_type: ivm
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Evaluating the full pixel map every 10.0 pixels
+2026-04-24 18:08:56,993 - stcal.resample.resample - INFO - Interpolating the rest with order 3 bivariate splines
+2026-04-24 18:08:58,269 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:02,114 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:03,838 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:09,911 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:11,265 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:11,884 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:14,661 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:15,342 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:15,643 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:17,515 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:18,432 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:18,845 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:21,008 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:22,057 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:22,538 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:24,900 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:28,562 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:28,602 - py.warnings - WARNING - /home/np274/roman_l2_job/.pixi/envs/default/lib/python3.12/site-packages/stcal/resample/resample.py:1259: RuntimeWarning: invalid value encountered in sqrt
+  data=np.sqrt(variance),
+
+2026-04-24 18:09:30,308 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:36,257 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:37,616 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:38,243 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:41,046 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:41,728 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:42,030 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:43,915 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:44,835 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:45,249 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:47,428 - stcal.resample.resample - INFO - Resampling science and variance data
+2026-04-24 18:09:48,480 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:48,963 - stcal.resample.resample - INFO - Drizzling (4088, 4088) --> (5000, 5000)
+2026-04-24 18:09:52,002 - romancal.resample.resample - INFO - Mean, max exposure times: 291.3, 645.1
+2026-04-24 18:09:52,069 - stcal.alignment.util - INFO - Update S_REGION to POLYGON ICRS  3.244461995 -31.623183537 3.244636136 -31.546807712 3.334264798 -31.546927742 3.334162615 -31.623303921
+2026-04-24 18:09:52,082 - stpipe.step - INFO - Step resample done
+2026-04-24 18:09:52,204 - stpipe.step - INFO - Step source_catalog running with args (<roman_datamodels.datamodels._datamodels.MosaicModel object at 0x727d347d3380>,).
+2026-04-24 18:09:52,207 - romancal.source_catalog.source_catalog_step - INFO - Using ePSF reference file: /home/np274/roman_l2_job/crds_cache/references/roman/wfi/roman_wfi_epsf_0239.asdf
+2026-04-24 18:09:56,136 - romancal.source_catalog.psf - INFO - Performed jitter convolution.  Image kernel: (8, 8, 0) Reference kernel: (0, 0, 0)
+2026-04-24 18:09:56,405 - romancal.source_catalog.source_catalog_step - INFO - Calculating and subtracting background
+2026-04-24 18:10:02,438 - romancal.source_catalog.source_catalog_step - INFO - Creating detection image
+2026-04-24 18:10:04,304 - romancal.source_catalog.source_catalog_step - INFO - Detecting sources
+2026-04-24 18:10:08,127 - romancal.source_catalog.detection - INFO - Detected 184 sources
+2026-04-24 18:10:08,133 - romancal.source_catalog.source_catalog_step - INFO - Creating ee_fractions model
+2026-04-24 18:10:08,163 - romancal.source_catalog.source_catalog_step - INFO - Creating source catalog
+2026-04-24 18:10:08,259 - romancal.source_catalog.source_catalog - INFO - Calculating segment properties
+2026-04-24 18:10:09,261 - romancal.source_catalog.source_catalog - INFO - Calculating aperture photometry
+2026-04-24 18:10:09,575 - romancal.source_catalog.source_catalog - INFO - Calculating DAOFind properties
+2026-04-24 18:10:10,127 - romancal.source_catalog.source_catalog - INFO - Calculating nearest neighbor properties
+2026-04-24 18:10:10,127 - romancal.source_catalog.source_catalog - INFO - Calculating PSF photometry
+2026-04-24 18:10:14,198 - py.warnings - WARNING - /home/np274/roman_l2_job/.pixi/envs/default/lib/python3.12/site-packages/photutils/psf/_components.py:1564: AstropyUserWarning: One or more fit(s) may not have converged. Please check the "flags" column in the output table.
+  warnings.warn('One or more fit(s) may not have converged. Please '
+
+2026-04-24 18:10:15,305 - stpipe.step - INFO - Saved model in output/detection/l3/sky_6_d_full_003m31x40y48_f158_segm.asdf
+2026-04-24 18:10:15,970 - romancal.stpipe.core - ERROR - Model[<roman_datamodels.datamodels._datamodels.MosaicSourceCatalogModel object at 0x727d34257150>] is missing meta.ref_file. [('epsf', 'crds://roman_wfi_epsf_0239.asdf'), ('apcorr', 'crds://roman_wfi_apcorr_0011.asdf')] will not be recorded
+2026-04-24 18:10:16,901 - stpipe.step - INFO - Saved model in output/detection/l3/sky_6_d_full_003m31x40y48_f158_cat.parquet
+2026-04-24 18:10:16,902 - stpipe.step - INFO - Step source_catalog done
+2026-04-24 18:10:18,979 - stpipe.step - INFO - Saved model in output/detection/l3/sky_6_d_full_003m31x40y48_f158_coadd.asdf
+2026-04-24 18:10:18,979 - stpipe.step - INFO - Step MosaicPipeline done

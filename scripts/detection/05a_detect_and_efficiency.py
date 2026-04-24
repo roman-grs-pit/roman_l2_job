@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Phase 5a: source detection + efficiency analysis for one pair's mosaic.
+"""Phase 5a: source detection + efficiency analysis for one skycell's mosaic.
 
 Reads the MosaicPipeline side-effect catalog (`*_cat.parquet`),
 crossmatches recovered sources against the Phase-3 truth (stars +
@@ -15,7 +15,7 @@ Defaults: `SourceCatalogStep` settings are the MosaicPipeline defaults
 The side-effect catalog captures these exactly. Phase 5b runs the step
 standalone with other parameters.
 
-Usage:  pixi run python scripts/detection/05a_detect_and_efficiency.py --pair 11119
+Usage:  pixi run python scripts/detection/05a_detect_and_efficiency.py --cell 11119
 """
 from __future__ import annotations
 
@@ -86,16 +86,16 @@ def interpolate_mag_at_efficiency(eff_df: pd.DataFrame, target: float) -> float:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pair", type=int, required=True)
+    ap.add_argument("--cell", type=int, required=True)
     ap.add_argument("--crossmatch-arcsec", type=float, default=CROSSMATCH_ARCSEC)
     args = ap.parse_args()
 
     OUT_PLOTS.mkdir(parents=True, exist_ok=True)
 
     l3_dir = REPO / "output/detection/l3"
-    coadds = sorted(l3_dir.glob(f"pair_{args.pair}_*_coadd.asdf"))
+    coadds = sorted(l3_dir.glob(f"sky_{args.cell}_*_coadd.asdf"))
     if not coadds:
-        raise SystemExit(f"No coadd found for pair {args.pair} in {l3_dir}")
+        raise SystemExit(f"No coadd found for skycell {args.cell} in {l3_dir}")
     coadd = coadds[0]
     base = coadd.stem.removesuffix("_coadd")
     cat_path = l3_dir / f"{base}_cat.parquet"
@@ -109,7 +109,7 @@ def main():
     # --- truth ---
     sk = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
                     format="ascii.ecsv").to_pandas()
-    skycell_name = str(sk[sk["PAIR_ID"] == args.pair]["skycell_name"].iloc[0])
+    skycell_name = str(sk[sk["SKYCELL_ID"] == args.cell]["skycell_name"].iloc[0])
     stars = Table.read(
         REPO / f"catalogs/detection/catalogs/skycell_{skycell_name}_stars.parquet"
     ).to_pandas()
@@ -167,7 +167,7 @@ def main():
     ax.axhline(0.9, color="k", ls=":", lw=0.6, alpha=0.5)
     ax.set_xlabel("F158 magnitude (input)")
     ax.set_ylabel("detection efficiency")
-    ax.set_title(f"Pair {args.pair} — {skycell_name} (default SourceCatalogStep)")
+    ax.set_title(f"Skycell {args.cell} — {skycell_name} (default SourceCatalogStep)")
     ax.set_ylim(-0.05, 1.05)
     ax.set_xlim(23.0, 26.0)
     ax.grid(alpha=0.3)
@@ -192,16 +192,16 @@ def main():
     ax.grid(alpha=0.3)
     ax.legend(fontsize=8, loc="upper right")
     fig.tight_layout()
-    out = OUT_PLOTS / f"efficiency_pair_{args.pair}.png"
+    out = OUT_PLOTS / f"efficiency_sky_{args.cell}.png"
     fig.savefig(out, dpi=140)
     plt.close(fig)
     print(f"\nWrote {out}")
 
     # --- save tables ---
     eff_df = pd.concat([eff_stars, eff_gals])
-    eff_df.to_csv(OUT_PLOTS / f"efficiency_pair_{args.pair}.csv", index=False)
+    eff_df.to_csv(OUT_PLOTS / f"efficiency_sky_{args.cell}.csv", index=False)
     summary = pd.DataFrame([{
-        "PAIR_ID": args.pair,
+        "SKYCELL_ID": args.cell,
         "skycell_name": skycell_name,
         "n_truth_stars": len(stars),
         "n_truth_galaxies": len(galaxies),
@@ -213,7 +213,7 @@ def main():
         "mag_90pct_galaxies": mag_90_gals,
         "crossmatch_radius_arcsec": args.crossmatch_arcsec,
     }])
-    summary.to_csv(OUT_PLOTS / f"summary_pair_{args.pair}.csv", index=False)
+    summary.to_csv(OUT_PLOTS / f"summary_sky_{args.cell}.csv", index=False)
 
 
 if __name__ == "__main__":

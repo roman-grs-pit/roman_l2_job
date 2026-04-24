@@ -8,30 +8,28 @@ subtitle: "Measuring romancal SourceCatalogStep recovery on simulated Roman L3 m
 A reproducible pipeline to measure the detection efficiency of the Roman
 L3 (`MosaicPipeline`) + `SourceCatalogStep` stack as a function of:
 
-- sky position (multiple pointing groups at different ecliptic
-  latitudes → different zodiacal backgrounds),
-- source type (point sources vs exponential-profile galaxies,
-  matched in position and magnitude),
-- source magnitude (F158, 23.0–25.0 in 0.1-mag bins),
-- `SourceCatalogStep` parameters (primarily `kernel_fwhm`).
+- **sky position** (several skycells spanning the HLWAS footprint),
+- **zodiacal background** (skycells picked across ecliptic latitude),
+- **local HLWAS coverage** (skycells picked across local exposure
+  density — drives mosaic per-pixel depth),
+- **source type** (point sources vs exponential-profile galaxies),
+- **source magnitude** (F158, 23.0–26.0),
+- **`SourceCatalogStep` parameters** (`kernel_fwhm`, `npixels`).
 
-The workflow is five phases with a user checkpoint at the end of each:
+The workflow is four substantive phases + aggregation:
 
-1. **Pointing selection** — pick a set of HLWAS F158 re-observed pairs
-   spread across the sky, each with a well-defined solar-elongation
-   window.
-2. **Skycell / SCA overlap analysis** — find which skycells the pair
-   geometries reach mosaic depth 6, and enumerate the (pointing, SCA)
-   pairs that need to be simulated.
-3. **Source catalog generation** — build matched star/galaxy truth
-   catalogs on a grid inside each target skycell.
-4. **L2 + L3 simulation** — run `romanisim` for each required
-   (pointing, SCA) combination, build the skycell associations, and
-   coadd with `MosaicPipeline`.
-5. **Source detection + efficiency analysis** — run `SourceCatalogStep`
-   at default parameters (5a), then sweep `kernel_fwhm` (5b) and
-   optionally `snr_threshold` / `npixels` (5c). Compare recovered
-   catalogs against the Phase-3 truth.
+1. **Skycell selection** — pick *N* target skycells stratified by
+   (ecliptic latitude × HLWAS coverage) from the Wide-Field2 survey
+   footprint.
+2. **HLWAS expansion** — for each skycell, find every HLWAS F158
+   (pointing, SCA) whose CRDS-backed WCS overlaps.
+3. **Truth-catalog generation** — 210 stars + 210 galaxies per
+   skycell, disjoint Sobol positions, F158 23.0–26.0 in 0.15-mag bins.
+4. **L2 simulation → L3 mosaic → source detection** —
+   `romanisim-make-image` per (pointing, SCA), `MosaicPipeline`
+   per skycell, `SourceCatalogStep` at defaults and parameter sweeps.
+5. **Cross-skycell summary** — roll up per-mosaic efficiency curves,
+   50%-completeness vs depth, and parameter-sweep deltas.
 
 This sits alongside the existing [Full run](../full/design.qmd) report
 and reuses the same `roman_l2_job` pixi environment, CRDS cache, and
@@ -40,24 +38,14 @@ STPSF data.
 ## Data locations
 
 Code, configs, and selection artefacts live in this repo. The bulk L2
-and L3 binary products — which will be the dominant cost once Phase 4
-runs — will live under `output/detection/` on the host, outside of
-version control. A pointer file will be added when Phase 4 starts.
+and L3 binary products live under `output/detection/` on the host,
+outside version control (gitignored). A pointer to the external
+storage path can be added once the external backup is set up.
 
 ## Status
-
-Phase 1 picks 12 target skycells in a `(zodi × coverage)` matrix.
-Phase 2 expands each to the full HLWAS F158 pointings that overlap;
-10 of 12 yield non-empty L2 sets (pairs 9 and 10 sit in an HLWAS
-coverage gap near the ecliptic). Phase 3 generates matched
-stars+galaxies truth catalogs. Phase 4 simulates the L2s, coadds each
-skycell into an L3 mosaic, and runs `SourceCatalogStep` at defaults
-plus `kernel_fwhm` and `npixels` sweeps. Phase 6 rolls up the
-per-mosaic results into cross-skycell plots.
 
 - [Phase 1 — skycell selection](phase1_pointings.qmd)
 - [Phase 2 — HLWAS expansion](phase2_skycells.qmd)
 - [Phase 3 — truth-catalog generation](phase3_catalogs.qmd)
-- [Phase 5b — kernel_fwhm sweep (case study)](phase5b_kernel_sweep.qmd)
-- [Phase 5c — npixels sweep (case study)](phase5c_npixels_sweep.qmd)
-- [Phase 6 — full-scale summary (10 skycells)](phase6_summary.qmd)
+- [Phase 6 — full-scale summary](phase6_summary.qmd) — default
+  detection + `kernel_fwhm` + `npixels` sweeps across every mosaic

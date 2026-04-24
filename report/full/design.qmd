@@ -216,12 +216,17 @@ pd.DataFrame(rows, columns=["parameter", "value"])
 ## Measured zodiacal background
 
 Per-bandpass expected zodi rates for Roman WFI are documented on the
-[Roman WFI technical page](https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/);
-our measurement below compares against that reference.
+[Roman WFI technical page](https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/).
+We quote the measurement below primarily in **MJy/sr** — that's the
+unit a Pandeia ETC consumes as input and the unit romanisim injects
+zodi in internally, and it's therefore the apples-to-apples unit for
+comparison. The DN/s and e⁻/s columns are reported for reference; see
+the [Discussion](discussion.qmd#zodiacal-background-in-mjysr-close-to-the-roman-reference)
+note on the e⁻/s-convention mismatch between romanisim and Pandeia.
 
 ```{python}
 #| echo: false
-#| tbl-cap: "Sigma-clipped sky rate per SCA from one exposure. Gain is from the CRDS gain reference file (median ≈ 1.87 e⁻/DN)."
+#| tbl-cap: "Sigma-clipped sky rate per SCA from one exposure. MJy/sr uses each SCA's `meta.photometry.conversion_megajanskys`; e⁻/s uses the median CRDS gain ≈ 1.87 e⁻/DN."
 import roman_datamodels.datamodels as rdm
 from astropy.stats import sigma_clipped_stats
 
@@ -233,21 +238,25 @@ for p in L2_GLOB:
     m = rdm.open(p)
     data = np.asarray(m.data, dtype=np.float64)
     _, med, std = sigma_clipped_stats(data, sigma=3, maxiters=3)
+    c_mjy = float(m.meta.photometry.conversion_megajanskys)
     del m
     sca = int(str(p.name).split("wfi")[1][:2])
-    rows.append({"SCA": sca, "sky_DN_per_s": med,
+    rows.append({"SCA": sca,
+                 "sky_DN_per_s": med,
+                 "sky_MJy_per_sr": med * c_mjy,
                  "sky_e_per_pix_per_s": med * GAIN_MEDIAN_EPERDN})
 sky = pd.DataFrame(rows).sort_values("SCA")
 sky.style.format({"sky_DN_per_s": "{:.4f}",
+                  "sky_MJy_per_sr": "{:.3f}",
                   "sky_e_per_pix_per_s": "{:.3f}"})
 ```
 
 ```{python}
 #| echo: false
-mean_rate = sky["sky_e_per_pix_per_s"].mean()
-print(f"Mean across 18 SCAs: {mean_rate:.3f} e⁻/pix/s  "
-      f"(range {sky['sky_e_per_pix_per_s'].min():.3f} – "
-      f"{sky['sky_e_per_pix_per_s'].max():.3f})")
+mean_mjy = sky["sky_MJy_per_sr"].mean()
+print(f"Mean across 18 SCAs: {mean_mjy:.3f} MJy/sr  "
+      f"(range {sky['sky_MJy_per_sr'].min():.3f} – "
+      f"{sky['sky_MJy_per_sr'].max():.3f})")
 
 c_target = SkyCoord(ra=10*u.deg, dec=0*u.deg)
 ecl = c_target.transform_to("barycentrictrueecliptic")
@@ -260,14 +269,14 @@ elong = c_target.separation(sun).deg
 print(f"Solar elongation on sim date: {elong:.1f}°")
 ```
 
-The measured sky rate reflects the zodiacal background that the romanisim
-sim computed for this field and date: **on-ecliptic** (latitude −4°) and at
-a large solar elongation (~128°), which is a structurally bright but
-well-observed part of the sky for a Dec ≈ 0 target. Within the Roman
-observing constraint (elongation roughly 54°–126°), higher elongation
-minimises zodi for an ecliptic target; the sim date is already near the
-upper end of that window, so shifting dates cannot meaningfully lower the
-background from this pointing.
+A Pandeia ETC run for the same filter, coords and date gives an input
+zodi of **0.38 MJy/sr**, so romanisim's sky is ~30% higher than
+Pandeia's model for this field. Both codes place the field **on the
+ecliptic** (latitude −4°) at a large solar elongation (~128°), which
+is a structurally bright but well-observed part of the sky for a
+Dec ≈ 0 target; within Roman's elongation constraint (~54°–126°), the
+sim date is already near the upper end of the window, so shifting
+dates cannot meaningfully lower the background.
 
 ## Data volume and wall time
 

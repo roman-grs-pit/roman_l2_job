@@ -45,12 +45,12 @@ scheduled in.
 dedup_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT", "EXPOSURE", "SCA"]
 visits_key = ["PASS", "SEGMENT", "OBSERVATION", "VISIT"]
 
-l2_counts = (NEED_SIM.drop_duplicates(["PAIR_ID"] + dedup_key)
-             .groupby("PAIR_ID").size().reset_index(name="n_l2_files"))
-l2_counts["n_visits"] = (NEED_SIM.drop_duplicates(["PAIR_ID"] + visits_key)
-                         .groupby("PAIR_ID").size().values)
-summary = SKY[["PAIR_ID", "skycell_name", "zodi_bin", "coverage_bin",
-                "count_0p25"]].merge(l2_counts, on="PAIR_ID", how="left")
+l2_counts = (NEED_SIM.drop_duplicates(["SKYCELL_ID"] + dedup_key)
+             .groupby("SKYCELL_ID").size().reset_index(name="n_l2_files"))
+l2_counts["n_visits"] = (NEED_SIM.drop_duplicates(["SKYCELL_ID"] + visits_key)
+                         .groupby("SKYCELL_ID").size().values)
+summary = SKY[["SKYCELL_ID", "skycell_name", "zodi_bin", "coverage_bin",
+                "count_0p25"]].merge(l2_counts, on="SKYCELL_ID", how="left")
 summary["n_l2_files"] = summary["n_l2_files"].fillna(0).astype(int)
 summary["n_visits"] = summary["n_visits"].fillna(0).astype(int)
 summary
@@ -60,11 +60,11 @@ summary
 
 ```{python}
 #| echo: false
-#| fig-cap: "Per-skycell SCA footprint overlays. Red square = the 4.6′ skycell; each coloured polygon = one contributing L2's SCA footprint. Plots show, visually, how coverage density varies with pair_id."
+#| fig-cap: "Per-skycell SCA footprint overlays. Red square = the 4.6′ skycell; each coloured polygon = one contributing L2's SCA footprint. Plots show, visually, how coverage density varies with SKYCELL_ID."
 from IPython.display import Image, display
 from pathlib import Path as P
-for pid in sorted(NEED_SIM["PAIR_ID"].unique()):
-    path = REPO / f"output/detection/phase2/coverage_pair_{pid}.png"
+for pid in sorted(NEED_SIM["SKYCELL_ID"].unique()):
+    path = REPO / f"output/detection/phase2/coverage_sky_{pid}.png"
     if P(str(path)).exists():
         display(Image(filename=str(path)))
 ```

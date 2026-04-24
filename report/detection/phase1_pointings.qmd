@@ -11,6 +11,7 @@ from astropy.table import Table
 REPO = Path("../..").resolve()
 SKY = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
                  format="ascii.ecsv").to_pandas()
+ID_COL = "SKYCELL_ID" if "SKYCELL_ID" in SKY.columns else ID_COL
 ```
 
 ## What Phase 1 does
@@ -26,19 +27,13 @@ stratified by:
   0.25° of the skycell centre. "High" = ≥ 75th percentile; "low" =
   ≤ 25th percentile, across HLWAS-interior candidates.
 
-The candidate pool is all skymap skycells in the HLWAS Dec band
-for which `count_0p6` (# F158 exposures within 0.6°) is **≥ 5**.
-That filter is meant to exclude the outer survey edges where only
-isolated pointings sit nearby. **It's lenient**, though: a skycell
-sitting in a gap between HLWAS visit tiles can still have 5+
-exposures at the 0.3-0.6° annulus while having **zero within 0.25°**.
-In the current run, pair 6 (RA 26.7°, Dec −21.3°) is exactly such a
-case — it looks interior on this coarse filter but sits in a real
-tiling gap, and Phase 2 expansion ultimately finds only 2 L2 files
-overlapping its selected skycell. The "coverage gap" category we
-produce is therefore a mix of true survey-edge skycells (pairs 2,
-11) and interior-but-gap skycells (pairs 1, 5, 6) — the mosaics
-show both kinds hit depth 0 for the median interior pixel.
+The candidate pool is all skymap skycells in the HLWAS Dec band for
+which **`count_0p25 ≥ 3` AND `count_0p6 ≥ 10`**. The tighter tight-radius
+requirement ensures every selected skycell has at least three HLWAS
+visits with inner-SCA reach, so no pick ends up in a pure tiling
+gap (which a `count_0p6` filter alone can't distinguish from
+survey-interior positions). Under this filter, 381k skycells remain;
+`count_0p25` ranges from 4 (25th pct) to 8 (75th pct).
 
 Target: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12
 skycells. A 5° great-circle minimum separation is enforced between
@@ -54,7 +49,7 @@ Roman's pointing constraint for that field.
 ```{python}
 #| echo: false
 #| tbl-cap: "Selected skycells. `count_0p25` is the # HLWAS F158 exposures within 0.25° of the skycell centre — the selection metric. `SKY_E_PER_PIX_PER_S` is romanisim's predicted F158 zodi at SIM_DATE."
-SKY[["PAIR_ID", "skycell_name", "skycell_ra", "skycell_dec",
+SKY[[ID_COL, "skycell_name", "skycell_ra", "skycell_dec",
      "ECL_LAT_DEG", "zodi_bin", "coverage_bin", "count_0p25",
      "SIM_DATE", "SOLAR_ELONG_DEG", "SKY_E_PER_PIX_PER_S"]].style.format({
     "skycell_ra": "{:.3f}", "skycell_dec": "{:.3f}",
@@ -67,7 +62,7 @@ SKY[["PAIR_ID", "skycell_name", "skycell_ra", "skycell_dec",
 
 ```{python}
 #| echo: false
-#| fig-cap: "Stratification matrix. Grey dots are the HLWAS-interior candidate pool (~700k skycells); red/green dashed lines mark the 25th/75th percentiles of `count_0p25`; vertical dotted lines are the ecl-lat band boundaries. Stars = selected skycells, coloured by PAIR_ID."
+#| fig-cap: "Stratification matrix. Grey dots are the HLWAS-interior candidate pool (~700k skycells); red/green dashed lines mark the 25th/75th percentiles of `count_0p25`; vertical dotted lines are the ecl-lat band boundaries. Stars = selected skycells, coloured by SKYCELL_ID."
 from IPython.display import Image, display
 display(Image(filename=str(REPO / "output/detection/phase1/selection_matrix.png")))
 ```
@@ -88,25 +83,16 @@ display(Image(filename=str(REPO / "output/detection/phase1/sky_map.png")))
 display(Image(filename=str(REPO / "output/detection/phase1/coverage_distribution.png")))
 ```
 
-## Caveats from the first run
+## Remaining caveat
 
-**Some "low coverage" cells produce no mosaic.** After Phase 2
-expansion, the `high_zodi × low_coverage` cell (pairs 9 and 10) ends
-up with **zero** L2 files overlapping the selected skycell — HLWAS's
-tiling near the ecliptic is sparse enough that even outer SCAs
-don't reach "gap" skycells there. We proceed with the other 10
-skycells for Phase 4b; the missing cell is documented but not
-recovered in this pass. A future iteration could tighten the "low
-coverage" definition to `count_0p25 ∈ [1, 4]` instead of `≤ 0` to
-guarantee non-zero overlap.
-
-**The interior filter is too lenient.** `count_0p6 ≥ 5` accepts both
-true survey-interior skycells and "tiling-gap" skycells where the
-0.25° neighbourhood is empty but the 0.3-0.6° annulus isn't.
-Tightening to e.g. `count_0p25 ≥ 1 AND count_0p6 ≥ 10` would force
-the candidate pool to skycells that at least one HLWAS pointing's
-inner SCAs can reach — eliminating the depth-0 mosaic outcomes by
-construction rather than after-the-fact.
+One of the 12 picks (skycell 10, at `RA 327.3°, Dec −6.6°` —
+`high_zodi × low_coverage`) still ends up with **zero** L2 overlap
+after Phase 2's CRDS-backed expansion, even with the tightened
+filter. HLWAS tiling near the ecliptic is simply sparse enough in
+this run's region that no outer SCA reaches the selected skycell.
+We proceed with the remaining 11 skycells; the missing matrix cell is
+documented here. Replacing skycell 10 with a second pick in the same
+bin would be the fix for a follow-up run.
 
 ## Reproducing
 

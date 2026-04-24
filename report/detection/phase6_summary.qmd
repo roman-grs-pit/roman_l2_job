@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np, pandas as pd, matplotlib.pyplot as plt
 from astropy.table import Table
 REPO = Path("../..").resolve()
-ALL = pd.read_csv(REPO / "output/detection/phase6/all_pairs.csv")
+ALL = pd.read_csv(REPO / "output/detection/phase6/all_skycells.csv")
 ```
 
 ## What Phase 6 does
@@ -31,7 +31,7 @@ prediction.
 ```{python}
 #| echo: false
 #| tbl-cap: "One row per mosaic. Depth is the median per-pixel depth in the interior. `mag_50_*_default` is the 50% completeness magnitude at `SourceCatalogStep` defaults; `*_n16` is the same at `npixels=16`."
-ALL[["PAIR_ID", "skycell_name", "zodi_bin", "coverage_bin",
+ALL[["SKYCELL_ID", "skycell_name", "zodi_bin", "coverage_bin",
      "ECL_LAT_DEG", "SKY_E_PER_PIX_PER_S", "depth_median",
      "mag_50_stars_default", "mag_50_gals_default",
      "mag_50_stars_n16", "mag_50_gals_n16"]]
@@ -58,8 +58,16 @@ display(Image(filename=str(REPO / "output/detection/phase6/param_sweep_summary.p
 
 ```{python}
 #| echo: false
-#| fig-cap: "All 10 mosaics' default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). Clear stratification: the five depth-6+ mosaics cluster around mag_50 ≈ 25, while the four depth-0 mosaics (~2 L2 files each, mostly-uncovered skycells) show very noisy curves at 23-24.5 — confirming that when HLWAS coverage is near zero, detection is dominated by which few pixels got any image at all, rather than the intrinsic depth-vs-magnitude trade-off."
+#| fig-cap: "All mosaics' default efficiency curves overlaid, colour-coded by depth (dark = shallow, light = deep). After the Phase-1 tightening to `count_0p25 ≥ 3`, every mosaic reaches depth ≥ 2, so the curves form a clean family with smooth zodi + depth stratification — no more depth-0 outliers."
 display(Image(filename=str(REPO / "output/detection/phase6/baseline_all.png")))
+```
+
+## Per-skycell efficiency panels
+
+```{python}
+#| echo: false
+#| fig-cap: "Per-skycell efficiency curves — one row per skycell, stars (LEFT) and galaxies (RIGHT). Solid black = default `SourceCatalogStep`; dashed lines = `npixels` variants (9 red, 16 orange, 25 blue — same as default) at `kernel_fwhm=2`. Each panel's row label shows the skycell's ecliptic latitude and per-pixel median depth."
+display(Image(filename=str(REPO / "output/detection/phase6/per_skycell_panels.png")))
 ```
 
 ## Takeaways

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-"""Phase 6: roll up per-mosaic Phase 5 results across all skycells.
+"""Phase 6: roll up per-skycell Phase 5 results.
 
 Reads:
-  output/detection/phase5a/summary_pair_*.csv  — baseline
-  output/detection/phase5b/sweep_summary_pair_*.csv — kernel sweep
-  output/detection/phase5c/sweep_summary_pair_*.csv — npixels sweep
+  output/detection/phase5a/summary_sky_*.csv  — baseline
+  output/detection/phase5b/sweep_summary_sky_*.csv — kernel sweep
+  output/detection/phase5c/sweep_summary_sky_*.csv — npixels sweep
 
 Plus catalogs/detection/selected_skycells.ecsv for (zodi, coverage)
 labels + the Phase-4 mosaic depth (read from each coadd's context
@@ -17,7 +17,7 @@ Emits:
                            by zodi bin, separate panels for stars/gals
     - param_sweep_summary.png : Δ(50% mag) for kernel_fwhm and npixels
                            sweeps, vs mosaic depth
-    - all_pairs.csv      : one row per pair consolidating baseline +
+    - all_skycells.csv      : one row per skycell consolidating baseline +
                            sweep results
 """
 from __future__ import annotations
@@ -56,20 +56,20 @@ def main():
 
     rows = []
     for _, s in sk.iterrows():
-        pid = int(s["PAIR_ID"])
+        pid = int(s["SKYCELL_ID"])
         skycell = s["skycell_name"]
         coadds = sorted((REPO / "output/detection/l3").glob(
-            f"pair_{pid}_*_coadd.asdf"))
+            f"sky_{pid}_*_coadd.asdf"))
         if not coadds:
             continue
         depth = mosaic_depth_median(coadds[0])
-        baseline = REPO / f"output/detection/phase5a/summary_pair_{pid}.csv"
+        baseline = REPO / f"output/detection/phase5a/summary_sky_{pid}.csv"
         if baseline.exists():
             b = pd.read_csv(baseline).iloc[0].to_dict()
         else:
             continue
         row = {
-            "PAIR_ID": pid,
+            "SKYCELL_ID": pid,
             "skycell_name": skycell,
             "ECL_LAT_DEG": s["ECL_LAT_DEG"],
             "zodi_bin": s["zodi_bin"],
@@ -82,8 +82,8 @@ def main():
             "mag_90_gals_default": b["mag_90pct_galaxies"],
         }
         # Attach kernel and npixels sweep deltas
-        k = REPO / f"output/detection/phase5b/sweep_summary_pair_{pid}.csv"
-        n = REPO / f"output/detection/phase5c/sweep_summary_pair_{pid}.csv"
+        k = REPO / f"output/detection/phase5b/sweep_summary_sky_{pid}.csv"
+        n = REPO / f"output/detection/phase5c/sweep_summary_sky_{pid}.csv"
         if k.exists():
             kdf = pd.read_csv(k)
             row["mag_50_stars_k3"] = kdf.loc[kdf["kernel_fwhm"]==3]["mag_50pct_stars"].iloc[0] if 3 in kdf["kernel_fwhm"].values else np.nan
@@ -97,8 +97,8 @@ def main():
             row["mag_50_gals_n9"] = ndf.loc[ndf["npixels"]==9]["mag_50pct_galaxies"].iloc[0] if 9 in ndf["npixels"].values else np.nan
         rows.append(row)
 
-    df = pd.DataFrame(rows).sort_values("PAIR_ID").reset_index(drop=True)
-    df.to_csv(OUT / "all_pairs.csv", index=False)
+    df = pd.DataFrame(rows).sort_values("SKYCELL_ID").reset_index(drop=True)
+    df.to_csv(OUT / "all_skycells.csv", index=False)
     print(df.to_string(index=False))
 
     # Plot 1: mag_50% vs depth, coloured by zodi
@@ -114,7 +114,7 @@ def main():
                        color=zodi_colours.get(zb, "k"),
                        edgecolor="k", lw=0.5, label=zb)
             for _, r in sub.iterrows():
-                ax.annotate(f" {int(r['PAIR_ID'])}",
+                ax.annotate(f" {int(r['SKYCELL_ID'])}",
                             (r["depth_median"], r[col]), fontsize=8)
         ax.set_xlabel("per-pixel mosaic depth (median interior)")
         ax.set_ylabel("F158 mag at 50% completeness (default params)")
@@ -152,8 +152,8 @@ def main():
     depths = df["depth_median"].values
     dmin, dmax = depths.min(), depths.max()
     for _, row in df.iterrows():
-        pid = row["PAIR_ID"]
-        eff = REPO / f"output/detection/phase5a/efficiency_pair_{pid}.csv"
+        pid = row["SKYCELL_ID"]
+        eff = REPO / f"output/detection/phase5a/efficiency_sky_{pid}.csv"
         if not eff.exists():
             continue
         e = pd.read_csv(eff)
@@ -161,9 +161,9 @@ def main():
         es = e[e["type"] == "stars"]
         eg = e[e["type"] == "galaxies"]
         axes[0].plot(es["mag"], es["efficiency"], "-", color=c, alpha=0.85,
-                     label=f"pair {int(pid)} (d≈{row['depth_median']:.0f})")
+                     label=f"sky {int(pid)} (d≈{row['depth_median']:.0f})")
         axes[1].plot(eg["mag"], eg["efficiency"], "-", color=c, alpha=0.85,
-                     label=f"pair {int(pid)}")
+                     label=f"sky {int(pid)}")
     for ax, title in zip(axes, ["stars (PSF)", "galaxies (SER)"]):
         ax.axhline(0.5, color="k", ls=":", lw=0.5)
         ax.axhline(0.9, color="k", ls=":", lw=0.5)
@@ -177,6 +177,77 @@ def main():
     fig.tight_layout()
     fig.savefig(OUT / "baseline_all.png", dpi=140); plt.close(fig)
     print(f"Wrote {OUT / 'baseline_all.png'}")
+
+    # Plot 4: per-skycell panels — one row per skycell, stars + galaxies
+    # side by side with all three param settings overlaid.
+    n = len(df)
+    ncols = 2  # stars, galaxies
+    nrows = n
+    fig, axes = plt.subplots(nrows, ncols, figsize=(13, 2.5 * nrows),
+                              sharex=True, sharey=True)
+    if nrows == 1:
+        axes = np.array([axes])
+    for row_i, (_, row) in enumerate(df.iterrows()):
+        sid = int(row["SKYCELL_ID"])
+        label = (f"sky {sid} — {row['skycell_name']} | "
+                 f"ecl_lat={row['ECL_LAT_DEG']:+.1f}°, "
+                 f"depth={row['depth_median']:.0f}")
+        # Default (phase 5a)
+        eff_a = REPO / f"output/detection/phase5a/efficiency_sky_{sid}.csv"
+        # Kernel sweep (phase 5b) — pick kernel 2 (=default) and 3 / 5
+        # npixels sweep (phase 5c) — pick n9, n16, n25
+        for kind, ax_col in [("stars", 0), ("galaxies", 1)]:
+            ax = axes[row_i, ax_col]
+            if eff_a.exists():
+                e = pd.read_csv(eff_a)
+                sub = e[e["type"] == kind]
+                ax.plot(sub["mag"], sub["efficiency"], "-", color="k",
+                        lw=1.5, label="default (k=2, n=25)")
+            # npixels variants (kernel=2 baseline from 5c)
+            for npix, colour in [(9, "tab:red"), (16, "tab:orange"),
+                                  (25, "tab:blue")]:
+                cat = (REPO / "output/detection/phase5c" /
+                       f"catalogs_{sid}" /
+                       f"sky_{sid}_*_n{npix:03d}_cat.parquet")
+                matches = list(cat.parent.glob(cat.name))
+                if not matches:
+                    continue
+                rec = Table.read(matches[0]).to_pandas()
+                truth_file = (REPO / "catalogs/detection/catalogs" /
+                              f"skycell_{row['skycell_name']}_"
+                              f"{'stars' if kind=='stars' else 'galaxies'}.parquet")
+                if not truth_file.exists():
+                    continue
+                truth = Table.read(truth_file).to_pandas()
+                tcoord = SkyCoord(ra=truth["ra"].values*u.deg,
+                                   dec=truth["dec"].values*u.deg)
+                rcoord = SkyCoord(ra=rec["ra"].values*u.deg,
+                                   dec=rec["dec"].values*u.deg)
+                _, sep, _ = match_coordinates_sky(tcoord, rcoord)
+                truth["recovered"] = sep.arcsec < 0.3
+                g = truth.groupby("mag")["recovered"]
+                eff = (g.sum()/g.size())
+                ax.plot(eff.index, eff.values, "--", color=colour,
+                        lw=1.0, alpha=0.7, label=f"n={npix}")
+            if kind == "stars" and ax_col == 0 and row_i == 0:
+                ax.legend(loc="lower left", fontsize=7)
+            ax.axhline(0.5, color="k", ls=":", lw=0.5, alpha=0.5)
+            ax.grid(alpha=0.3)
+            ax.set_xlim(23.0, 26.0); ax.set_ylim(-0.05, 1.05)
+            if ax_col == 0:
+                ax.set_ylabel(label, fontsize=8, rotation=0,
+                              ha="right", va="center", labelpad=5)
+            if row_i == 0:
+                ax.set_title(f"{kind}")
+            if row_i == nrows - 1:
+                ax.set_xlabel("F158 magnitude")
+    fig.suptitle("Per-skycell efficiency curves — solid = default, "
+                 "dashed = npixels variants at kernel_fwhm=2",
+                 fontsize=12)
+    fig.tight_layout(rect=[0, 0, 1, 0.98])
+    fig.savefig(OUT / "per_skycell_panels.png", dpi=140, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Wrote {OUT / 'per_skycell_panels.png'}")
 
 
 if __name__ == "__main__":

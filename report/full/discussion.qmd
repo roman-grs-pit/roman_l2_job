@@ -45,39 +45,92 @@ wider `radius_deg` for a grid) and re-run from stage 01. The
 `skip-if-exists` guards mean cal files from the current run will be
 reused for any overlapping pointings.
 
-## Zodiacal background is ~3× the minimum reference
+## Zodiacal background: in MJy/sr, close to the Roman reference
 
-The measured sigma-clipped sky rate across 18 SCAs of one F158
-exposure is **~1.28 e⁻/pix/s**, versus the polar-minimum zodi
-reference of ~0.375 e⁻/pix/s — a factor of ~3.4× higher background.
-That's expected for a Dec = 0 target observed at 128° solar
-elongation (see the Design page for the geometry calculation); the
-field is structurally on the ecliptic and cannot get much better
-than this.
+**What we measured.** Sigma-clipped median on an F158 cal file
+(`output/cal/r0000101015521001006_0001_wfi01_f158_cal.asdf`), with
+detected sources masked (5σ threshold, ≥5 connected pixels):
 
-What this means for recovery depth: sky-limited point-source noise
-scales as `√background`, so 3.4× the sky is `√3.4 ≈ 1.84×` the noise,
-which costs 2.5 × log₁₀(1.84) ≈ **0.67 mag of 5σ point-source depth**
-relative to a nominal polar field.
+- **0.65 DN/s/pix** on the raw `data` array. `romanisim.image.make_l2`
+  documents this array as ramp slopes in DN/s.
+- **0.50 MJy/sr** via the cal file's
+  `meta.photometry.conversion_megajanskys` = 0.77.
+- **1.28 e⁻/pix/s** if we multiply DN/s by the WFI01 CRDS gain reference
+  (median 1.99 e⁻/DN).
 
-Cross-checking that against our measurements: the median 50%-completeness
-magnitude across all 320 skycells is **23.95 AB**; at the design depth
-it reaches **24.05 AB**. If the HLWAS nominal design target for F158
-is around mag 24.5–25 (worth confirming against the
-[Roman WFI technical page](https://science.nasa.gov/mission/roman-space-telescope/wfi-technical/)),
-a 0.5–1 mag shortfall is consistent with the elevated zodi we
-measured. In other words, the result we see is photometrically
-reasonable — we're just observing a bright sky patch.
+The 12-file sample averaged across visits and SCAs (median of medians)
+gives 0.67 DN/s/pix, i.e. 0.52 MJy/sr — consistent field-to-field
+within a few percent.
 
-Caveats:
+**What we compared against.** A Pandeia ETC run at (RA=10°, Dec=0°),
+F158, single 107.52 s exposure, returns an input zodi of
+**0.38 MJy/sr** and a total background of **10.71 e⁻/s in a 51.93-pixel
+aperture** → **0.206 e⁻/pix/s**.
 
-- The "×3" comparison is against a polar minimum — the right baseline
-  for "did we lose depth?" might be a typical HLWAS survey pointing
-  rather than the absolute minimum. Worth revisiting with the actual
-  Roman WFI spec numbers.
-- 50%-completeness magnitude and 5σ point-source magnitude are related
-  but not identical; the 0.67 mag prediction is an order-of-magnitude
-  estimate, not a tight fit.
+**Result in MJy/sr.** 0.50 vs 0.38 → **1.32×** higher. That's a
+modest model-vs-model difference between romanisim's zodi model and
+Pandeia's at the same coords and date, worth ~2.5·log₁₀(√1.32) ≈
+**0.15 mag** of 5σ point-source depth.
+
+**Result in e⁻/s.** 1.28 vs 0.206 → **6.3×**. This is *not* a real
+background excess. Cross-check: we aperture-photometered 30 isolated
+input point sources at AB 18.5–20.5 on the same cal file (3-pix
+circular aperture, annulus-subtracted sky, EE-corrected), multiplied
+by gain to get e⁻/s, and compared to the ETC zeropoint implied by its
+mag-24 example (1.42 e⁻/s in a 0.2″ aperture). The median
+measured/predicted ratio was **6.7×** — matching the sky ratio to
+within 5%. Both source and sky carry the same offset in the e⁻/s
+reporting, so the source/sky ratio — and therefore SNR at fixed AB
+magnitude — is internally self-consistent within romanisim.
+
+The likely origin of the 6–7× e⁻/s discrepancy is a convention
+difference between romanisim and Pandeia somewhere in the chain
+{bandpass integral, effective area, throughput, gain} — the two codes
+have to agree in MJy/sr (they roughly do) and in AB magnitudes (that
+we have not independently verified), but the e⁻/s-per-MJy/sr bridge
+between them is not constrained to match.
+
+**Cross-check against romanisim's own sky model.** `romanisim.image`
+(line ~697) injects sky using `galsim.roman.getSkyLevel`, scaled by
+`(1 + stray_light_fraction)` and with `thermal_backgrounds[H158]`
+added per pixel. Calling that chain directly at (RA=10°, Dec=0°),
+2026-01-01:
+
+| term | value |
+|---|---|
+| `getSkyLevel` (zodi only) | 95.01 e⁻/s/arcsec² |
+| × (1 + stray_light_fraction = 1.1) | 104.51 e⁻/s/arcsec² |
+| × pixel area (0.11² = 0.0121 arcsec²) | 1.265 e⁻/s/pix |
+| + `thermal_backgrounds['H158']` = 0.040 e⁻/s/pix | **1.305 e⁻/s/pix** |
+
+That matches the cal-file measurement of **1.298 e⁻/s/pix** to 0.5%,
+confirming the sim is faithfully injecting exactly what romanisim's
+sky model predicts. Translating back to MJy/sr via the same
+romanisim-internal `get_abflux(F158) / 3631 Jy × pix_area_sr`
+conversion used above, 1.305 e⁻/s/pix corresponds to **0.493 MJy/sr**,
+versus 0.502 measured — again consistent. So the ~30% MJy/sr gap
+against Pandeia's 0.38 is a genuine zodi-model disagreement between
+the Hirata tables galsim uses and Pandeia's model, not a sim setup
+issue.
+
+**Gain consistency, as a side effect.** `getSkyLevel` is gain-free (it
+returns e⁻/s/arcsec² from a direct table lookup), but our cal-side
+number is `DN/s × gain` with gain = **1.994 e⁻/DN** from the WFI01 CRDS
+reference (`roman_wfi_gain_0022.asdf`). The 0.5% agreement therefore
+verifies that the gain we multiply by on read matches the gain romanisim
+divided by when writing the DN/s slopes — a consistency check, not an
+absolute gain validation. (If the CRDS gain were physically off by 2×
+both sides would be wrong by 2× and still agree; that would need a
+separate absolute test, e.g. a ramp Poisson-noise consistency check.) In
+practice this is enough to trust `DN/s × gain_CRDS` as the correct way
+to recover e⁻/s from the cal file for any downstream analysis.
+
+**Upshot.** Zodi is not responsible for the observed 0.5–1 mag depth
+shortfall. The earlier wording in this section — "3.4× the polar
+minimum → 0.67 mag of depth loss" — compared romanisim's e⁻/s against
+a Pandeia-convention e⁻/s reference, which we now know is an
+apples-to-oranges comparison, and is retracted. The depth shortfall is
+still real and the explanation is still open.
 
 ## `psf_flux` appears to be in different units than `aper08_flux` / `kron_flux`
 

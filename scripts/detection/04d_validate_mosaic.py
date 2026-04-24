@@ -7,7 +7,7 @@ Checks we care about:
 - truth positions overlay sensibly on the image
 - image has no obvious edge/rejection artifacts
 
-Usage:  pixi run python scripts/detection/04d_validate_mosaic.py --pair 11119
+Usage:  pixi run python scripts/detection/04d_validate_mosaic.py --cell 11119
 """
 from __future__ import annotations
 
@@ -26,16 +26,16 @@ OUT_PLOTS = REPO / "output/detection/phase4a"
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pair", type=int, required=True)
+    ap.add_argument("--cell", type=int, required=True)
     args = ap.parse_args()
 
     OUT_PLOTS.mkdir(parents=True, exist_ok=True)
 
     # Find the coadd
     l3_dir = REPO / "output/detection/l3"
-    candidates = sorted(l3_dir.glob(f"pair_{args.pair}_*_coadd.asdf"))
+    candidates = sorted(l3_dir.glob(f"sky_{args.cell}_*_coadd.asdf"))
     if not candidates:
-        raise SystemExit(f"No coadd found in {l3_dir} for pair {args.pair}")
+        raise SystemExit(f"No coadd found in {l3_dir} for pair {args.cell}")
     coadd_path = candidates[0]
     print(f"Loading {coadd_path.relative_to(REPO)}")
 
@@ -55,12 +55,12 @@ def main():
         depth = None
 
     # Truth positions (RA/Dec)
-    skycell_name = coadd_path.stem.split("_")[-2]  # pair_<PID>_<relid>_<skycell>_coadd
+    skycell_name = coadd_path.stem.split("_")[-2]  # sky_<PID>_<relid>_<skycell>_coadd
     # Fallback: read from selected_skycells.ecsv
     sk = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
                     format="ascii.ecsv").to_pandas()
     skycell_name = str(
-        sk[sk["PAIR_ID"] == args.pair]["skycell_name"].iloc[0])
+        sk[sk["SKYCELL_ID"] == args.cell]["skycell_name"].iloc[0])
     stars = Table.read(
         REPO / f"catalogs/detection/catalogs/skycell_{skycell_name}_stars.parquet"
     ).to_pandas()
@@ -130,11 +130,11 @@ def main():
         ax.set_xlabel("x (pix)")
         ax.set_ylabel("y (pix)")
     fig.suptitle(
-        f"Phase 4a — pair {args.pair} validation ({skycell_name})",
+        f"Phase 4a — pair {args.cell} validation ({skycell_name})",
         fontsize=14
     )
     fig.tight_layout()
-    out = OUT_PLOTS / f"validate_pair_{args.pair}.png"
+    out = OUT_PLOTS / f"validate_sky_{args.cell}.png"
     fig.savefig(out, dpi=140)
     plt.close(fig)
     print(f"Wrote {out.relative_to(REPO)}")
@@ -163,7 +163,7 @@ def main():
     ax.legend()
     fig.colorbar(im, ax=ax, label="MJy/sr")
     fig.tight_layout()
-    out2 = OUT_PLOTS / f"validate_pair_{args.pair}_zoom.png"
+    out2 = OUT_PLOTS / f"validate_sky_{args.cell}_zoom.png"
     fig.savefig(out2, dpi=140)
     plt.close(fig)
     print(f"Wrote {out2.relative_to(REPO)}")

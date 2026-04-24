@@ -220,7 +220,7 @@ def qa_plot(skycell_idx: int, skycell_name: str,
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--only-pair", type=int, default=None,
-                   help="Only generate catalogs for this PAIR_ID (for validation)")
+                   help="Only generate catalogs for this SKYCELL_ID (for validation)")
     args = p.parse_args()
 
     OUT_CAT.mkdir(parents=True, exist_ok=True)
@@ -228,7 +228,7 @@ def main():
 
     skycells = Table.read(SKYCELLS_IN, format="ascii.ecsv").to_pandas()
     if args.only_pair is not None:
-        skycells = skycells[skycells["PAIR_ID"] == args.only_pair]
+        skycells = skycells[skycells["SKYCELL_ID"] == args.only_pair]
     print(f"Generating catalogs for {len(skycells)} skycell(s)…")
 
     summary = []
@@ -246,7 +246,7 @@ def main():
         qa_plot(idx, name, stars, galaxies,
                 OUT_PLOTS / f"grid_{name}.png")
         summary.append({
-            "PAIR_ID": int(row["PAIR_ID"]),
+            "SKYCELL_ID": int(row["SKYCELL_ID"]),
             "skycell_idx": idx,
             "skycell_name": name,
             "n_stars": len(stars),

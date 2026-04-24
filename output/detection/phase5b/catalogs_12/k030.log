@@ -1,8 +1,8 @@
-# pixi run --manifest-path /home/np274/roman_l2_job/pixi.toml strun romancal.source_catalog.SourceCatalogStep /home/np274/roman_l2_job/output/detection/l3/pair_12_d_full_325m24x50y57_f158_coadd.asdf --output_dir /home/np274/roman_l2_job/output/detection/phase5b/catalogs_12 --suffix=k030_cat --kernel_fwhm=3.0 --snr_threshold=3.0 --npixels=25 --deblend=False --save_results=true
-2026-04-24 04:52:19,845 - CRDS - ERROR -  Error determining best reference for 'pars-sourcecatalogstep'  =   Unknown reference type 'pars-sourcecatalogstep'
-2026-04-24 04:52:19,846 - stpipe.step - INFO - SourceCatalogStep instance created.
-2026-04-24 04:52:19,924 - stpipe.step - INFO - Step SourceCatalogStep running with args ('/home/np274/roman_l2_job/output/detection/l3/pair_12_d_full_325m24x50y57_f158_coadd.asdf',).
-2026-04-24 04:52:19,926 - stpipe.step - INFO - Step SourceCatalogStep parameters are:
+# pixi run --manifest-path /home/np274/roman_l2_job/pixi.toml strun romancal.source_catalog.SourceCatalogStep /home/np274/roman_l2_job/output/detection/l3/sky_12_d_full_325m24x50y57_f158_coadd.asdf --output_dir /home/np274/roman_l2_job/output/detection/phase5b/catalogs_12 --suffix=k030_cat --kernel_fwhm=3.0 --snr_threshold=3.0 --npixels=25 --deblend=False --save_results=true
+2026-04-24 19:51:23,532 - CRDS - ERROR -  Error determining best reference for 'pars-sourcecatalogstep'  =   Unknown reference type 'pars-sourcecatalogstep'
+2026-04-24 19:51:23,533 - stpipe.step - INFO - SourceCatalogStep instance created.
+2026-04-24 19:51:23,615 - stpipe.step - INFO - Step SourceCatalogStep running with args ('/home/np274/roman_l2_job/output/detection/l3/sky_12_d_full_325m24x50y57_f158_coadd.asdf',).
+2026-04-24 19:51:23,617 - stpipe.step - INFO - Step SourceCatalogStep parameters are:
   pre_hooks: []
   post_hooks: []
   output_file: None
@@ -23,23 +23,23 @@
   deblend: False
   fit_psf: True
   forced_segmentation: ''
-2026-04-24 04:52:20,113 - romancal.source_catalog.source_catalog_step - INFO - Using ePSF reference file: /home/np274/roman_l2_job/crds_cache/references/roman/wfi/roman_wfi_epsf_0239.asdf
-2026-04-24 04:52:24,058 - romancal.source_catalog.psf - INFO - Performed jitter convolution.  Image kernel: (8, 8, 0) Reference kernel: (0, 0, 0)
-2026-04-24 04:52:24,757 - romancal.source_catalog.source_catalog_step - INFO - Calculating and subtracting background
-2026-04-24 04:52:30,961 - romancal.source_catalog.source_catalog_step - INFO - Creating detection image
-2026-04-24 04:52:33,873 - romancal.source_catalog.source_catalog_step - INFO - Detecting sources
-2026-04-24 04:52:37,724 - romancal.source_catalog.detection - INFO - Detected 269 sources
-2026-04-24 04:52:37,729 - romancal.source_catalog.source_catalog_step - INFO - Creating ee_fractions model
-2026-04-24 04:52:37,763 - romancal.source_catalog.source_catalog_step - INFO - Creating source catalog
-2026-04-24 04:52:37,858 - romancal.source_catalog.source_catalog - INFO - Calculating segment properties
-2026-04-24 04:52:39,264 - romancal.source_catalog.source_catalog - INFO - Calculating aperture photometry
-2026-04-24 04:52:39,692 - romancal.source_catalog.source_catalog - INFO - Calculating DAOFind properties
-2026-04-24 04:52:40,242 - romancal.source_catalog.source_catalog - INFO - Calculating nearest neighbor properties
-2026-04-24 04:52:40,243 - romancal.source_catalog.source_catalog - INFO - Calculating PSF photometry
-2026-04-24 04:52:45,749 - py.warnings - WARNING - /home/np274/roman_l2_job/.pixi/envs/default/lib/python3.12/site-packages/photutils/psf/_components.py:1564: AstropyUserWarning: One or more fit(s) may not have converged. Please check the "flags" column in the output table.
+2026-04-24 19:51:23,810 - romancal.source_catalog.source_catalog_step - INFO - Using ePSF reference file: /home/np274/roman_l2_job/crds_cache/references/roman/wfi/roman_wfi_epsf_0239.asdf
+2026-04-24 19:51:27,879 - romancal.source_catalog.psf - INFO - Performed jitter convolution.  Image kernel: (8, 8, 0) Reference kernel: (0, 0, 0)
+2026-04-24 19:51:28,602 - romancal.source_catalog.source_catalog_step - INFO - Calculating and subtracting background
+2026-04-24 19:51:34,959 - romancal.source_catalog.source_catalog_step - INFO - Creating detection image
+2026-04-24 19:51:37,920 - romancal.source_catalog.source_catalog_step - INFO - Detecting sources
+2026-04-24 19:51:41,809 - romancal.source_catalog.detection - INFO - Detected 269 sources
+2026-04-24 19:51:41,814 - romancal.source_catalog.source_catalog_step - INFO - Creating ee_fractions model
+2026-04-24 19:51:41,847 - romancal.source_catalog.source_catalog_step - INFO - Creating source catalog
+2026-04-24 19:51:41,943 - romancal.source_catalog.source_catalog - INFO - Calculating segment properties
+2026-04-24 19:51:43,347 - romancal.source_catalog.source_catalog - INFO - Calculating aperture photometry
+2026-04-24 19:51:43,790 - romancal.source_catalog.source_catalog - INFO - Calculating DAOFind properties
+2026-04-24 19:51:44,341 - romancal.source_catalog.source_catalog - INFO - Calculating nearest neighbor properties
+2026-04-24 19:51:44,342 - romancal.source_catalog.source_catalog - INFO - Calculating PSF photometry
+2026-04-24 19:51:49,783 - py.warnings - WARNING - /home/np274/roman_l2_job/.pixi/envs/default/lib/python3.12/site-packages/photutils/psf/_components.py:1564: AstropyUserWarning: One or more fit(s) may not have converged. Please check the "flags" column in the output table.
   warnings.warn('One or more fit(s) may not have converged. Please '
 
-2026-04-24 04:52:47,296 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_12/pair_12_d_full_325m24x50y57_f158_segm.asdf
-2026-04-24 04:52:48,068 - romancal.stpipe.core - ERROR - Model[<roman_datamodels.datamodels._datamodels.MosaicSourceCatalogModel object at 0x7e06d7eb5030>] is missing meta.ref_file. [('epsf', 'crds://roman_wfi_epsf_0239.asdf'), ('apcorr', 'crds://roman_wfi_apcorr_0011.asdf')] will not be recorded
-2026-04-24 04:52:49,039 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_12/pair_12_d_full_325m24x50y57_f158_k030_cat.parquet
-2026-04-24 04:52:49,040 - stpipe.step - INFO - Step SourceCatalogStep done
+2026-04-24 19:51:51,305 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_12/sky_12_d_full_325m24x50y57_f158_segm.asdf
+2026-04-24 19:51:52,086 - romancal.stpipe.core - ERROR - Model[<roman_datamodels.datamodels._datamodels.MosaicSourceCatalogModel object at 0x7e95ae21eb60>] is missing meta.ref_file. [('epsf', 'crds://roman_wfi_epsf_0239.asdf'), ('apcorr', 'crds://roman_wfi_apcorr_0011.asdf')] will not be recorded
+2026-04-24 19:51:53,085 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_12/sky_12_d_full_325m24x50y57_f158_k030_cat.parquet
+2026-04-24 19:51:53,086 - stpipe.step - INFO - Step SourceCatalogStep done

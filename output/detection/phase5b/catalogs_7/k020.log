@@ -1,8 +1,8 @@
-# pixi run --manifest-path /home/np274/roman_l2_job/pixi.toml strun romancal.source_catalog.SourceCatalogStep /home/np274/roman_l2_job/output/detection/l3/pair_7_d_full_007m21x69y69_f158_coadd.asdf --output_dir /home/np274/roman_l2_job/output/detection/phase5b/catalogs_7 --suffix=k020_cat --kernel_fwhm=2.0 --snr_threshold=3.0 --npixels=25 --deblend=False --save_results=true
-2026-04-24 04:39:15,396 - CRDS - ERROR -  Error determining best reference for 'pars-sourcecatalogstep'  =   Unknown reference type 'pars-sourcecatalogstep'
-2026-04-24 04:39:15,397 - stpipe.step - INFO - SourceCatalogStep instance created.
-2026-04-24 04:39:15,475 - stpipe.step - INFO - Step SourceCatalogStep running with args ('/home/np274/roman_l2_job/output/detection/l3/pair_7_d_full_007m21x69y69_f158_coadd.asdf',).
-2026-04-24 04:39:15,477 - stpipe.step - INFO - Step SourceCatalogStep parameters are:
+# pixi run --manifest-path /home/np274/roman_l2_job/pixi.toml strun romancal.source_catalog.SourceCatalogStep /home/np274/roman_l2_job/output/detection/l3/sky_7_d_full_042m06x41y42_f158_coadd.asdf --output_dir /home/np274/roman_l2_job/output/detection/phase5b/catalogs_7 --suffix=k020_cat --kernel_fwhm=2.0 --snr_threshold=3.0 --npixels=25 --deblend=False --save_results=true
+2026-04-24 19:33:51,599 - CRDS - ERROR -  Error determining best reference for 'pars-sourcecatalogstep'  =   Unknown reference type 'pars-sourcecatalogstep'
+2026-04-24 19:33:51,600 - stpipe.step - INFO - SourceCatalogStep instance created.
+2026-04-24 19:33:51,679 - stpipe.step - INFO - Step SourceCatalogStep running with args ('/home/np274/roman_l2_job/output/detection/l3/sky_7_d_full_042m06x41y42_f158_coadd.asdf',).
+2026-04-24 19:33:51,681 - stpipe.step - INFO - Step SourceCatalogStep parameters are:
   pre_hooks: []
   post_hooks: []
   output_file: None
@@ -23,20 +23,20 @@
   deblend: False
   fit_psf: True
   forced_segmentation: ''
-2026-04-24 04:39:15,648 - romancal.source_catalog.source_catalog_step - INFO - Using ePSF reference file: /home/np274/roman_l2_job/crds_cache/references/roman/wfi/roman_wfi_epsf_0239.asdf
-2026-04-24 04:39:19,597 - romancal.source_catalog.psf - INFO - Performed jitter convolution.  Image kernel: (8, 8, 0) Reference kernel: (0, 0, 0)
-2026-04-24 04:39:20,315 - romancal.source_catalog.source_catalog_step - INFO - Calculating and subtracting background
-2026-04-24 04:39:26,723 - romancal.source_catalog.source_catalog_step - INFO - Creating detection image
-2026-04-24 04:39:28,635 - romancal.source_catalog.source_catalog_step - INFO - Detecting sources
-2026-04-24 04:39:32,518 - romancal.source_catalog.detection - INFO - Detected 260 sources
-2026-04-24 04:39:32,523 - romancal.source_catalog.source_catalog_step - INFO - Creating ee_fractions model
-2026-04-24 04:39:32,556 - romancal.source_catalog.source_catalog_step - INFO - Creating source catalog
-2026-04-24 04:39:32,653 - romancal.source_catalog.source_catalog - INFO - Calculating segment properties
-2026-04-24 04:39:34,007 - romancal.source_catalog.source_catalog - INFO - Calculating aperture photometry
-2026-04-24 04:39:34,414 - romancal.source_catalog.source_catalog - INFO - Calculating DAOFind properties
-2026-04-24 04:39:34,966 - romancal.source_catalog.source_catalog - INFO - Calculating nearest neighbor properties
-2026-04-24 04:39:34,967 - romancal.source_catalog.source_catalog - INFO - Calculating PSF photometry
-2026-04-24 04:39:41,327 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_7/pair_7_d_full_007m21x69y69_f158_segm.asdf
-2026-04-24 04:39:42,076 - romancal.stpipe.core - ERROR - Model[<roman_datamodels.datamodels._datamodels.MosaicSourceCatalogModel object at 0x76b8a5ab9fd0>] is missing meta.ref_file. [('epsf', 'crds://roman_wfi_epsf_0239.asdf'), ('apcorr', 'crds://roman_wfi_apcorr_0011.asdf')] will not be recorded
-2026-04-24 04:39:43,070 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_7/pair_7_d_full_007m21x69y69_f158_k020_cat.parquet
-2026-04-24 04:39:43,070 - stpipe.step - INFO - Step SourceCatalogStep done
+2026-04-24 19:33:51,853 - romancal.source_catalog.source_catalog_step - INFO - Using ePSF reference file: /home/np274/roman_l2_job/crds_cache/references/roman/wfi/roman_wfi_epsf_0239.asdf
+2026-04-24 19:33:55,838 - romancal.source_catalog.psf - INFO - Performed jitter convolution.  Image kernel: (8, 8, 0) Reference kernel: (0, 0, 0)
+2026-04-24 19:33:57,273 - romancal.source_catalog.source_catalog_step - INFO - Calculating and subtracting background
+2026-04-24 19:34:03,375 - romancal.source_catalog.source_catalog_step - INFO - Creating detection image
+2026-04-24 19:34:05,279 - romancal.source_catalog.source_catalog_step - INFO - Detecting sources
+2026-04-24 19:34:09,088 - romancal.source_catalog.detection - INFO - Detected 283 sources
+2026-04-24 19:34:09,095 - romancal.source_catalog.source_catalog_step - INFO - Creating ee_fractions model
+2026-04-24 19:34:09,126 - romancal.source_catalog.source_catalog_step - INFO - Creating source catalog
+2026-04-24 19:34:09,221 - romancal.source_catalog.source_catalog - INFO - Calculating segment properties
+2026-04-24 19:34:10,724 - romancal.source_catalog.source_catalog - INFO - Calculating aperture photometry
+2026-04-24 19:34:11,167 - romancal.source_catalog.source_catalog - INFO - Calculating DAOFind properties
+2026-04-24 19:34:11,717 - romancal.source_catalog.source_catalog - INFO - Calculating nearest neighbor properties
+2026-04-24 19:34:11,718 - romancal.source_catalog.source_catalog - INFO - Calculating PSF photometry
+2026-04-24 19:34:19,283 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_7/sky_7_d_full_042m06x41y42_f158_segm.asdf
+2026-04-24 19:34:20,051 - romancal.stpipe.core - ERROR - Model[<roman_datamodels.datamodels._datamodels.MosaicSourceCatalogModel object at 0x72410284a160>] is missing meta.ref_file. [('epsf', 'crds://roman_wfi_epsf_0239.asdf'), ('apcorr', 'crds://roman_wfi_apcorr_0011.asdf')] will not be recorded
+2026-04-24 19:34:21,023 - stpipe.step - INFO - Saved model in /home/np274/roman_l2_job/output/detection/phase5b/catalogs_7/sky_7_d_full_042m06x41y42_f158_k020_cat.parquet
+2026-04-24 19:34:21,023 - stpipe.step - INFO - Step SourceCatalogStep done

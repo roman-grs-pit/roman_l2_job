@@ -1,0 +1,159 @@
+2026-04-24 15:48:28 INFO     Starting simulation...
+2026-04-24 15:48:36 WARNING  136 points with problematic saturation / inverse linearity values!
+2026-04-24 15:48:41 INFO     Simulating filter F158...
+2026-04-24 15:48:41 INFO     Creating PSF using stpsf
+2026-04-24 15:48:42 INFO     Using pupil mask 'F062' and detector 'WFI01'.
+2026-04-24 15:48:42 INFO     Using pupil mask 'F062' and detector 'WFI15'.
+2026-04-24 15:48:43 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:48:43 INFO     No source spectrum supplied, therefore defaulting to 5700 K blackbody
+2026-04-24 15:48:43 INFO     Computing wavelength weights using synthetic photometry for F158...
+2026-04-24 15:48:43 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:48:43 INFO     PSF calc using fov_arcsec = 5.000000, oversample = 4, number of wavelengths = 10
+2026-04-24 15:48:43 INFO     Creating optical system model:
+2026-04-24 15:48:43 INFO     Initialized OpticalSystem: Roman+WFI
+2026-04-24 15:48:43 INFO     Roman Entrance Pupil: Loaded amplitude transmission from /home/np274/roman_l2_job/stpsf-data/WFI/pupils/RST_WIM_Filter_F158_WFI15.fits.gz
+2026-04-24 15:48:43 INFO     Roman Entrance Pupil: Loaded OPD from /home/np274/roman_l2_job/stpsf-data/upscaled_HST_OPD.fits
+2026-04-24 15:48:43 INFO     Added pupil plane: Roman Entrance Pupil
+2026-04-24 15:48:43 INFO     Added coordinate inversion plane: OTE exit pupil
+2026-04-24 15:48:43 INFO     Added pupil plane: Field Dependent Aberration (WFI15)
+2026-04-24 15:48:43 INFO     Added detector with pixelscale=0.1078577405 and oversampling=4: WFI detector
+2026-04-24 15:48:43 INFO     Calculating PSF with 10 wavelengths
+2026-04-24 15:48:43 INFO      Propagating wavelength = 1.3983e-06 m
+2026-04-24 15:48:56 INFO      Propagating wavelength = 1.4389e-06 m
+2026-04-24 15:48:58 INFO      Propagating wavelength = 1.4795e-06 m
+2026-04-24 15:48:59 INFO      Propagating wavelength = 1.5201e-06 m
+2026-04-24 15:49:00 INFO      Propagating wavelength = 1.5607e-06 m
+2026-04-24 15:49:02 INFO      Propagating wavelength = 1.6013e-06 m
+2026-04-24 15:49:03 INFO      Propagating wavelength = 1.6419e-06 m
+2026-04-24 15:49:05 INFO      Propagating wavelength = 1.6825e-06 m
+2026-04-24 15:49:06 INFO      Propagating wavelength = 1.7231e-06 m
+2026-04-24 15:49:08 INFO      Propagating wavelength = 1.7637e-06 m
+2026-04-24 15:49:09 INFO       Calculation completed in 25.858 s
+2026-04-24 15:49:09 INFO     PSF Calculation completed.
+2026-04-24 15:49:09 INFO     Calculating jitter using gaussian
+2026-04-24 15:49:09 INFO     Jitter: Convolving with Gaussian with sigma=0.012 arcsec
+2026-04-24 15:49:09 INFO             resulting image peak drops to 0.973 of its previous value
+2026-04-24 15:49:09 INFO     Detector charge diffusion not applied because charge_diffusion_sigma option is 0
+2026-04-24 15:49:09 INFO      Adding extension with image downsampled to detector pixel scale.
+2026-04-24 15:49:09 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:09 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:09 INFO     Creating PSF using stpsf
+2026-04-24 15:49:09 INFO     Using pupil mask 'F062' and detector 'WFI01'.
+2026-04-24 15:49:09 INFO     Using pupil mask 'F062' and detector 'WFI15'.
+2026-04-24 15:49:09 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:49:09 INFO     No source spectrum supplied, therefore defaulting to 5700 K blackbody
+2026-04-24 15:49:09 INFO     Computing wavelength weights using synthetic photometry for F158...
+2026-04-24 15:49:10 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:49:10 INFO     PSF calc using fov_arcsec = 5.000000, oversample = 4, number of wavelengths = 10
+2026-04-24 15:49:10 INFO     Creating optical system model:
+2026-04-24 15:49:10 INFO     Initialized OpticalSystem: Roman+WFI
+2026-04-24 15:49:10 INFO     Roman Entrance Pupil: Loaded amplitude transmission from /home/np274/roman_l2_job/stpsf-data/WFI/pupils/RST_WIM_Filter_F158_WFI15.fits.gz
+2026-04-24 15:49:10 INFO     Roman Entrance Pupil: Loaded OPD from /home/np274/roman_l2_job/stpsf-data/upscaled_HST_OPD.fits
+2026-04-24 15:49:10 INFO     Added pupil plane: Roman Entrance Pupil
+2026-04-24 15:49:10 INFO     Added coordinate inversion plane: OTE exit pupil
+2026-04-24 15:49:10 INFO     Added pupil plane: Field Dependent Aberration (WFI15)
+2026-04-24 15:49:10 INFO     Added detector with pixelscale=0.1078577405 and oversampling=4: WFI detector
+2026-04-24 15:49:10 INFO     Calculating PSF with 10 wavelengths
+2026-04-24 15:49:10 INFO      Propagating wavelength = 1.3983e-06 m
+2026-04-24 15:49:12 INFO      Propagating wavelength = 1.4389e-06 m
+2026-04-24 15:49:13 INFO      Propagating wavelength = 1.4795e-06 m
+2026-04-24 15:49:14 INFO      Propagating wavelength = 1.5201e-06 m
+2026-04-24 15:49:16 INFO      Propagating wavelength = 1.5607e-06 m
+2026-04-24 15:49:17 INFO      Propagating wavelength = 1.6013e-06 m
+2026-04-24 15:49:19 INFO      Propagating wavelength = 1.6419e-06 m
+2026-04-24 15:49:20 INFO      Propagating wavelength = 1.6825e-06 m
+2026-04-24 15:49:22 INFO      Propagating wavelength = 1.7231e-06 m
+2026-04-24 15:49:23 INFO      Propagating wavelength = 1.7637e-06 m
+2026-04-24 15:49:25 INFO       Calculation completed in 14.611 s
+2026-04-24 15:49:25 INFO     PSF Calculation completed.
+2026-04-24 15:49:25 INFO     Calculating jitter using gaussian
+2026-04-24 15:49:25 INFO     Jitter: Convolving with Gaussian with sigma=0.012 arcsec
+2026-04-24 15:49:25 INFO             resulting image peak drops to 0.973 of its previous value
+2026-04-24 15:49:25 INFO     Detector charge diffusion not applied because charge_diffusion_sigma option is 0
+2026-04-24 15:49:25 INFO      Adding extension with image downsampled to detector pixel scale.
+2026-04-24 15:49:25 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:25 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:25 INFO     Creating PSF using stpsf
+2026-04-24 15:49:25 INFO     Using pupil mask 'F062' and detector 'WFI01'.
+2026-04-24 15:49:25 INFO     Using pupil mask 'F062' and detector 'WFI15'.
+2026-04-24 15:49:25 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:49:25 INFO     No source spectrum supplied, therefore defaulting to 5700 K blackbody
+2026-04-24 15:49:25 INFO     Computing wavelength weights using synthetic photometry for F158...
+2026-04-24 15:49:25 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:49:25 INFO     PSF calc using fov_arcsec = 5.000000, oversample = 4, number of wavelengths = 10
+2026-04-24 15:49:25 INFO     Creating optical system model:
+2026-04-24 15:49:25 INFO     Initialized OpticalSystem: Roman+WFI
+2026-04-24 15:49:26 INFO     Roman Entrance Pupil: Loaded amplitude transmission from /home/np274/roman_l2_job/stpsf-data/WFI/pupils/RST_WIM_Filter_F158_WFI15.fits.gz
+2026-04-24 15:49:26 INFO     Roman Entrance Pupil: Loaded OPD from /home/np274/roman_l2_job/stpsf-data/upscaled_HST_OPD.fits
+2026-04-24 15:49:26 INFO     Added pupil plane: Roman Entrance Pupil
+2026-04-24 15:49:26 INFO     Added coordinate inversion plane: OTE exit pupil
+2026-04-24 15:49:26 INFO     Added pupil plane: Field Dependent Aberration (WFI15)
+2026-04-24 15:49:26 INFO     Added detector with pixelscale=0.1078577405 and oversampling=4: WFI detector
+2026-04-24 15:49:26 INFO     Calculating PSF with 10 wavelengths
+2026-04-24 15:49:26 INFO      Propagating wavelength = 1.3983e-06 m
+2026-04-24 15:49:27 INFO      Propagating wavelength = 1.4389e-06 m
+2026-04-24 15:49:29 INFO      Propagating wavelength = 1.4795e-06 m
+2026-04-24 15:49:30 INFO      Propagating wavelength = 1.5201e-06 m
+2026-04-24 15:49:31 INFO      Propagating wavelength = 1.5607e-06 m
+2026-04-24 15:49:33 INFO      Propagating wavelength = 1.6013e-06 m
+2026-04-24 15:49:34 INFO      Propagating wavelength = 1.6419e-06 m
+2026-04-24 15:49:36 INFO      Propagating wavelength = 1.6825e-06 m
+2026-04-24 15:49:37 INFO      Propagating wavelength = 1.7231e-06 m
+2026-04-24 15:49:39 INFO      Propagating wavelength = 1.7637e-06 m
+2026-04-24 15:49:40 INFO       Calculation completed in 14.449 s
+2026-04-24 15:49:40 INFO     PSF Calculation completed.
+2026-04-24 15:49:40 INFO     Calculating jitter using gaussian
+2026-04-24 15:49:40 INFO     Jitter: Convolving with Gaussian with sigma=0.012 arcsec
+2026-04-24 15:49:40 INFO             resulting image peak drops to 0.973 of its previous value
+2026-04-24 15:49:40 INFO     Detector charge diffusion not applied because charge_diffusion_sigma option is 0
+2026-04-24 15:49:40 INFO      Adding extension with image downsampled to detector pixel scale.
+2026-04-24 15:49:40 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:40 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:40 INFO     Creating PSF using stpsf
+2026-04-24 15:49:40 INFO     Using pupil mask 'F062' and detector 'WFI01'.
+2026-04-24 15:49:40 INFO     Using pupil mask 'F062' and detector 'WFI15'.
+2026-04-24 15:49:40 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:49:40 INFO     No source spectrum supplied, therefore defaulting to 5700 K blackbody
+2026-04-24 15:49:40 INFO     Computing wavelength weights using synthetic photometry for F158...
+2026-04-24 15:49:41 INFO     Using pupil mask 'F158' and detector 'WFI15'.
+2026-04-24 15:49:41 INFO     PSF calc using fov_arcsec = 5.000000, oversample = 4, number of wavelengths = 10
+2026-04-24 15:49:41 INFO     Creating optical system model:
+2026-04-24 15:49:41 INFO     Initialized OpticalSystem: Roman+WFI
+2026-04-24 15:49:41 INFO     Roman Entrance Pupil: Loaded amplitude transmission from /home/np274/roman_l2_job/stpsf-data/WFI/pupils/RST_WIM_Filter_F158_WFI15.fits.gz
+2026-04-24 15:49:41 INFO     Roman Entrance Pupil: Loaded OPD from /home/np274/roman_l2_job/stpsf-data/upscaled_HST_OPD.fits
+2026-04-24 15:49:41 INFO     Added pupil plane: Roman Entrance Pupil
+2026-04-24 15:49:41 INFO     Added coordinate inversion plane: OTE exit pupil
+2026-04-24 15:49:41 INFO     Added pupil plane: Field Dependent Aberration (WFI15)
+2026-04-24 15:49:41 INFO     Added detector with pixelscale=0.1078577405 and oversampling=4: WFI detector
+2026-04-24 15:49:41 INFO     Calculating PSF with 10 wavelengths
+2026-04-24 15:49:41 INFO      Propagating wavelength = 1.3983e-06 m
+2026-04-24 15:49:43 INFO      Propagating wavelength = 1.4389e-06 m
+2026-04-24 15:49:44 INFO      Propagating wavelength = 1.4795e-06 m
+2026-04-24 15:49:45 INFO      Propagating wavelength = 1.5201e-06 m
+2026-04-24 15:49:47 INFO      Propagating wavelength = 1.5607e-06 m
+2026-04-24 15:49:48 INFO      Propagating wavelength = 1.6013e-06 m
+2026-04-24 15:49:50 INFO      Propagating wavelength = 1.6419e-06 m
+2026-04-24 15:49:51 INFO      Propagating wavelength = 1.6825e-06 m
+2026-04-24 15:49:53 INFO      Propagating wavelength = 1.7231e-06 m
+2026-04-24 15:49:54 INFO      Propagating wavelength = 1.7637e-06 m
+2026-04-24 15:49:56 INFO       Calculation completed in 14.445 s
+2026-04-24 15:49:56 INFO     PSF Calculation completed.
+2026-04-24 15:49:56 INFO     Calculating jitter using gaussian
+2026-04-24 15:49:56 INFO     Jitter: Convolving with Gaussian with sigma=0.012 arcsec
+2026-04-24 15:49:56 INFO             resulting image peak drops to 0.973 of its previous value
+2026-04-24 15:49:56 INFO     Detector charge diffusion not applied because charge_diffusion_sigma option is 0
+2026-04-24 15:49:56 INFO      Adding extension with image downsampled to detector pixel scale.
+2026-04-24 15:49:56 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:49:56 INFO      Downsampling to detector pixel scale, by 4
+2026-04-24 15:50:09 WARNING  max(qe) > 1.1; this seems weird?!
+2026-04-24 15:50:09 INFO     Adding 63 sources to image...
+2026-04-24 15:50:09 WARNING  You requested fastpointsources, but the PSF and/or chromaticity are incompatible with this setting.  Disabling fastpointsources.
+2026-04-24 15:50:11 INFO     Rendered 0 point sources in 0.0484 seconds
+2026-04-24 15:50:11 INFO     Rendered 63 total sources in 1.97 seconds
+2026-04-24 15:50:15 INFO     Apportioning electrons to resultants...
+/home/np274/roman_l2_job/.pixi/envs/default/lib/python3.12/site-packages/romanisim/persistence.py:252: RuntimeWarning: invalid value encountered in power
+  * (x / x0)**alpha * (dt / 1000)**(-gamma))
+2026-04-24 15:52:52 INFO     Adding IPC...
+2026-04-24 15:53:12 INFO     Adding read noise...
+2026-04-24 15:53:47 INFO     Fitting ramps.
+2026-04-24 15:54:00 INFO     Simulation complete.

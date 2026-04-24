@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Phase 5c: `npixels` sweep for one pair's mosaic.
+"""Phase 5c: `npixels` sweep for one skycell's mosaic.
 
 Rerun `SourceCatalogStep` with `npixels ∈ {9, 16, 25}` (default 25 plus
 two lower values) at the best-from-5b `kernel_fwhm = 2.0`. All other
@@ -103,18 +103,18 @@ def fp(recovered, all_truth, max_sep):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pair", type=int, required=True)
+    ap.add_argument("--cell", type=int, required=True)
     args = ap.parse_args()
     OUT_PLOTS.mkdir(parents=True, exist_ok=True)
-    sweep_dir = REPO / f"output/detection/phase5c/catalogs_{args.pair}"
+    sweep_dir = REPO / f"output/detection/phase5c/catalogs_{args.cell}"
     sweep_dir.mkdir(parents=True, exist_ok=True)
 
     l3_dir = REPO / "output/detection/l3"
-    coadd = sorted(l3_dir.glob(f"pair_{args.pair}_*_coadd.asdf"))[0]
+    coadd = sorted(l3_dir.glob(f"sky_{args.cell}_*_coadd.asdf"))[0]
 
     sk = Table.read(REPO / "catalogs/detection/selected_skycells.ecsv",
                     format="ascii.ecsv").to_pandas()
-    skycell_name = str(sk[sk["PAIR_ID"] == args.pair]["skycell_name"].iloc[0])
+    skycell_name = str(sk[sk["SKYCELL_ID"] == args.cell]["skycell_name"].iloc[0])
     stars = Table.read(REPO / f"catalogs/detection/catalogs/skycell_{skycell_name}_stars.parquet").to_pandas()
     galaxies = Table.read(REPO / f"catalogs/detection/catalogs/skycell_{skycell_name}_galaxies.parquet").to_pandas()
     all_truth = pd.concat([stars[["ra", "dec"]], galaxies[["ra", "dec"]]])
@@ -157,16 +157,16 @@ def main():
         ax.grid(alpha=0.3); ax.set_title(title); ax.legend(loc="lower left", fontsize=9)
     axes[0].set_ylabel("detection efficiency")
     fig.suptitle(
-        f"Phase 5c — pair {args.pair} / {skycell_name}: npixels sweep "
+        f"Phase 5c — skycell {args.cell} / {skycell_name}: npixels sweep "
         f"(kernel_fwhm={KERNEL_FWHM})",
         fontsize=12,
     )
     fig.tight_layout()
-    out = OUT_PLOTS / f"sweep_pair_{args.pair}.png"
+    out = OUT_PLOTS / f"sweep_sky_{args.cell}.png"
     fig.savefig(out, dpi=140); plt.close(fig)
 
     df = pd.DataFrame(results)
-    df.to_csv(OUT_PLOTS / f"sweep_summary_pair_{args.pair}.csv", index=False)
+    df.to_csv(OUT_PLOTS / f"sweep_summary_sky_{args.cell}.csv", index=False)
     print(f"\nWrote {out}")
     print("\nSummary:\n" + df.to_string(index=False))
 

@@ -61,10 +61,11 @@ well above the PSF FWHM (~0.15″) and the galaxy half-light radius
 
 ```{python}
 #| echo: false
-#| fig-cap: "Pair 11119 skycell 000m18x60y42 source layout. LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."
+#| fig-cap: "Example skycell source layout (first row of the catalogs index). LEFT: 210 stars (circles) and 210 galaxies (squares) at disjoint Sobol positions, coloured by F158 magnitude; dashed rectangle = the 200-pixel injection boundary, dotted = the 100-px skycell-overlap border. RIGHT: nearest-neighbour separation histogram across all 420 sources, with the nominal 5″ blending floor marked — well separated for both PSF and Sersic sources."
 from IPython.display import Image, display
+_example_name = INDEX["skycell_name"].iloc[0]
 display(Image(filename=str(
-    REPO / "output/detection/phase3/grid_000m18x60y42.png")))
+    REPO / f"output/detection/phase3/grid_{_example_name}.png")))
 ```
 
 ## Catalog index
@@ -72,7 +73,7 @@ display(Image(filename=str(
 ```{python}
 #| echo: false
 #| tbl-cap: "One row per skycell catalog pair. Each Phase-4 L2 sim reads the combined stars+galaxies file for its pair's skycell; the per-source `type` column tells romanisim which is which."
-INDEX[["PAIR_ID", "skycell_name", "skycell_idx",
+INDEX[["SKYCELL_ID", "skycell_name", "skycell_idx",
        "n_stars", "n_galaxies", "mag_min", "mag_max",
        "stars_path", "galaxies_path"]]
 ```
@@ -119,11 +120,12 @@ gt.slice(k, 1).to_pandas().T.rename(columns={0: "value"})
 ```{python}
 #| echo: false
 #| tbl-cap: "End-of-phase assertions."
+_example_name = INDEX["skycell_name"].iloc[0]
 stars_11119 = Table.read(
-    REPO / "catalogs/detection/catalogs/skycell_000m18x60y42_stars.parquet"
+    REPO / f"catalogs/detection/catalogs/skycell_{_example_name}_stars.parquet"
 ).to_pandas()
 gal_11119 = Table.read(
-    REPO / "catalogs/detection/catalogs/skycell_000m18x60y42_galaxies.parquet"
+    REPO / f"catalogs/detection/catalogs/skycell_{_example_name}_galaxies.parquet"
 ).to_pandas()
 
 checks = [

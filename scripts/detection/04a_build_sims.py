@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Phase 4: build the combined catalog + sims.script for a pair.
+"""Phase 4a: build the combined catalog + sims.script for one skycell.
 
-For a given PAIR_ID, this script
+For a given SKYCELL_ID, this script
 
 1. Reads the Phase-3 stars and galaxies catalogs for the selected
    skycell and concatenates them into a single combined parquet
@@ -9,9 +9,9 @@ For a given PAIR_ID, this script
    file — the plan's "combined input" choice).
 2. Reads `pointings_sca_to_simulate.ecsv` (Phase 2) and
    `selected_pointings.ecsv` (Phase 1) to enumerate the (pointing, SCA)
-   pairs for the given PAIR_ID. Emits one `romanisim-make-image` line
+   pairs for the given SKYCELL_ID. Emits one `romanisim-make-image` line
    per L2 file, each guarded with a skip-if-exists check, and writes
-   the lines to `output/detection/sims_<pair>.script`.
+   the lines to `output/detection/sims_<cell>.script`.
 
 The per-line seed is `zlib.crc32(basename)` — same convention as the
 full run (`scripts/_postprocess_sims.py`), so every (visit, exposure,
@@ -22,7 +22,7 @@ Filenames follow the canonical HLWAS convention:
     _{exposure:04d}_wfi{sca:02d}_{bandpass}_cal.asdf
 
 Usage:
-    pixi run python scripts/detection/04a_build_sims.py --pair 11119
+    pixi run python scripts/detection/04a_build_sims.py --cell 1
 """
 from __future__ import annotations
 
@@ -56,8 +56,9 @@ def canonical_l2_filename(row: pd.Series) -> str:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pair", type=int, required=True,
-                    help="PAIR_ID to build sims for (e.g. 11119)")
+    ap.add_argument("--cell", type=int, required=True,
+                    help="SKYCELL_ID to build sims for (integer tag from "
+                         "selected_skycells.ecsv)")
     args = ap.parse_args()
 
     OUT_CAT.mkdir(parents=True, exist_ok=True)
@@ -69,11 +70,11 @@ def main():
         REPO / "catalogs/detection/pointings_sca_to_simulate.ecsv",
         format="ascii.ecsv"
     ).to_pandas()
-    pts_sim = pts_sim[pts_sim["PAIR_ID"] == args.pair].copy()
+    pts_sim = pts_sim[pts_sim["SKYCELL_ID"] == args.cell].copy()
     if pts_sim.empty:
-        raise SystemExit(f"No rows in pointings_sca_to_simulate.ecsv for pair {args.pair}")
+        raise SystemExit(f"No rows in pointings_sca_to_simulate.ecsv for cell {args.cell}")
     skycell_name = str(pts_sim["skycell_name"].iloc[0])
-    print(f"Pair {args.pair} → skycell {skycell_name}, "
+    print(f"Skycell {args.cell} → {skycell_name}, "
           f"{len(pts_sim)} (pointing, SCA) rows")
 
     stars_path = CATS_IN / f"skycell_{skycell_name}_stars.parquet"
@@ -94,7 +95,7 @@ def main():
     if pts_sim["RA"].isna().any():
         bad = pts_sim[pts_sim["RA"].isna()]
         raise SystemExit(f"Missing RA/Dec for {len(bad)} rows:\n{bad}")
-    script_path = REPO / f"output/detection/sims_{args.pair}.script"
+    script_path = REPO / f"output/detection/sims_{args.cell}.script"
     lines = []
     for _, r in pts_sim.sort_values(
             ["PASS", "SEGMENT", "VISIT", "EXPOSURE", "SCA"]).iterrows():

@@ -1,2 +1,0 @@
-PAIR_ID,skycell_name,n_truth_stars,n_truth_galaxies,n_recovered,n_false_positive,mag_50pct_stars,mag_50pct_galaxies,mag_90pct_stars,mag_90pct_galaxies,crossmatch_radius_arcsec
-11,017p00x68y28,210,210,241,3,25.0,24.380000000000003,24.85,24.2375,0.3
