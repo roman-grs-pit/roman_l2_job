@@ -26,6 +26,20 @@ stratified by:
   0.25° of the skycell centre. "High" = ≥ 75th percentile; "low" =
   ≤ 25th percentile, across HLWAS-interior candidates.
 
+The candidate pool is all skymap skycells in the HLWAS Dec band
+for which `count_0p6` (# F158 exposures within 0.6°) is **≥ 5**.
+That filter is meant to exclude the outer survey edges where only
+isolated pointings sit nearby. **It's lenient**, though: a skycell
+sitting in a gap between HLWAS visit tiles can still have 5+
+exposures at the 0.3-0.6° annulus while having **zero within 0.25°**.
+In the current run, pair 6 (RA 26.7°, Dec −21.3°) is exactly such a
+case — it looks interior on this coarse filter but sits in a real
+tiling gap, and Phase 2 expansion ultimately finds only 2 L2 files
+overlapping its selected skycell. The "coverage gap" category we
+produce is therefore a mix of true survey-edge skycells (pairs 2,
+11) and interior-but-gap skycells (pairs 1, 5, 6) — the mosaics
+show both kinds hit depth 0 for the median interior pixel.
+
 Target: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12
 skycells. A 5° great-circle minimum separation is enforced between
 any two picks so different cells don't accidentally land on top of
@@ -74,16 +88,25 @@ display(Image(filename=str(REPO / "output/detection/phase1/sky_map.png")))
 display(Image(filename=str(REPO / "output/detection/phase1/coverage_distribution.png")))
 ```
 
-## Caveat — some "low coverage" cells produce no mosaic
+## Caveats from the first run
 
-After Phase 2 expansion, the `high_zodi × low_coverage` cell (pairs 9
-and 10) ends up with **zero** L2 files overlapping the selected
-skycell — HLWAS's tiling near the ecliptic is sparse enough that even
-outer SCAs don't reach "gap" skycells there. We proceed with the other
-10 skycells for Phase 4b; the missing cell is documented but not
+**Some "low coverage" cells produce no mosaic.** After Phase 2
+expansion, the `high_zodi × low_coverage` cell (pairs 9 and 10) ends
+up with **zero** L2 files overlapping the selected skycell — HLWAS's
+tiling near the ecliptic is sparse enough that even outer SCAs
+don't reach "gap" skycells there. We proceed with the other 10
+skycells for Phase 4b; the missing cell is documented but not
 recovered in this pass. A future iteration could tighten the "low
 coverage" definition to `count_0p25 ∈ [1, 4]` instead of `≤ 0` to
 guarantee non-zero overlap.
+
+**The interior filter is too lenient.** `count_0p6 ≥ 5` accepts both
+true survey-interior skycells and "tiling-gap" skycells where the
+0.25° neighbourhood is empty but the 0.3-0.6° annulus isn't.
+Tightening to e.g. `count_0p25 ≥ 1 AND count_0p6 ≥ 10` would force
+the candidate pool to skycells that at least one HLWAS pointing's
+inner SCAs can reach — eliminating the depth-0 mosaic outcomes by
+construction rather than after-the-fact.
 
 ## Reproducing
 
