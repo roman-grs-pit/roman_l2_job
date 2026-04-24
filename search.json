@@ -154,7 +154,7 @@
     "href": "detection/index.html#status",
     "title": "L3 detection-efficiency study",
     "section": "Status",
-    "text": "Status\nPhases 1-5b are complete for pair 11119. Baseline: 50% completeness at F158 mag 25.4 (stars) / 24.6 (galaxies). Kernel sweep confirms default kernel_fwhm=2 is near-optimal for both source types; wider kernels hurt. Next: skycell-driven refactor + Phase 4b scale-up.\n\nPhase 1 — pointing selection\nPhase 2 — skycell / SCA overlap\nPhase 3 — truth-catalog generation\nPhase 4a — L2 + L3 validation\nPhase 5a — detection baseline\nPhase 5b — kernel_fwhm sweep\nPhase 5c — npixels sweep",
+    "text": "Status\nPhase 1 rewritten for the skycell-driven design: 12 skycells picked in a (zodi × coverage) matrix. Phase 2 expansion ran on all 12; 10 have ≥ 2 overlapping L2 files and will mosaic (pairs 9 and 10 in the high_zodi × low_coverage cell got 0 overlap — documented in Phase 1). Phase 4b orchestrator running now (~124 L2 sims + 10 mosaics + Phase 5a/b/c per mosaic).\n\nPhase 1 — skycell selection ← rewritten for matrix\nPhase 2 — HLWAS expansion ← expansion-only\nPhase 3 — truth-catalog generation\nPhase 4a — L2 + L3 validation (pair 11119) ← historical single-skycell validation\nPhase 5a — detection baseline (pair 11119)\nPhase 5b — kernel_fwhm sweep (pair 11119)\nPhase 5c — npixels sweep (pair 11119)",
     "crumbs": [
       "Detection efficiency",
       "Overview"
@@ -163,9 +163,9 @@
   {
     "objectID": "detection/phase2_skycells.html",
     "href": "detection/phase2_skycells.html",
-    "title": "Phase 2 — skycell / SCA overlap",
+    "title": "Phase 2 — HLWAS expansion per skycell",
     "section": "",
-    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 30 pointings from Phase 1, we:\n\nBuild each of the 18 SCA WCSs via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False). This is the same CRDS-backed code path romanisim-make-image --usecrds uses, so the corners agree with the L2 image WCS to sub-pixel accuracy.\nExtract the four corner positions of each 4088×4088 SCA.\nCall romancal.skycell.match.find_skycell_matches(corners) to get the list of skycells the SCA footprint overlaps — this walks the skymap KDTree and tests polygon overlap against each candidate projection region’s skycell grid.\n\nFrom the 540 (pointing, SCA) → skycell(s) triples we build two aggregate tables and pick one depth-6 skycell per pair for Phase 3/4.\n\n\nThe pair’s 6 pointings alone only reach nominal depth 6 on the selected skycell, but the 3 dithers in a visit shift the telescope by ~7-12′ (larger than a 4.6′ skycell). So per-pixel depth from the pair alone tops out at ~4. To recover the full HLWAS depth, we then sweep the entire HLWAS F158 pointing list for every pointing whose centre lies within 0.6° of the selected skycell (Roman WFI outer SCAs reach ~0.2° from the boresight; 0.6° is a comfortable margin). For each candidate we compute all 18 SCA footprints via the CRDS-backed WCS and keep any (pointing, SCA) pair that overlaps the target skycell.\nAll the expanded sims use the pair’s chosen SIM_DATE so the zodiacal background stays fixed across the mosaic. The expansion lifts the number of L2 sims from 6 to ~20 per pair and the per-pixel mosaic depth from 4 to 10-12.\n\n\n\n\n\n\nNoteWCS-model note — why CRDS over galsim\n\n\n\n\n\nThe first iteration of this script used galsim.roman.getWCS, which applies GalSim’s analytical (SIAF-based) Roman distortion model. That model differs from the CRDS-provided distortion that romanisim-make-image --usecrds applies by several arcmin per SCA — enough to flip overlap decisions at skycell boundaries. Phase 4a surfaced this: the Phase-2-selected “depth 6” skycell for pair 11119 only received contributions from 4 of the 6 pointings at sim time, not 6. Switching to the romanisim CRDS path made Phase-2 predictions and post-sim skycell_asn output agree.",
+    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 12 skycells selected in Phase 1:\n\nGather all HLWAS F158 (Wide-Field2) exposures whose nominal centre is within 0.6° of the skycell centre — the pool of candidate pointings whose outer SCAs could plausibly reach the 4.6′ skycell.\nFor each (candidate pointing, SCA) pair, build the CRDS-backed WCS via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the same code path romanisim-make-image --usecrds uses.\nTake the 4 SCA corners and call romancal.skycell.match.find_skycell_matches(corners). If the selected skycell is in the match list, add the (pointing, SCA) to Phase 4’s sim list.\n\nAll L2s per skycell are simulated at the skycell’s SIM_DATE (from Phase 1, chosen for ~90° solar elongation). That fixes zodi across the mosaic regardless of what HLWAS PASS the original visit was scheduled in.",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
@@ -174,64 +174,42 @@
   {
     "objectID": "detection/phase2_skycells.html#what-phase-2-does",
     "href": "detection/phase2_skycells.html#what-phase-2-does",
-    "title": "Phase 2 — skycell / SCA overlap",
+    "title": "Phase 2 — HLWAS expansion per skycell",
     "section": "",
-    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 30 pointings from Phase 1, we:\n\nBuild each of the 18 SCA WCSs via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False). This is the same CRDS-backed code path romanisim-make-image --usecrds uses, so the corners agree with the L2 image WCS to sub-pixel accuracy.\nExtract the four corner positions of each 4088×4088 SCA.\nCall romancal.skycell.match.find_skycell_matches(corners) to get the list of skycells the SCA footprint overlaps — this walks the skymap KDTree and tests polygon overlap against each candidate projection region’s skycell grid.\n\nFrom the 540 (pointing, SCA) → skycell(s) triples we build two aggregate tables and pick one depth-6 skycell per pair for Phase 3/4.\n\n\nThe pair’s 6 pointings alone only reach nominal depth 6 on the selected skycell, but the 3 dithers in a visit shift the telescope by ~7-12′ (larger than a 4.6′ skycell). So per-pixel depth from the pair alone tops out at ~4. To recover the full HLWAS depth, we then sweep the entire HLWAS F158 pointing list for every pointing whose centre lies within 0.6° of the selected skycell (Roman WFI outer SCAs reach ~0.2° from the boresight; 0.6° is a comfortable margin). For each candidate we compute all 18 SCA footprints via the CRDS-backed WCS and keep any (pointing, SCA) pair that overlaps the target skycell.\nAll the expanded sims use the pair’s chosen SIM_DATE so the zodiacal background stays fixed across the mosaic. The expansion lifts the number of L2 sims from 6 to ~20 per pair and the per-pixel mosaic depth from 4 to 10-12.\n\n\n\n\n\n\nNoteWCS-model note — why CRDS over galsim\n\n\n\n\n\nThe first iteration of this script used galsim.roman.getWCS, which applies GalSim’s analytical (SIAF-based) Roman distortion model. That model differs from the CRDS-provided distortion that romanisim-make-image --usecrds applies by several arcmin per SCA — enough to flip overlap decisions at skycell boundaries. Phase 4a surfaced this: the Phase-2-selected “depth 6” skycell for pair 11119 only received contributions from 4 of the 6 pointings at sim time, not 6. Switching to the romanisim CRDS path made Phase-2 predictions and post-sim skycell_asn output agree.",
+    "text": "Phase 2 is purely geometric — no image data is simulated. For each of the 12 skycells selected in Phase 1:\n\nGather all HLWAS F158 (Wide-Field2) exposures whose nominal centre is within 0.6° of the skycell centre — the pool of candidate pointings whose outer SCAs could plausibly reach the 4.6′ skycell.\nFor each (candidate pointing, SCA) pair, build the CRDS-backed WCS via romanisim.wcs.get_wcs(meta_dict, usecrds=True) with fill_in_parameters(coord, pa_aper, boresight=False) — the same code path romanisim-make-image --usecrds uses.\nTake the 4 SCA corners and call romancal.skycell.match.find_skycell_matches(corners). If the selected skycell is in the match list, add the (pointing, SCA) to Phase 4’s sim list.\n\nAll L2s per skycell are simulated at the skycell’s SIM_DATE (from Phase 1, chosen for ~90° solar elongation). That fixes zodi across the mosaic regardless of what HLWAS PASS the original visit was scheduled in.",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#overlap-counts",
-    "href": "detection/phase2_skycells.html#overlap-counts",
-    "title": "Phase 2 — skycell / SCA overlap",
-    "section": "Overlap counts",
-    "text": "Overlap counts\nEvery pair has ≥ 1 skycell where all 6 pointings overlap (depth 6, the design maximum); depth falls off near the edges of the pair’s combined footprint.\n\n\n\n\n\n\nPer-pair skycell-depth distribution. A depth-d skycell gets contributions from d of the pair’s 6 pointings.\n\n\n\ndepth 2\ndepth 4\ndepth 6\n\n\nPAIR_ID\n\n\n\n\n\n\n\n2525\n58\n40\n34\n\n\n2550\n56\n44\n36\n\n\n3316\n48\n43\n32\n\n\n10101\n54\n41\n33\n\n\n11119\n55\n46\n34",
+    "objectID": "detection/phase2_skycells.html#l2-counts-per-skycell",
+    "href": "detection/phase2_skycells.html#l2-counts-per-skycell",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "L2 counts per skycell",
+    "text": "L2 counts per skycell\n\n\n\n\n\n\nL2 files per pair after HLWAS expansion. n_l2_files is the distinct (PASS × SEGMENT × VISIT × EXPOSURE × SCA) combos whose SCA overlaps the target skycell; n_visits is the number of distinct HLWAS visits contributing. Pairs 9 and 10 got 0 overlap — HLWAS tiling near the ecliptic leaves coverage gaps.\n\n\n\nPAIR_ID\nskycell_name\nzodi_bin\ncoverage_bin\ncount_0p25\nn_l2_files\nn_visits\n\n\n\n\n0\n1\n066m27x60y41\nlow_zodi\nlow\n0\n2\n2\n\n\n1\n2\n063m53x47y43\nlow_zodi\nlow\n0\n2\n2\n\n\n2\n3\n059m27x38y48\nlow_zodi\nhigh\n6\n6\n2\n\n\n3\n4\n065m50x70y32\nlow_zodi\nhigh\n12\n26\n6\n\n\n4\n5\n048m06x64y42\nmid_zodi\nlow\n0\n2\n2\n\n\n5\n6\n028m21x46y37\nmid_zodi\nlow\n0\n2\n2\n\n\n6\n7\n007m21x69y69\nmid_zodi\nhigh\n6\n20\n6\n\n\n7\n8\n329m31x72y34\nmid_zodi\nhigh\n12\n22\n6\n\n\n8\n9\n350m09x36y30\nhigh_zodi\nlow\n0\n0\n0\n\n\n9\n10\n329m06x42y29\nhigh_zodi\nlow\n0\n0\n0\n\n\n10\n11\n017p00x68y28\nhigh_zodi\nhigh\n6\n16\n4\n\n\n11\n12\n325m24x50y57\nhigh_zodi\nhigh\n12\n26\n6",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#per-pair-coverage-maps",
-    "href": "detection/phase2_skycells.html#per-pair-coverage-maps",
-    "title": "Phase 2 — skycell / SCA overlap",
-    "section": "Per-pair coverage maps",
-    "text": "Per-pair coverage maps\nEach panel shows one pair. Coloured polygons are skycells in the (pair, skycell) table — fill colour encodes mosaic depth (0 → max). Thin outlines are the 18 SCA footprints of each of the pair’s 6 pointings, colour-coded by pointing. The red thick outline is the Phase-2-selected skycell for that pair (the deepest one nearest the pair’s nominal centre). The black + is the pair centre.",
+    "objectID": "detection/phase2_skycells.html#per-skycell-coverage-maps",
+    "href": "detection/phase2_skycells.html#per-skycell-coverage-maps",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "Per-skycell coverage maps",
+    "text": "Per-skycell coverage maps\n\n\n\n\n\nPer-skycell SCA footprint overlays. Red square = the 4.6′ skycell; each coloured polygon = one contributing L2’s SCA footprint. Plots show, visually, how coverage density varies with pair_id.",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
     ]
   },
   {
-    "objectID": "detection/phase2_skycells.html#the-selected-skycells",
-    "href": "detection/phase2_skycells.html#the-selected-skycells",
-    "title": "Phase 2 — skycell / SCA overlap",
-    "section": "The selected skycells",
-    "text": "The selected skycells\nOne depth-6 skycell per pair — selected to be the deepest skycell nearest the pair’s nominal centre.\n\n\n\n\n\nThe five selected skycells, one per pair. n_pointings is the mosaic depth (design maximum = 6); n_sca_events is the total number of distinct (pointing, SCA) contributions (may exceed 6 when the skycell straddles an SCA boundary inside a single pointing).\n\n\n \nPAIR_ID\nskycell_idx\nskycell_name\nskycell_ra\nskycell_dec\nn_pointings\nn_sca_events\n\n\n\n\n0\n2525\n4140671\n021m03x63y41\n20.109\n-1.986\n6\n6\n\n\n1\n2550\n6197746\n021m34x40y47\n20.500\n-35.073\n6\n6\n\n\n2\n3316\n5172492\n028m18x55y34\n26.462\n-17.550\n6\n6\n\n\n3\n10101\n5355902\n350m18x57y47\n349.385\n-17.407\n6\n6\n\n\n4\n11119\n5156967\n000m18x60y42\n359.386\n-17.186\n6\n6",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 2 — skycells"
-    ]
-  },
-  {
-    "objectID": "detection/phase2_skycells.html#l2-files-to-simulate",
-    "href": "detection/phase2_skycells.html#l2-files-to-simulate",
-    "title": "Phase 2 — skycell / SCA overlap",
-    "section": "L2 files to simulate",
-    "text": "L2 files to simulate\nFor each selected skycell, the set of (pointing, SCA) pairs whose footprint overlaps the skycell:\n\n\n\n\n\n\nL2 files to simulate per pair after the HLWAS expansion. n_visits is the number of distinct HLWAS visits contributing; n_l2_files is the (visit × exposure × SCA) count.\n\n\n\nPAIR_ID\nn_l2_files\nn_visits\nscas_per_visit_mean\n\n\n\n\n0\n2525\n18\n6\n3.00\n\n\n1\n2550\n22\n6\n3.67\n\n\n2\n3316\n10\n4\n2.50\n\n\n3\n10101\n18\n8\n2.25\n\n\n4\n11119\n22\n8\n2.75\n\n\n\n\n\n\n\n\n\n\n\n\n\nFirst 40 rows of the per-skycell L2 list. The full HLWAS expansion can add dozens of (visit × exposure × SCA) combinations beyond the pair’s 6 nominal dithers.\n\n\n\nPAIR_ID\nskycell_name\nPASS\nSEGMENT\nVISIT\nEXPOSURE\nSCA\nRA\nDEC\n\n\n\n\n0\n2525\n021m03x63y41\n15\n547\n16\n1\n5\n20.297174\n-1.857181\n\n\n1\n2525\n021m03x63y41\n15\n547\n16\n1\n6\n20.297174\n-1.857181\n\n\n2\n2525\n021m03x63y41\n15\n547\n16\n2\n5\n20.377880\n-1.936055\n\n\n3\n2525\n021m03x63y41\n15\n547\n16\n2\n8\n20.377880\n-1.936055\n\n\n4\n2525\n021m03x63y41\n15\n547\n16\n3\n7\n20.520573\n-2.075492\n\n\n5\n2525\n021m03x63y41\n15\n547\n17\n1\n12\n19.955083\n-1.659833\n\n\n6\n2525\n021m03x63y41\n15\n547\n17\n2\n12\n20.035769\n-1.738706\n\n\n7\n2525\n021m03x63y41\n15\n547\n17\n3\n2\n20.178429\n-1.878150\n\n\n8\n2525\n021m03x63y41\n15\n547\n18\n3\n15\n19.836345\n-1.680796\n\n\n9\n2525\n021m03x63y41\n16\n547\n16\n1\n5\n20.297174\n-1.857181\n\n\n10\n2525\n021m03x63y41\n16\n547\n16\n1\n6\n20.297174\n-1.857181\n\n\n11\n2525\n021m03x63y41\n16\n547\n16\n2\n5\n20.377880\n-1.936055\n\n\n12\n2525\n021m03x63y41\n16\n547\n16\n2\n8\n20.377880\n-1.936055\n\n\n13\n2525\n021m03x63y41\n16\n547\n16\n3\n7\n20.520573\n-2.075492\n\n\n14\n2525\n021m03x63y41\n16\n547\n17\n1\n12\n19.955083\n-1.659833\n\n\n15\n2525\n021m03x63y41\n16\n547\n17\n2\n12\n20.035769\n-1.738706\n\n\n16\n2525\n021m03x63y41\n16\n547\n17\n3\n2\n20.178429\n-1.878150\n\n\n17\n2525\n021m03x63y41\n16\n547\n18\n3\n15\n19.836345\n-1.680796\n\n\n18\n2550\n021m34x40y47\n15\n145\n14\n1\n7\n20.987359\n-35.155194\n\n\n19\n2550\n021m34x40y47\n15\n145\n15\n1\n2\n20.567583\n-34.960863\n\n\n20\n2550\n021m34x40y47\n15\n145\n15\n2\n1\n20.666736\n-35.039157\n\n\n21\n2550\n021m34x40y47\n15\n145\n15\n2\n2\n20.666736\n-35.039157\n\n\n22\n2550\n021m34x40y47\n15\n145\n15\n2\n4\n20.666736\n-35.039157\n\n\n23\n2550\n021m34x40y47\n15\n145\n15\n2\n5\n20.666736\n-35.039157\n\n\n24\n2550\n021m34x40y47\n15\n145\n15\n3\n4\n20.842485\n-35.177369\n\n\n25\n2550\n021m34x40y47\n15\n145\n15\n3\n7\n20.842485\n-35.177369\n\n\n26\n2550\n021m34x40y47\n15\n145\n16\n1\n15\n20.149747\n-34.765099\n\n\n27\n2550\n021m34x40y47\n15\n145\n16\n2\n15\n20.248275\n-34.843728\n\n\n28\n2550\n021m34x40y47\n15\n145\n16\n3\n11\n20.422918\n-34.982543\n\n\n29\n2550\n021m34x40y47\n16\n145\n14\n1\n7\n20.987359\n-35.155194\n\n\n30\n2550\n021m34x40y47\n16\n145\n15\n1\n2\n20.567583\n-34.960863\n\n\n31\n2550\n021m34x40y47\n16\n145\n15\n2\n1\n20.666736\n-35.039157\n\n\n32\n2550\n021m34x40y47\n16\n145\n15\n2\n2\n20.666736\n-35.039157\n\n\n33\n2550\n021m34x40y47\n16\n145\n15\n2\n4\n20.666736\n-35.039157\n\n\n34\n2550\n021m34x40y47\n16\n145\n15\n2\n5\n20.666736\n-35.039157\n\n\n35\n2550\n021m34x40y47\n16\n145\n15\n3\n4\n20.842485\n-35.177369\n\n\n36\n2550\n021m34x40y47\n16\n145\n15\n3\n7\n20.842485\n-35.177369\n\n\n37\n2550\n021m34x40y47\n16\n145\n16\n1\n15\n20.149747\n-34.765099\n\n\n38\n2550\n021m34x40y47\n16\n145\n16\n2\n15\n20.248275\n-34.843728\n\n\n39\n2550\n021m34x40y47\n16\n145\n16\n3\n11\n20.422918\n-34.982543",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 2 — skycells"
-    ]
-  },
-  {
-    "objectID": "detection/phase2_skycells.html#self-checks",
-    "href": "detection/phase2_skycells.html#self-checks",
-    "title": "Phase 2 — skycell / SCA overlap",
-    "section": "Self-checks",
-    "text": "Self-checks\n\n\n\n\n\n\nEnd-of-phase assertions on the overlap output.\n\n\n\ncheck\npass\n\n\n\n\n0\n5 skycells selected (one per pair)\nTrue\n\n\n1\nevery selected skycell has n_pointings == 6\nTrue\n\n\n2\nevery pair has exactly one selected skycell\nTrue\n\n\n3\nevery pointing appears in the SCA table\nTrue\n\n\n4\nn_sca_events ≥ n_pointings for every (pair, sk...\nTrue\n\n\n5\nexpansion adds at least as many L2s as the pai...\nTrue",
+    "objectID": "detection/phase2_skycells.html#design-consequence-variable-per-pixel-depth-across-the-sample",
+    "href": "detection/phase2_skycells.html#design-consequence-variable-per-pixel-depth-across-the-sample",
+    "title": "Phase 2 — HLWAS expansion per skycell",
+    "section": "Design consequence — variable per-pixel depth across the sample",
+    "text": "Design consequence — variable per-pixel depth across the sample\nLow-coverage skycells (pairs 1, 2, 5, 6) have only ~2 L2 files each after expansion — outer SCAs of ~1-2 nearby HLWAS visits. Per-pixel depth will be 1-2 in most of those mosaics.\nHigh-coverage skycells (pairs 3, 4, 7, 8, 11, 12) have 16-26 L2 files each, with per-pixel depth ~8-12 expected based on pair 11119’s earlier validation.\nThat dynamic range — factor of 10× in depth across the sample — is the point of the matrix design: Phase 5 measures detection efficiency vs position, source type, magnitude, and depth simultaneously.",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
@@ -240,9 +218,9 @@
   {
     "objectID": "detection/phase2_skycells.html#reproducing",
     "href": "detection/phase2_skycells.html#reproducing",
-    "title": "Phase 2 — skycell / SCA overlap",
+    "title": "Phase 2 — HLWAS expansion per skycell",
     "section": "Reproducing",
-    "text": "Reproducing\npixi run python scripts/detection/02_skycell_overlap.py\nWrites:\n\ncatalogs/detection/skycell_overlap_sca.ecsv — every (pointing, SCA, skycell) triple\ncatalogs/detection/skycell_overlap_pointing.ecsv — aggregated to one row per (pair, skycell), with depth and contributing pointings/SCAs\ncatalogs/detection/selected_skycells.ecsv — one depth-6 skycell per pair\ncatalogs/detection/pointings_sca_to_simulate.ecsv — the (pointing, SCA) list Phase 4 uses\noutput/detection/phase2/coverage_pair_*.png",
+    "text": "Reproducing\npixi run python scripts/detection/02_skycell_overlap.py\nReads selected_skycells.ecsv (Phase 1), writes pointings_sca_to_simulate.ecsv (the Phase 4 input) plus per-pair coverage plots. Wall time ~85 min at 4-way parallelism (one CRDS-backed get_wcs × find_skycell_matches call takes a few seconds; the expansion loops over # candidates × 18 SCAs per pair).",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
@@ -251,9 +229,9 @@
   {
     "objectID": "detection/phase2_skycells.html#checkpoint",
     "href": "detection/phase2_skycells.html#checkpoint",
-    "title": "Phase 2 — skycell / SCA overlap",
+    "title": "Phase 2 — HLWAS expansion per skycell",
     "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 2 deliverable. Before Phase 3, we need to pick a storage location with the user for the L2/L3 binary products (they won’t live in the repo). Default: output/detection/{l2,l3}/ in-tree, with the corresponding subpaths added to .gitignore.",
+    "text": "Checkpoint\nPhase 2 done — 10 of 12 skycells have non-zero L2 coverage. The two skipped (pairs 9, 10 in the high_zodi × low_coverage cell) are documented in Phase 1.",
     "crumbs": [
       "Detection efficiency",
       "Phase 2 — skycells"
@@ -784,86 +762,75 @@
   {
     "objectID": "detection/phase1_pointings.html",
     "href": "detection/phase1_pointings.html",
-    "title": "Phase 1 — pointing selection",
+    "title": "Phase 1 — skycell selection",
     "section": "",
-    "text": "The candidate pool is catalogs/HLWAS.sim.ecsv — the simulated Roman High-Latitude Wide-Area Survey pointing list. We apply these filters to arrive at the selection pool:\n\nBANDPASS == \"F158\".\nExactly two visits share identical (RA, Dec, PA) at 10⁻⁵ deg precision — these are the survey-design re-observations. Visit centres are computed with a circular mean over the 3 dither RAs (important near RA = 0°/360°: a linear mean would place a dither triplet straddling the wrap at a phantom RA ≈ 120°/240°).\nThe two visits are from PASS = 15 and PASS = 16 — the dominant revisit mode in HLWAS.\nMA_TABLE_NUMBER == 1007 (the 107.52 s F158 imaging cadence; the only MA table used by the (15,16) re-observations).\nInterior check: at least 200 F158 exposures sit within 2° of the pair centre. Drops phantom centres and near-edge pairs.\n\nSelection then picks from this pool:\n\nTwo anchors: at RA ∈ [10°, 30°], one at Dec ≈ −35° and one at Dec ≈ −2°. These sit above/below the main survey body and give the final selection a broader ecliptic-latitude range than any single Dec slice can.\nThree RA-spread picks from the main box RA ∈ [330°, 360°] ∪ [0°, 50°], Dec ∈ [−25°, −10°]: bin the interior-pool pairs in this box into 3 equal-count bins along the wrap-aware RA axis, and in each bin take the median-Dec candidate.\n\nAfter filtering, every visit has exactly 3 dithered exposures, PA is uniform within a pair (both visits share a roll), and the nominal RA/Dec centres are pairwise identical. Each pair therefore gives 6 dithered exposures at one (RA, Dec, PA) with two different observation dates.\n\n\n\n\n\n\nFunnel from the full HLWAS table down to the candidate pool for selection.\n\n\n\nfilter step\ncount\n\n\n\n\n0\nHLWAS.sim.ecsv — all rows\n160180\n\n\n1\nF158 rows\n67368\n\n\n2\nF158 visits (3-dither groups)\n22456\n\n\n3\nPASS=(15,16) F158 pairs, MA_TABLE_NUMBER=1007\n11160\n\n\n4\n… interior (≥ 200 F158 exps within 2° of centre)\n10237\n\n\n5\nselected pairs (2 anchors + 3 RA-spread)\n5",
+    "text": "Pick N target skycells inside the HLWAS F158 Wide-Field2 footprint, stratified by:\n\nEcliptic latitude (proxy for zodiacal background). Bands: |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between bands ensure cross-bin picks aren’t at adjacent |ecl_lat|.\nLocal HLWAS coverage density (proxy for mosaic depth): count_0p25 = # HLWAS F158 exposures whose centre lies within 0.25° of the skycell centre. “High” = ≥ 75th percentile; “low” = ≤ 25th percentile, across HLWAS-interior candidates.\n\nTarget: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12 skycells. A 5° great-circle minimum separation is enforced between any two picks so different cells don’t accidentally land on top of each other.\nPer skycell, we also compute the sim date that minimises solar elongation inside [90°, 115°] in 2026 — the “hardest-zodi” day within Roman’s pointing constraint for that field.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#input-and-filters",
-    "href": "detection/phase1_pointings.html#input-and-filters",
-    "title": "Phase 1 — pointing selection",
+    "objectID": "detection/phase1_pointings.html#what-phase-1-does",
+    "href": "detection/phase1_pointings.html#what-phase-1-does",
+    "title": "Phase 1 — skycell selection",
     "section": "",
-    "text": "The candidate pool is catalogs/HLWAS.sim.ecsv — the simulated Roman High-Latitude Wide-Area Survey pointing list. We apply these filters to arrive at the selection pool:\n\nBANDPASS == \"F158\".\nExactly two visits share identical (RA, Dec, PA) at 10⁻⁵ deg precision — these are the survey-design re-observations. Visit centres are computed with a circular mean over the 3 dither RAs (important near RA = 0°/360°: a linear mean would place a dither triplet straddling the wrap at a phantom RA ≈ 120°/240°).\nThe two visits are from PASS = 15 and PASS = 16 — the dominant revisit mode in HLWAS.\nMA_TABLE_NUMBER == 1007 (the 107.52 s F158 imaging cadence; the only MA table used by the (15,16) re-observations).\nInterior check: at least 200 F158 exposures sit within 2° of the pair centre. Drops phantom centres and near-edge pairs.\n\nSelection then picks from this pool:\n\nTwo anchors: at RA ∈ [10°, 30°], one at Dec ≈ −35° and one at Dec ≈ −2°. These sit above/below the main survey body and give the final selection a broader ecliptic-latitude range than any single Dec slice can.\nThree RA-spread picks from the main box RA ∈ [330°, 360°] ∪ [0°, 50°], Dec ∈ [−25°, −10°]: bin the interior-pool pairs in this box into 3 equal-count bins along the wrap-aware RA axis, and in each bin take the median-Dec candidate.\n\nAfter filtering, every visit has exactly 3 dithered exposures, PA is uniform within a pair (both visits share a roll), and the nominal RA/Dec centres are pairwise identical. Each pair therefore gives 6 dithered exposures at one (RA, Dec, PA) with two different observation dates.\n\n\n\n\n\n\nFunnel from the full HLWAS table down to the candidate pool for selection.\n\n\n\nfilter step\ncount\n\n\n\n\n0\nHLWAS.sim.ecsv — all rows\n160180\n\n\n1\nF158 rows\n67368\n\n\n2\nF158 visits (3-dither groups)\n22456\n\n\n3\nPASS=(15,16) F158 pairs, MA_TABLE_NUMBER=1007\n11160\n\n\n4\n… interior (≥ 200 F158 exps within 2° of centre)\n10237\n\n\n5\nselected pairs (2 anchors + 3 RA-spread)\n5",
+    "text": "Pick N target skycells inside the HLWAS F158 Wide-Field2 footprint, stratified by:\n\nEcliptic latitude (proxy for zodiacal background). Bands: |lat| ≤ 10° (high zodi), 15°–30° (mid), ≥ 40° (low). Gaps between bands ensure cross-bin picks aren’t at adjacent |ecl_lat|.\nLocal HLWAS coverage density (proxy for mosaic depth): count_0p25 = # HLWAS F158 exposures whose centre lies within 0.25° of the skycell centre. “High” = ≥ 75th percentile; “low” = ≤ 25th percentile, across HLWAS-interior candidates.\n\nTarget: 2 picks per cell × 3 zodi bands × 2 coverage bands = 12 skycells. A 5° great-circle minimum separation is enforced between any two picks so different cells don’t accidentally land on top of each other.\nPer skycell, we also compute the sim date that minimises solar elongation inside [90°, 115°] in 2026 — the “hardest-zodi” day within Roman’s pointing constraint for that field.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#solar-elongation-window",
-    "href": "detection/phase1_pointings.html#solar-elongation-window",
-    "title": "Phase 1 — pointing selection",
-    "section": "Solar-elongation window",
-    "text": "Solar-elongation window\nEach selected pair is simulated on a date where the solar elongation of the field is in [90°, 115°], as close to 90° as possible — minimum elongation drives maximum zodiacal brightness, which makes the recovery test conservative (hardest detection), while staying inside Roman’s viewable-zone constraint. The chosen date minimises (elong − 90°) while staying inside the window.\n\n\n\n\n\nSolar elongation vs day of year 2026 for the five selected pairs. Grey band = [90°, 115°]; filled dot = the chosen simulation date (closest to 90° inside the window). Each pair has two windows per year; we pick the first-hit day for reproducibility.",
+    "objectID": "detection/phase1_pointings.html#the-12-selected-skycells",
+    "href": "detection/phase1_pointings.html#the-12-selected-skycells",
+    "title": "Phase 1 — skycell selection",
+    "section": "The 12 selected skycells",
+    "text": "The 12 selected skycells\n\n\n\n\n\nSelected skycells. count_0p25 is the # HLWAS F158 exposures within 0.25° of the skycell centre — the selection metric. SKY_E_PER_PIX_PER_S is romanisim’s predicted F158 zodi at SIM_DATE.\n\n\n \nPAIR_ID\nskycell_name\nskycell_ra\nskycell_dec\nECL_LAT_DEG\nzodi_bin\ncoverage_bin\ncount_0p25\nSIM_DATE\nSOLAR_ELONG_DEG\nSKY_E_PER_PIX_PER_S\n\n\n\n\n0\n1\n066m27x60y41\n65.030\n-26.751\n-47.31\nlow_zodi\nlow\n0\n2026-02-15T00:00:00.000\n90.20\n0.534\n\n\n1\n2\n063m53x47y43\n62.135\n-53.611\n-71.30\nlow_zodi\nlow\n0\n2026-01-20T00:00:00.000\n90.19\n0.434\n\n\n2\n3\n059m27x38y48\n58.679\n-28.366\n-47.30\nlow_zodi\nhigh\n6\n2026-08-11T00:00:00.000\n90.28\n0.532\n\n\n3\n4\n065m50x70y32\n63.479\n-48.099\n-67.01\nlow_zodi\nhigh\n12\n2026-08-03T00:00:00.000\n90.04\n0.443\n\n\n4\n5\n048m06x64y42\n47.873\n-4.860\n-21.82\nmid_zodi\nlow\n0\n2026-02-03T00:00:00.000\n90.15\n0.821\n\n\n5\n6\n028m21x46y37\n26.669\n-21.327\n-30.00\nmid_zodi\nlow\n0\n2026-07-09T00:00:00.000\n90.38\n0.683\n\n\n6\n7\n007m21x69y69\n8.402\n-19.638\n-21.29\nmid_zodi\nhigh\n6\n2026-06-22T00:00:00.000\n90.66\n0.821\n\n\n7\n8\n329m31x72y34\n327.502\n-29.232\n-15.16\nmid_zodi\nhigh\n12\n2026-05-11T00:00:00.000\n90.26\n0.975\n\n\n8\n9\n350m09x36y30\n348.127\n-9.873\n-4.40\nhigh_zodi\nlow\n0\n2026-06-07T00:00:00.000\n90.68\n1.255\n\n\n9\n10\n329m06x42y29\n327.297\n-6.471\n+6.32\nhigh_zodi\nlow\n0\n2026-05-19T00:00:00.000\n90.41\n1.223\n\n\n10\n11\n017p00x68y28\n15.695\n1.319\n-4.96\nhigh_zodi\nhigh\n6\n2026-07-08T00:00:00.000\n90.53\n1.249\n\n\n11\n12\n325m24x50y57\n325.947\n-24.220\n-9.98\nhigh_zodi\nhigh\n12\n2026-05-12T00:00:00.000\n90.81\n1.127",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#the-selection",
-    "href": "detection/phase1_pointings.html#the-selection",
-    "title": "Phase 1 — pointing selection",
-    "section": "The selection",
-    "text": "The selection\nTwo anchor picks (southern and northern edge, Dec ≈ −35° and Dec ≈ −2° at RA ≈ 20°) plus three RA-spread picks in the main box at median Dec.\n\n\n\n\n\nThe five selected pairs. SIM_DATE is the chosen simulation date for both visits in the pair. SKY_E_PER_PIX_PER_S is the romanisim-predicted F158 zodiacal sky at the pair’s (RA, Dec, date), including the 10% stray-light term and the 0.04 e⁻/pix/s F158 thermal background. WINDOWS_DOY lists all 2026 day-of-year ranges where the field’s solar elongation is inside [90°, 115°].\n\n\n \nPAIR_ID\nRA\nDEC\nPA\nECL_LON_DEG\nECL_LAT_DEG\nSIM_DATE\nSOLAR_ELONG_DEG\nSKY_E_PER_PIX_PER_S\nWINDOWS_DOY\n\n\n\n\n0\n2525\n20.056\n-1.759\n0.0\n17.84\n-9.47\n2026-01-08T00:00:00.000\n90.50\n1.154\n0-7;191-217;348-365\n\n\n1\n2550\n20.274\n-34.864\n0.0\n2.49\n-39.61\n2026-06-25T00:00:00.000\n90.48\n0.590\n175-209;325-357\n\n\n2\n3316\n26.679\n-17.312\n0.0\n17.86\n-26.33\n2026-07-11T00:00:00.000\n90.45\n0.735\n0-7;191-219;346-365\n\n\n3\n10101\n349.165\n-17.325\n0.0\n343.20\n-11.64\n2026-12-05T00:00:00.000\n90.72\n1.084\n155-180;314-338\n\n\n4\n11119\n359.592\n-17.287\n0.0\n352.57\n-15.66\n2026-06-14T00:00:00.000\n90.03\n0.963\n164-191;323-347\n\n\n\n\n\nThe set spans ecliptic latitudes from −9.5° to −39.6° (via the two anchors) while keeping every pair deep inside the HLWAS footprint. The predicted F158 zodiacal sky rate varies by a factor of ~2 across the five pairs.",
+    "objectID": "detection/phase1_pointings.html#selection-matrix",
+    "href": "detection/phase1_pointings.html#selection-matrix",
+    "title": "Phase 1 — skycell selection",
+    "section": "Selection matrix",
+    "text": "Selection matrix\n\n\n\n\n\nStratification matrix. Grey dots are the HLWAS-interior candidate pool (~700k skycells); red/green dashed lines mark the 25th/75th percentiles of count_0p25; vertical dotted lines are the ecl-lat band boundaries. Stars = selected skycells, coloured by PAIR_ID.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#sky-distribution",
-    "href": "detection/phase1_pointings.html#sky-distribution",
-    "title": "Phase 1 — pointing selection",
-    "section": "Sky distribution",
-    "text": "Sky distribution\n\n\n\n\n\nHLWAS F158 exposures (grey cloud), (15,16) interior pairs (blue), and the five selected pairs (red stars, annotated by PAIR_ID). Dashed black rectangle = the main-survey RA-spread box; dotted orange rectangles = the two anchor windows (southern and northern edge).",
+    "objectID": "detection/phase1_pointings.html#sky-map",
+    "href": "detection/phase1_pointings.html#sky-map",
+    "title": "Phase 1 — skycell selection",
+    "section": "Sky map",
+    "text": "Sky map\n\n\n\n\n\nAll HLWAS F158 exposures (grey) and the 12 selected skycells (stars). Low-zodi picks cluster near the southern edge of HLWAS (high |ecl_lat|); high-zodi picks are near RA 0° where HLWAS crosses the ecliptic.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#predicted-sky-background",
-    "href": "detection/phase1_pointings.html#predicted-sky-background",
-    "title": "Phase 1 — pointing selection",
-    "section": "Predicted sky background",
-    "text": "Predicted sky background\nFor each selected pair we also compute the expected F158 zodiacal sky rate using galsim.roman.getSkyLevel, matching the model romanisim uses internally (the same code path as romanisim-make-image at romanisim.image.simulate_counts:697). We include the 10% stray-light fraction and the 0.04 e⁻/pix/s F158 thermal background, and multiply by the Roman WFI pixel area (0.11″ native).\nAs a sanity check, romanisim at the full-run target (RA 10°, Dec 0°, sim-date 2026-01-01) predicts ~1.27 e⁻/pix/s here — matching the measured 1.28 e⁻/pix/s from the full-run L2 files.\n\n\n\n\n\nPredicted F158 sky rate (e⁻/pix/s) for every interior pair at the elongation-optimal date, coloured by pair. The five selected pairs are over-plotted as red stars. Sky level tracks |ecliptic latitude| — the southern anchor (Pair 2550, ecl_lat -39.6°) is near the minimum; the northern anchor (Pair 2525, ecl_lat -9.5°) is near the maximum.",
+    "objectID": "detection/phase1_pointings.html#coverage-distribution",
+    "href": "detection/phase1_pointings.html#coverage-distribution",
+    "title": "Phase 1 — skycell selection",
+    "section": "Coverage distribution",
+    "text": "Coverage distribution\n\n\n\n\n\nHistogram of count_0p25 across the HLWAS-interior candidate pool. A large mass at 0 reflects HLWAS’s tiling pattern: between visit centres there are ‘gap’ skycells that no inner SCA reaches. The 25th percentile is 0, 75th is 6. Our ‘low coverage’ picks target the gap population; ‘high coverage’ the visit-centre population.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
     ]
   },
   {
-    "objectID": "detection/phase1_pointings.html#the-pointing-level-file",
-    "href": "detection/phase1_pointings.html#the-pointing-level-file",
-    "title": "Phase 1 — pointing selection",
-    "section": "The pointing-level file",
-    "text": "The pointing-level file\ncatalogs/detection/selected_pointings.ecsv is the artefact Phase 2 consumes. It has one row per dithered exposure — 5 pairs × 2 visits × 3 dithers = 30 rows.\n\n\n\n\n\n\nThe 30 selected pointings. RA/DEC here are the per-dither positions — not the nominal pair centre — and will be handed directly to romanisim-make-image.\n\n\n\nPAIR_ID\nPASS\nSEGMENT\nOBSERVATION\nVISIT\nEXPOSURE\nRA\nDEC\nPA\nSIM_DATE\nSOLAR_ELONG_DEG\nSKY_E_PER_PIX_PER_S\n\n\n\n\n0\n2525\n15\n547\n1\n17\n1\n19.955083\n-1.659833\n0.0\n2026-01-08T00:00:00.000\n90.504554\n1.153952\n\n\n1\n2525\n15\n547\n1\n17\n2\n20.035769\n-1.738706\n0.0\n2026-01-08T00:00:00.000\n90.504554\n1.153952\n\n\n2\n2525\n15\n547\n1\n17\n3\n20.178429\n-1.878150\n0.0\n2026-01-08T00:00:00.000\n90.504554\n1.153952\n\n\n3\n2525\n16\n547\n1\n17\n1\n19.955083\n-1.659833\n0.0\n2026-01-08T00:00:00.000\n90.504554\n1.153952\n\n\n4\n2525\n16\n547\n1\n17\n2\n20.035769\n-1.738706\n0.0\n2026-01-08T00:00:00.000\n90.504554\n1.153952\n\n\n5\n2525\n16\n547\n1\n17\n3\n20.178429\n-1.878150\n0.0\n2026-01-08T00:00:00.000\n90.504554\n1.153952\n\n\n6\n2550\n15\n145\n1\n16\n1\n20.149747\n-34.765099\n0.0\n2026-06-25T00:00:00.000\n90.475376\n0.590420\n\n\n7\n2550\n15\n145\n1\n16\n2\n20.248275\n-34.843728\n0.0\n2026-06-25T00:00:00.000\n90.475376\n0.590420\n\n\n8\n2550\n15\n145\n1\n16\n3\n20.422918\n-34.982543\n0.0\n2026-06-25T00:00:00.000\n90.475376\n0.590420\n\n\n9\n2550\n16\n145\n1\n16\n1\n20.149747\n-34.765099\n0.0\n2026-06-25T00:00:00.000\n90.475376\n0.590420\n\n\n10\n2550\n16\n145\n1\n16\n2\n20.248275\n-34.843728\n0.0\n2026-06-25T00:00:00.000\n90.475376\n0.590420\n\n\n11\n2550\n16\n145\n1\n16\n3\n20.422918\n-34.982543\n0.0\n2026-06-25T00:00:00.000\n90.475376\n0.590420\n\n\n12\n3316\n15\n414\n1\n12\n1\n26.572299\n-17.213850\n0.0\n2026-07-11T00:00:00.000\n90.448858\n0.734721\n\n\n13\n3316\n15\n414\n1\n12\n2\n26.657118\n-17.292325\n0.0\n2026-07-11T00:00:00.000\n90.448858\n0.734721\n\n\n14\n3316\n15\n414\n1\n12\n3\n26.807236\n-17.430948\n0.0\n2026-07-11T00:00:00.000\n90.448858\n0.734721\n\n\n15\n3316\n16\n414\n1\n12\n1\n26.572299\n-17.213850\n0.0\n2026-07-11T00:00:00.000\n90.448858\n0.734721\n\n\n16\n3316\n16\n414\n1\n12\n2\n26.657118\n-17.292325\n0.0\n2026-07-11T00:00:00.000\n90.448858\n0.734721\n\n\n17\n3316\n16\n414\n1\n12\n3\n26.807236\n-17.430948\n0.0\n2026-07-11T00:00:00.000\n90.448858\n0.734721\n\n\n18\n10101\n15\n132\n1\n15\n1\n349.058639\n-17.226019\n0.0\n2026-12-05T00:00:00.000\n90.715537\n1.084348\n\n\n19\n10101\n15\n132\n1\n15\n2\n349.143354\n-17.304647\n0.0\n2026-12-05T00:00:00.000\n90.715537\n1.084348\n\n\n20\n10101\n15\n132\n1\n15\n3\n349.293293\n-17.443561\n0.0\n2026-12-05T00:00:00.000\n90.715537\n1.084348\n\n\n21\n10101\n16\n132\n1\n15\n1\n349.058639\n-17.226019\n0.0\n2026-12-05T00:00:00.000\n90.715537\n1.084348\n\n\n22\n10101\n16\n132\n1\n15\n2\n349.143354\n-17.304647\n0.0\n2026-12-05T00:00:00.000\n90.715537\n1.084348\n\n\n23\n10101\n16\n132\n1\n15\n3\n349.293293\n-17.443561\n0.0\n2026-12-05T00:00:00.000\n90.715537\n1.084348\n\n\n24\n11119\n15\n215\n1\n11\n1\n359.485191\n-17.188176\n0.0\n2026-06-14T00:00:00.000\n90.031123\n0.962975\n\n\n25\n11119\n15\n215\n1\n11\n2\n359.569861\n-17.266820\n0.0\n2026-06-14T00:00:00.000\n90.031123\n0.962975\n\n\n26\n11119\n15\n215\n1\n11\n3\n359.719719\n-17.405752\n0.0\n2026-06-14T00:00:00.000\n90.031123\n0.962975\n\n\n27\n11119\n16\n215\n1\n11\n1\n359.485191\n-17.188176\n0.0\n2026-06-14T00:00:00.000\n90.031123\n0.962975\n\n\n28\n11119\n16\n215\n1\n11\n2\n359.569861\n-17.266820\n0.0\n2026-06-14T00:00:00.000\n90.031123\n0.962975\n\n\n29\n11119\n16\n215\n1\n11\n3\n359.719719\n-17.405752\n0.0\n2026-06-14T00:00:00.000\n90.031123\n0.962975",
-    "crumbs": [
-      "Detection efficiency",
-      "Phase 1 — pointings"
-    ]
-  },
-  {
-    "objectID": "detection/phase1_pointings.html#self-checks",
-    "href": "detection/phase1_pointings.html#self-checks",
-    "title": "Phase 1 — pointing selection",
-    "section": "Self-checks",
-    "text": "Self-checks\n\n\n\n\n\n\nEnd-of-phase assertions on the selection output.\n\n\n\ncheck\npass\n\n\n\n\n0\n5 pairs selected\nTrue\n\n\n1\n10 visits (2 per pair)\nTrue\n\n\n2\n30 pointings (3 dithers per visit)\nTrue\n\n\n3\nsouthern anchor present (Dec in [-40, -30], RA...\nTrue\n\n\n4\nnorthern anchor present (Dec in [-5, 0], RA in...\nTrue\n\n\n5\nall MA_TABLE_NUMBER = 1007\nTrue\n\n\n6\nall elongations in [90, 115]\nTrue\n\n\n7\npair centres pairwise distinct\nTrue\n\n\n8\nboth visits of a pair share (RA,Dec,PA) at nom...\nTrue\n\n\n9\nall sky levels positive and &lt; 5 e⁻/pix/s\nTrue",
+    "objectID": "detection/phase1_pointings.html#caveat-some-low-coverage-cells-produce-no-mosaic",
+    "href": "detection/phase1_pointings.html#caveat-some-low-coverage-cells-produce-no-mosaic",
+    "title": "Phase 1 — skycell selection",
+    "section": "Caveat — some “low coverage” cells produce no mosaic",
+    "text": "Caveat — some “low coverage” cells produce no mosaic\nAfter Phase 2 expansion, the high_zodi × low_coverage cell (pairs 9 and 10) ends up with zero L2 files overlapping the selected skycell — HLWAS’s tiling near the ecliptic is sparse enough that even outer SCAs don’t reach “gap” skycells there. We proceed with the other 10 skycells for Phase 4b; the missing cell is documented but not recovered in this pass. A future iteration could tighten the “low coverage” definition to count_0p25 ∈ [1, 4] instead of ≤ 0 to guarantee non-zero overlap.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
@@ -872,9 +839,9 @@
   {
     "objectID": "detection/phase1_pointings.html#reproducing",
     "href": "detection/phase1_pointings.html#reproducing",
-    "title": "Phase 1 — pointing selection",
+    "title": "Phase 1 — skycell selection",
     "section": "Reproducing",
-    "text": "Reproducing\npixi run python scripts/detection/01_select_pointings.py\nWrites catalogs/detection/selected_pairs.ecsv (pair-level, 10 rows), catalogs/detection/selected_pointings.ecsv (per-dither, 30 rows — the Phase 2 input), and the two diagnostic PNGs under output/detection/phase1/.",
+    "text": "Reproducing\npixi run python scripts/detection/01_select_skycells.py\nWrites catalogs/detection/selected_skycells.ecsv (12 rows) plus three PNGs under output/detection/phase1/.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
@@ -883,9 +850,9 @@
   {
     "objectID": "detection/phase1_pointings.html#checkpoint",
     "href": "detection/phase1_pointings.html#checkpoint",
-    "title": "Phase 1 — pointing selection",
+    "title": "Phase 1 — skycell selection",
     "section": "Checkpoint",
-    "text": "Checkpoint\nPhase 1 deliverable — ready for user review before starting Phase 2 (skycell / SCA overlap analysis, no new simulations).",
+    "text": "Checkpoint\nPhase 1 deliverable. The 10 usable skycells carry Phase 4b through to a detection-efficiency measurement across both the zodi and coverage axes.",
     "crumbs": [
       "Detection efficiency",
       "Phase 1 — pointings"
