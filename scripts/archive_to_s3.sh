@@ -74,7 +74,8 @@ aws s3 sync configs/ "s3://$BUCKET/$PREFIX/configs/" \
 
 # Input artefacts that live outside output/ but matter for restore.
 for f in pointings_full.ecsv pointings_smoke.ecsv \
-         catalogs/sources.parquet catalogs/HLWAS.sim.ecsv; do
+         catalogs/sources.parquet catalogs/HLWAS.sim.ecsv \
+         data/metadata.parquet; do
     [ -f "$f" ] || continue
     aws s3 cp "$f" "s3://$BUCKET/$PREFIX/$f" \
         --storage-class "$STORAGE_CLASS" --no-progress
