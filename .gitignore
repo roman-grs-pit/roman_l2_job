@@ -30,6 +30,7 @@ catalogs/sources.parquet
 output/detection/l2/
 output/detection/l3/
 output/detection/asn/
+output/detection/phase*/catalogs_*/*_segm.asdf
 
 # Local pixi env (rebuilt per-platform)
 .pixi/
