@@ -1,0 +1,38 @@
+# Acceptance-testing run: 5x5 mosaic x 3 dithers x 2 OBS = 150 pointings, F158.
+# Pointing list and input catalog live on the S3 Files mount; outputs persist
+# to imaging/2026-04-30/ on the same mount. Pipeline driven by SLURM array
+# jobs (slurm_run_sims.sh, slurm_run_mosaic.sh, slurm_run_catalog.sh).
+tag: acceptance
+
+# Absolute path on the S3 Files mount: outputs land at
+#   ${output_base}/cal/, ${output_base}/logs/, ${output_base}/acceptance/...
+output_base: /mnt/roman-science/grs/acceptance-testing-20260430/imaging/2026-04-30
+
+catalog:
+  # The padded catalog (2.53M sources) covers the wider 5x5 footprint with
+  # margin so source rendering doesn't truncate at field edges. F158 is
+  # already in maggies (per parquet column metadata).
+  input: /mnt/roman-science/grs/acceptance-testing-20260430/catalogs_padded/metadata.parquet
+  input_units: maggies
+  bandpass_col: F158
+
+pointings:
+  # Region is only consulted by filter_pointings.py if pointings_acceptance.ecsv
+  # is missing -- which it isn't (we symlink the user-supplied ECSV at
+  # ${PROJ}/pointings_acceptance.ecsv before running 01_build_script.sh).
+  # Box covers actual 5x5 footprint (RA in [8.34, 11.58], DEC in [-0.89, 0.99])
+  # with margin.
+  region:
+    type: box
+    ra_min: 8.0
+    ra_max: 12.0
+    dec_min: -1.2
+    dec_max: 1.2
+  bandpass: F158
+  only_pass: null
+  only_segment: null
+  only_visit: null
+  design_depth: 6   # 2 OBS x 3 dithers per visit
+
+run:
+  parallelism: 4    # unused under SLURM but schema-required
