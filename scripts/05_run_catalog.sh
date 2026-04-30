@@ -12,9 +12,9 @@ CONFIG="${1:-}"
 [ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
 eval "$(pixi run python scripts/_config.py "$CONFIG")"
 
-MOSAIC_DIR="output/${TAG}/mosaic"
-CAT_DIR="output/${TAG}/catalog"
-LOG_DIR="output/logs"
+MOSAIC_DIR="${OUTPUT_BASE}/${TAG}/mosaic"
+CAT_DIR="${OUTPUT_BASE}/${TAG}/catalog"
+LOG_DIR="${OUTPUT_BASE}/logs"
 PARALLELISM="${PARALLELISM:-$RUN_PARALLELISM}"
 
 [ -d "$MOSAIC_DIR" ] || { echo "missing $MOSAIC_DIR (run 04_run_mosaic.sh $CONFIG first)"; exit 1; }

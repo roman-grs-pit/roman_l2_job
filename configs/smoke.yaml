@@ -2,6 +2,9 @@
 # Reproduces the behaviour of the original `smoke` tag byte-for-byte.
 tag: smoke
 
+# Where stage outputs land. Resolved relative to the repo root unless absolute.
+output_base: output
+
 catalog:
   input: data/metadata.parquet
   input_units: mag            # mag → converted to maggies by 00_prepare_catalog.py

@@ -23,9 +23,10 @@ Usage from Python:
 Usage from bash (one invocation per stage; cheap on warm pixi env):
 
     eval "$(pixi run python scripts/_config.py configs/smoke.yaml)"
-    # now TAG, CATALOG_INPUT, CATALOG_INPUT_UNITS, CATALOG_BANDPASS_COL,
-    # POINTINGS_BANDPASS, POINTINGS_ONLY_{PASS,SEGMENT,VISIT},
-    # POINTINGS_REGION_TYPE, RUN_PARALLELISM, CONFIG_PATH are exported.
+    # now TAG, OUTPUT_BASE, CATALOG_INPUT, CATALOG_INPUT_UNITS,
+    # CATALOG_BANDPASS_COL, POINTINGS_BANDPASS,
+    # POINTINGS_ONLY_{PASS,SEGMENT,VISIT}, POINTINGS_REGION_TYPE,
+    # RUN_PARALLELISM, CONFIG_PATH are exported.
     # Region params expose under POINTINGS_REGION_<FIELD> depending on type.
 
 When in doubt, prefer `load_config` over shell-eval — Python keeps field
@@ -90,6 +91,7 @@ class Run:
 @dataclass
 class Config:
     tag: str
+    output_base: str
     catalog: Catalog
     pointings: Pointings
     run: Run
@@ -98,6 +100,7 @@ class Config:
 
 REQUIRED = {
     "tag": str,
+    "output_base": str,
     "catalog": dict,
     "pointings": dict,
     "run": dict,
@@ -193,6 +196,7 @@ def load_config(path: str | Path) -> Config:
 
     return Config(
         tag=raw["tag"],
+        output_base=raw["output_base"],
         catalog=Catalog(input=Path(cat["input"]),
                         input_units=cat["input_units"],
                         bandpass_col=cat["bandpass_col"]),
@@ -217,6 +221,7 @@ def _export_for_shell(cfg: Config) -> str:
     lines = [
         f"export CONFIG_PATH={_shell_quote(cfg.path)}",
         f"export TAG={_shell_quote(cfg.tag)}",
+        f"export OUTPUT_BASE={_shell_quote(cfg.output_base)}",
         f"export CATALOG_INPUT={_shell_quote(cfg.catalog.input)}",
         f"export CATALOG_INPUT_UNITS={_shell_quote(cfg.catalog.input_units)}",
         f"export CATALOG_BANDPASS_COL={_shell_quote(cfg.catalog.bandpass_col)}",

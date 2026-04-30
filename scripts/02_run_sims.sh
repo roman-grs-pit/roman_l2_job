@@ -12,7 +12,7 @@ CONFIG="${1:-}"
 [ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
 eval "$(pixi run python scripts/_config.py "$CONFIG")"
 
-SCRIPT="output/${TAG}/sims.script"
+SCRIPT="${OUTPUT_BASE}/${TAG}/sims.script"
 PARALLELISM="${PARALLELISM:-$RUN_PARALLELISM}"
 
 [ -f "$SCRIPT" ] || { echo "missing $SCRIPT (run 01_build_script.sh $CONFIG first)"; exit 1; }

@@ -15,8 +15,8 @@ CONFIG="${1:-}"
 eval "$(pixi run python scripts/_config.py "$CONFIG")"
 
 POINTINGS="pointings_${TAG}.ecsv"
-RAW="output/${TAG}/sims_raw.script"
-SCRIPT="output/${TAG}/sims.script"
+RAW="${OUTPUT_BASE}/${TAG}/sims_raw.script"
+SCRIPT="${OUTPUT_BASE}/${TAG}/sims.script"
 CATALOG="catalogs/sources.parquet"
 
 [ -f "$CATALOG" ] || { echo "missing $CATALOG (run 00_prepare_catalog.py $CONFIG first)"; exit 1; }
@@ -28,16 +28,16 @@ if [ ! -f "$POINTINGS" ]; then
     pixi run python scripts/filter_pointings.py "$CONFIG"
 fi
 
-mkdir -p output/cal output/logs "output/${TAG}"
+mkdir -p "${OUTPUT_BASE}/cal" "${OUTPUT_BASE}/logs" "${OUTPUT_BASE}/${TAG}"
 
 # Generate raw script with constant seed; we rewrite per line below.
 pixi run python scripts/make_stack.py "$POINTINGS" "$CATALOG" \
-    --make_script "output/${TAG}/sims_raw" \
+    --make_script "${OUTPUT_BASE}/${TAG}/sims_raw" \
     --level 2 --usecrds --psftype stpsf --rng_seed 1
 
 pixi run python scripts/_postprocess_sims.py \
     --input "$RAW" --output "$SCRIPT" \
-    --cal-dir output/cal --log-dir output/logs
+    --cal-dir "${OUTPUT_BASE}/cal" --log-dir "${OUTPUT_BASE}/logs"
 
 N=$(wc -l < "$SCRIPT")
 echo "Wrote $SCRIPT (${N} lines)"

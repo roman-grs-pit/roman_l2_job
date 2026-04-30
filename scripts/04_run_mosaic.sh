@@ -16,9 +16,9 @@ CONFIG="${1:-}"
 [ -n "$CONFIG" ] || { echo "usage: $0 configs/<tag>.yaml"; exit 1; }
 eval "$(pixi run python scripts/_config.py "$CONFIG")"
 
-ASN_DIR="output/${TAG}/asn"
-MOSAIC_DIR="output/${TAG}/mosaic"
-LOG_DIR="output/logs"
+ASN_DIR="${OUTPUT_BASE}/${TAG}/asn"
+MOSAIC_DIR="${OUTPUT_BASE}/${TAG}/mosaic"
+LOG_DIR="${OUTPUT_BASE}/logs"
 PARALLELISM="${PARALLELISM:-$RUN_PARALLELISM}"
 
 [ -d "$ASN_DIR" ] || { echo "missing $ASN_DIR (run 03_build_asn.sh $CONFIG first)"; exit 1; }

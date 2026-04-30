@@ -1,6 +1,9 @@
 # Full-run config: 6 visits, 324 sims. ~11 hr / ~$4 on m5a.2xlarge at 4-way.
 tag: full
 
+# Where stage outputs land. Resolved relative to the repo root unless absolute.
+output_base: output
+
 catalog:
   input: data/metadata.parquet
   input_units: mag
