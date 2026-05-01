@@ -113,8 +113,15 @@ def _depth_from_context(ctx: np.ndarray) -> np.ndarray:
     return np.bitwise_count(ctx).astype(np.int32)
 
 
-def list_skycells(asn_dir: Path, max_skycells: int | None):
-    """All skycells with their asn member count. Returns [(base, n_asn), ...]."""
+def list_skycells(asn_dir: Path, max_skycells: int | None,
+                  depth_csv: Path | None = None):
+    """All skycells with their asn member count. Returns [(base, n_asn), ...].
+
+    When `max_skycells` is set, sort to put the genuinely-deepest cells first
+    (median per-pixel depth from `depth_csv` if available, else asn-member
+    count -- which is a poor proxy: a skycell with 16 distinct pointings
+    intersecting it can still have median pixel depth = 4 because the
+    visit-overlap regions are slivers, not the bulk of the cell)."""
     results = []
     for p in sorted(asn_dir.glob("*_asn.json")):
         with p.open() as f:
@@ -123,9 +130,15 @@ def list_skycells(asn_dir: Path, max_skycells: int | None):
         base = p.name[: -len("_asn.json")]
         results.append((base, n))
     if max_skycells is not None:
-        # Debug knob: prefer the highest-asn-count ones so we hit the most
-        # interesting skycells first when cutting the list short.
-        results.sort(key=lambda x: (-x[1], x[0]))
+        depth_by_base: dict[str, float] = {}
+        if depth_csv is not None and depth_csv.is_file():
+            with depth_csv.open() as f:
+                for r in csv.DictReader(f):
+                    depth_by_base[r["name"]] = float(r["dmedian"])
+        if depth_by_base:
+            results.sort(key=lambda x: (-depth_by_base.get(x[0], -1), -x[1], x[0]))
+        else:
+            results.sort(key=lambda x: (-x[1], x[0]))
         results = results[:max_skycells]
         results.sort(key=lambda x: x[0])
     return results
@@ -570,13 +583,14 @@ def main():
     mosaic_dir = base / cfg.tag / "mosaic"
     cat_dir = base / cfg.tag / "catalog"
     out_dir = base / cfg.tag / "compare"
+    depth_csv = base / cfg.tag / "qa" / "coadd_depth_summary.csv"
     plots_dir = out_dir / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"[config] {args.config}  tag={cfg.tag}")
     print(f"[io] asn={asn_dir}  mosaic={mosaic_dir}  cat={cat_dir}")
 
-    skycells = list_skycells(asn_dir, args.max_skycells)
+    skycells = list_skycells(asn_dir, args.max_skycells, depth_csv=depth_csv)
     print(f"[rank] processing {len(skycells)} skycells"
           + (f" (cut to {args.max_skycells})" if args.max_skycells else ""))
 
