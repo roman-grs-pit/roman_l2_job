@@ -28,6 +28,10 @@ stpsf = "*"
 [activation.env]
 CRDS_PATH = "$PIXI_PROJECT_ROOT/crds_cache"
 CRDS_SERVER_URL = "https://roman-crds.stsci.edu"
+# Pin to a specific operational context so cold-cache parallel workers don't
+# race to download a freshly-published context's mappings. Bump deliberately
+# (re-hydrate first) when picking up upstream calibration changes.
+CRDS_CONTEXT = "roman_0048.pmap"
 STPSF_PATH = "$PIXI_PROJECT_ROOT/stpsf-data"
 OMP_NUM_THREADS = "1"
 OPENBLAS_NUM_THREADS = "1"

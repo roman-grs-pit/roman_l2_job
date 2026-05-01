@@ -112,6 +112,14 @@ own deterministic, reproducible seed.
 - `pyarrow` is explicit so `Table.read('*.parquet')` works.
 - Activation env sets:
   - `CRDS_PATH=$PIXI_PROJECT_ROOT/crds_cache` (auto-created; references download on demand)
+  - `CRDS_CONTEXT=roman_0048.pmap` — **pinned**, not `auto`. Why: in `auto`
+    mode, every cold-start worker asks the server for the latest operational
+    context; if STScI has published a new context since hydration, all parallel
+    workers race to download the new mapping files (`.pmap` / `.imap`) and
+    truncate each other. The acceptance run hit this on 2026-04-30 (102 of
+    2700 sims failed with `MappingError: Can't load file roman_0048.pmap`).
+    To bump the pin: pick the desired context, update this value, run
+    `00_hydrate_crds.sh` against the new pin, then re-run.
   - `STPSF_PATH=$PIXI_PROJECT_ROOT/stpsf-data` (populated by `00_setup.sh` via
     manual download of the version-pinned tarball — STPSF's own
     `auto_download_stpsf_data()` ignores `STPSF_PATH` and overwrites it with
