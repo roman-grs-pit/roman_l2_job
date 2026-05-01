@@ -11,10 +11,13 @@ on a Linux x86_64 machine.
 3. Coadds each skycell with `romancal.MosaicPipeline`.
 4. Runs `SourceCatalogStep` on each mosaic.
 
-Every run is driven by a YAML config in `configs/`. Two shipped:
+Every run is driven by a YAML config in `configs/`. Three shipped:
 
 - **`configs/smoke.yaml`** — 1 visit (3 exposures × 18 SCAs = 54 sims). ~2 hr at 4-way on m5a.2xlarge.
 - **`configs/full.yaml`** — all 6 matching visits (324 sims). ~11 hr / ~$4 on m5a.2xlarge.
+- **`configs/acceptance.yaml`** — 5×5 footprint × 3 dithers × 2 OBS = 2700 sims, run on the AWS SLURM cluster. See [`docs/cluster_run.md`](docs/cluster_run.md) for the cluster path.
+
+This README covers the single-instance (xargs) path. For SLURM cluster runs see [`docs/cluster_run.md`](docs/cluster_run.md).
 
 ## One-time setup
 
