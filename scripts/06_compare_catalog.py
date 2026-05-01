@@ -565,10 +565,11 @@ def main():
 
     cfg = load_config(args.config)
 
-    asn_dir = Path(f"output/{cfg.tag}/asn")
-    mosaic_dir = Path(f"output/{cfg.tag}/mosaic")
-    cat_dir = Path(f"output/{cfg.tag}/catalog")
-    out_dir = Path(f"output/{cfg.tag}/compare")
+    base = Path(cfg.output_base) if getattr(cfg, "output_base", None) else Path("output")
+    asn_dir = base / cfg.tag / "asn"
+    mosaic_dir = base / cfg.tag / "mosaic"
+    cat_dir = base / cfg.tag / "catalog"
+    out_dir = base / cfg.tag / "compare"
     plots_dir = out_dir / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
