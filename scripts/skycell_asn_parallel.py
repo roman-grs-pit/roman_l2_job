@@ -92,11 +92,30 @@ def _cli(args=None) -> int:
     parser.add_argument("--product-type", default="full")
     parser.add_argument("--data-release-id", default="p")
     parser.add_argument("--workers", type=int, default=8)
-    parser.add_argument("filelist", nargs="+")
+    # --filelist is the production path: avoids ARG_MAX-driven xargs splitting
+    # (passing thousands of cal paths via argv silently splits into multiple
+    # invocations, each of which overwrites prior asn JSONs for shared
+    # skycells -- correctness bug at scale, hit on the 2700-file run).
+    parser.add_argument(
+        "--filelist",
+        default=None,
+        help="path to a text file listing one cal file per line (preferred for >100 files)",
+    )
+    parser.add_argument("filelist_args", nargs="*")
     parsed = parser.parse_args(args=args)
 
+    if parsed.filelist:
+        with open(parsed.filelist) as f:
+            files = [line.strip() for line in f if line.strip()]
+        if parsed.filelist_args:
+            parser.error("pass cal files via either --filelist or positional args, not both")
+    else:
+        files = parsed.filelist_args
+    if not files:
+        parser.error("no cal files given (use --filelist or positional args)")
+
     skycell_asn_parallel(
-        parsed.filelist,
+        files,
         parsed.output_file_root,
         parsed.product_type,
         parsed.data_release_id,
