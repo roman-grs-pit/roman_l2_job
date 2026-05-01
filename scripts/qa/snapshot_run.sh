@@ -84,20 +84,23 @@ META_DIR="${OUTPUT_BASE}/${TAG}/slurm-meta"
         echo "Per-submission audit files in \`${TAG}/slurm-meta/\`. Aggregate:"
         echo
         echo '```'
+        # awk (rather than grep|cut) so missing keys don't abort under set -e.
+        # Older env files (pre-LINE_OFFSET patch) lack that key; treat as 0.
+        _f() { awk -F= -v k="$1" '$1==k {print $2; exit}' "$2"; }
         for envf in "$META_DIR"/*.env; do
             [ -f "$envf" ] || continue
             STAGE=$(basename "$envf" .env | sed -E 's/-[0-9]+$//')
-            JOB=$(grep '^JOB=' "$envf" | cut -d= -f2)
-            ARR=$(grep '^ARRAY=' "$envf" | cut -d= -f2)
-            OFFSET=$(grep '^LINE_OFFSET=' "$envf" | cut -d= -f2)
-            PART=$(grep '^PARTITION=' "$envf" | cut -d= -f2)
-            MEM=$(grep '^MEM=' "$envf" | cut -d= -f2)
-            K=$(grep '^MAX_CONCURRENT=' "$envf" | cut -d= -f2)
-            COMMIT=$(grep '^GIT_COMMIT=' "$envf" | cut -d= -f2)
-            SUB=$(grep '^SUBMITTED_AT=' "$envf" | cut -d= -f2)
+            JOB=$(_f JOB "$envf")
+            ARR=$(_f ARRAY "$envf")
+            OFFSET=$(_f LINE_OFFSET "$envf")
+            PART=$(_f PARTITION "$envf")
+            MEM=$(_f MEM "$envf")
+            K=$(_f MAX_CONCURRENT "$envf")
+            COMMIT=$(_f GIT_COMMIT "$envf")
+            SUB=$(_f SUBMITTED_AT "$envf")
             printf '%-10s job=%-6s arr=%-10s off=%-5s part=%-10s mem=%-5s K=%-4s commit=%s submit=%s\n' \
                 "$STAGE" "$JOB" "$ARR" "${OFFSET:-0}" "$PART" "$MEM" "$K" "${COMMIT:0:7}" "$SUB"
-        done | sort -k 4 -t '='
+        done | sort -k 9
         echo '```'
     else
         echo "_(no slurm-meta dir at \`$META_DIR\`)_"
@@ -106,7 +109,10 @@ META_DIR="${OUTPUT_BASE}/${TAG}/slurm-meta"
     echo "## Pixi environment"
     echo
     echo '```'
-    pixi info 2>&1 | head -25 || echo "(pixi info failed)"
+    # Capture first; piping pixi info through head triggers SIGPIPE which
+    # under pipefail aborts the script.
+    PIXI_INFO=$(pixi info 2>&1 || echo "(pixi info failed)")
+    echo "$PIXI_INFO" | sed -n '1,25p'
     echo '```'
     echo
     echo "## Notes"
